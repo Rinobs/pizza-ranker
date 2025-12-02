@@ -5,7 +5,7 @@ import LoginButton from "./components/LoginButton";
 
 export default function Home() {
   const categories = [
-    { name: "🍕 T", path: "/pizza" },
+    { name: "🍕 Tiefkühlpizza", path: "/pizza" },
     { name: "🍟 Chips", path: "/chips" },
     { name: "🍫 Süßigkeiten", path: "/sweets" },
     { name: "🍝 Tiefkühlgerichte", path: "/frozen-food" },
