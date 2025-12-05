@@ -1,17 +1,15 @@
+"use client";
+
 import CategoryPage from "../category-template/page-template";
+import { Eis_PRODUCTS } from "@/app/data/products";
 
-const PRODUCTS = [
-  { name: "Schoko", imageUrl: "..." },
-  { name: "Erdbeere", imageUrl: "..." },
-];
-
-export default function Proteinpulver() {
+export default function EisPage() {
   return (
     <CategoryPage
       title="Eis"
       icon="🍦"
       storageKey="eis"
-      products={PRODUCTS}
+      products={Eis_PRODUCTS}
     />
   );
 }

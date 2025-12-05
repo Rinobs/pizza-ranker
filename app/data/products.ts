@@ -786,7 +786,13 @@ export const PROTEINPULVER_PRODUCTS: Product[] = [
     slug: "proteinpulver",
   }
 ];
-export const Eis_PRODUCTS: Product[] = [];
+export const Eis_PRODUCTS: Product[] = [
+  {
+    name: "Ben &  Jerry",
+    imageUrl: "https://rockanutrition.de/cdn/shop/products/HazelnutNougat.png?v=1668504635",
+    category: "Eis",
+    slug: "eis",
+  }];
 
 
 /* -------------------------------------- */
