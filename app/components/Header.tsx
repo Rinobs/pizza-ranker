@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { FiHome, FiGrid, FiUser, FiSearch } from "react-icons/fi";
 import { useState, FormEvent } from "react";
+import LoginButton from "./LoginButton";
 
 export default function Header() {
   const router = useRouter();
@@ -91,16 +92,9 @@ export default function Header() {
             <span className="hidden md:inline">Kategorien</span>
           </Link>
 
-          <Link
-            href="/login"
-            className="
-              px-3 py-1.5 rounded-lg
-              bg-[#4CAF50] text-white font-medium
-              hover:bg-[#43a046] transition
-            "
-          >
-            Login
-          </Link>
+          {/* ⭐ Login Button oben */}
+        <LoginButton />
+      
 
           <button
             className="

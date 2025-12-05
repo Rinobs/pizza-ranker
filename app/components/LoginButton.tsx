@@ -9,10 +9,10 @@ console.log("Irgendwas",session);
   if (!session) {
     return (
       <button
-        className="px-4 py-2 bg-blue-600 text-white rounded"
+        className="px-4 py-2 bg-green-600 text-white rounded"
         onClick={() => signIn("google")}
       >
-        Login mit Google
+        Login
       </button>
     )
   }
