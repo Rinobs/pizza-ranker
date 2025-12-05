@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Providers } from "./providers";
 import Header from "./components/Header";
-import { Suspense } from "react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,9 +27,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       >
         <Providers>
           <Header />
-          <Suspense fallback={<div className="text-white p-10">Lädt…</div>}>
-          <main className="min-h-screen bg-[#14181C] pt-24">{children}</main>
-          </Suspense>
+          {/* ❗ KEIN Suspense um Main! */}
+          <main className="min-h-screen bg-[#14181C] pt-24">
+            {children}
+          </main>
         </Providers>
       </body>
     </html>
