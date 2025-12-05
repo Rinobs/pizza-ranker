@@ -786,6 +786,7 @@ export const PROTEINPULVER_PRODUCTS: Product[] = [
     slug: "proteinpulver",
   }
 ];
+export const Eis_PRODUCTS: Product[] = [];
 
 
 /* -------------------------------------- */
@@ -796,6 +797,7 @@ export const ALL_PRODUCTS: Product[] = [
   ...PIZZA_PRODUCTS,
   ...PROTEINRIEGEL_PRODUCTS,
   ...PROTEINPULVER_PRODUCTS,
+  ...Eis_PRODUCTS
 ];
 
 
