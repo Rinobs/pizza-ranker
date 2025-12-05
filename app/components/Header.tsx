@@ -1,11 +1,25 @@
+"use client";
+
 import Link from "next/link";
-import { FiHome, FiGrid, FiUser } from "react-icons/fi";
-import { Suspense } from "react";
-import HeaderSearch from "./HeaderSearch";
-import { usePathname } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
+import { FiHome, FiGrid, FiUser, FiSearch } from "react-icons/fi";
+import { useState, FormEvent } from "react";
 
 export default function Header() {
+  const router = useRouter();
   const pathname = usePathname();
+  const [query, setQuery] = useState("");
+
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+
+    if (query.trim().length === 0) {
+      router.push("/");
+      return;
+    }
+
+    router.push(`/?q=${encodeURIComponent(query.trim())}`);
+  };
 
   return (
     <header
@@ -30,13 +44,33 @@ export default function Header() {
           </span>
         </Link>
 
-        {/* Suche — jetzt in Suspense */}
-        <Suspense fallback={<div className="text-gray-500 hidden sm:block">…</div>}>
-          <HeaderSearch />
-        </Suspense>
+        {/* Suche ohne useSearchParams */}
+        <form
+          onSubmit={handleSubmit}
+          className="
+            hidden sm:flex items-center gap-2
+            flex-1 max-w-md mx-4
+            bg-[#14181C] border border-[#2A3238]
+            rounded-lg px-3 py-1.5
+          "
+        >
+          <FiSearch className="text-gray-400" />
+          <input
+            type="text"
+            placeholder="Produkte & Kategorien suchen…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="
+              bg-transparent outline-none border-none
+              text-sm text-white w-full
+              placeholder:text-gray-500
+            "
+          />
+        </form>
 
         {/* Navigation rechts */}
         <div className="flex items-center gap-4 text-gray-300 text-sm font-medium">
+          
           <Link
             href="/"
             className={`flex items-center gap-1 hover:text-white transition ${
