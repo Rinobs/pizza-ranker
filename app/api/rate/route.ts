@@ -1,8 +1,5 @@
-console.log("SUPABASE_URL:", process.env.SUPABASE_URL);
-console.log("SERVICE_KEY:", process.env.SUPABASE_SERVICE_ROLE_KEY ? "YES" : "NO");
-
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { createSupabaseServerClient } from "@/lib/supabase";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
@@ -12,6 +9,8 @@ export async function POST(req: Request) {
   if (!session) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
+
+  const supabase = createSupabaseServerClient();
 
   const body = await req.json();
 
