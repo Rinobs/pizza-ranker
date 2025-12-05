@@ -1,7 +1,10 @@
 import { supabase } from "@/lib/supabase";
 
-export async function GET(req: Request, { params }: { params: { slug: string } }) {
-  const { slug } = params;
+export async function GET(
+  req: Request,
+  context: { params: Promise<{ slug: string }> }
+) {
+  const { slug } = await context.params; // <-- WICHTIG!
 
   const { data, error } = await supabase
     .from("ratings")
