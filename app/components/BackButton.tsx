@@ -13,10 +13,12 @@ export default function BackButton({
     <Link
       href={href}
       className="
-        inline-block mb-6 px-4 py-2 rounded-lg
-        bg-gray-100 text-gray-700
-        hover:bg-gray-200 transition border shadow-sm
-      "
+  inline-block mb-6 px-4 py-2 rounded-lg
+  bg-[#1A1F23] text-white
+  hover:bg-[#242B31]
+  transition-colors border border-[#2E353C]
+"
+
     >
       {label}
     </Link>
