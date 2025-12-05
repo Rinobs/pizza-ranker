@@ -1,31 +1,32 @@
-"use client"
+"use client";
 
-import { signIn, signOut, useSession } from "next-auth/react"
+import { createClient } from "@supabase/supabase-js";
 
 export default function LoginButton() {
-  const { data: session } = useSession()
-console.log("Irgendwas",session);
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 
-  if (!session) {
-    return (
-      <button
-        className="px-4 py-2 bg-green-600 text-white rounded"
-        onClick={() => signIn("google")}
-      >
-        Login
-      </button>
-    )
-  }
+  const handleLogin = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+  };
 
   return (
-    <div className="flex items-center gap-3">
-      <span>Hi, {session.user?.name}</span>
-      <button
-        className="px-4 py-1 bg-red-600 text-white rounded"
-        onClick={() => signOut()}
-      >
-        Logout
-      </button>
-    </div>
-  )
+    <button
+      onClick={handleLogin}
+      className="
+        px-3 py-1.5 rounded-lg
+        bg-[#4CAF50] text-white font-medium
+        hover:bg-[#43a046] transition
+      "
+    >
+      Login
+    </button>
+  );
 }

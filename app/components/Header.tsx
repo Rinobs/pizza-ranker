@@ -6,6 +6,7 @@ import { FiHome, FiGrid, FiUser, FiSearch } from "react-icons/fi";
 import { useState, FormEvent } from "react";
 import LoginButton from "./LoginButton";
 
+
 export default function Header() {
   const router = useRouter();
   const pathname = usePathname();
