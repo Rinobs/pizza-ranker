@@ -1,19 +1,17 @@
 import { NextResponse } from "next/server";
-import { createSupabaseServerClient } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+
+// ❗ Kein authOptions importieren!
 
 export async function POST(req: Request) {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession(); // funktioniert ohne Parameter!
 
   if (!session) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  const supabase = createSupabaseServerClient();
-
   const body = await req.json();
-
   const { productSlug, rating, comment } = body;
 
   const { data, error } = await supabase
