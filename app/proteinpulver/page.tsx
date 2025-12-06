@@ -8,7 +8,6 @@ export default function ProteinpulverPage() {
     <CategoryPage
       title="Proteinpulver"
       icon="🍫"
-      storageKey="proteinpulver"
       products={PROTEINPULVER_PRODUCTS}
     />
   );

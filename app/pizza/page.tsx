@@ -8,7 +8,6 @@ export default function pizzaPage() {
     <CategoryPage
       title="Pizza"
       icon="🍕"
-      storageKey="pizza"
       products={PIZZA_PRODUCTS}
     />
   );

@@ -8,7 +8,6 @@ export default function ProteinriegelPage() {
     <CategoryPage
       title="Proteinriegel"
       icon="🍫"
-      storageKey="proteinriegel"
       products={PROTEINRIEGEL_PRODUCTS}
     />
   );

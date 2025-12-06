@@ -8,7 +8,6 @@ export default function EisPage() {
     <CategoryPage
       title="Eis"
       icon="🍦"
-      storageKey="eis"
       products={Eis_PRODUCTS}
     />
   );
