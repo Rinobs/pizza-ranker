@@ -1,53 +1,46 @@
-import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
+import { NextResponse, NextRequest } from "next/server";
 import { supabase } from "@/lib/supabase";
+import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
-// -------------------------------------------------------------
-// POST /api/ratings/:slug
-// Speichert oder updated ein Rating vom eingeloggten User
-// -------------------------------------------------------------
-export async function POST(
-  req: Request,
-  { params }: { params: { slug: string } }
-) {
-  const session = await getServerSession(authOptions);
+export async function POST(req: NextRequest, context: { params: Promise<{ slug: string }> }) {
+  const { slug } = await context.params;
 
-  if (!session?.user?.email) {
+  const session = await getServerSession(authOptions);
+  if (!session) {
     return NextResponse.json(
       { success: false, error: "Not authenticated" },
       { status: 401 }
     );
   }
 
-  const { slug } = params;
+  const user = session.user;
+  if (!user?.email) {
+    return NextResponse.json(
+      { success: false, error: "Missing user email" },
+      { status: 400 }
+    );
+  }
+
   const body = await req.json();
+  const { rating, comment } = body;
 
-  const rating = Number(body.rating) || 0;
-  const comment = body.comment || "";
-
-  // User ID als stabile Kennung
-  const userId = session.user.email;
-
-  // SUPABASE UPSERT
+  // UPSERT → überschreibt vorhandene Bewertung
   const { data, error } = await supabase
     .from("ratings")
     .upsert(
       {
-        user_id: userId,
+        user_id: user.email,
         product_slug: slug,
         rating,
         comment,
-        updated_at: new Date().toISOString(),
       },
-      {
-        onConflict: "user_id,product_slug",
-      }
+      { onConflict: "user_id,product_slug" }
     )
     .select();
 
   if (error) {
-    console.error("Supabase Fehler:", error);
+    console.error(error);
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 400 }
