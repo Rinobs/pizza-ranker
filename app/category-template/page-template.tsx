@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState } from "react";
 import BackButton from "../components/BackButton";
 import Star from "../components/Star";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
+import { useUserRatings } from "../hooks/useUserRatings";
 
 interface Product {
   name: string;
@@ -16,86 +16,25 @@ export default function CategoryPage({
   title,
   icon,
   products,
-  storageKey,
 }: {
   title: string;
   icon: string;
   products: Product[];
-  storageKey: string; // wird nur für Sortieren/Key benutzt
 }) {
-  const { data: session } = useSession();
-  const user = session?.user;
+  const {
+    user,
+    ratings,
+    comments,
+    saveRating,
+    saveComment,
+    loaded,
+  } = useUserRatings();
 
-  const [ratings, setRatings] = useState<Record<string, number>>({});
-  const [comments, setComments] = useState<Record<string, string>>({});
-  const [sortMode, setSortMode] = useState("rating-desc");
+  const [sortMode, setSortMode] = React.useState("rating-desc");
 
-  // -------------------------------------------------------------
-  // 🔥 1) Ratings beim Laden automatisch aus Supabase holen
-  // -------------------------------------------------------------
-  useEffect(() => {
-    if (!user) return; // erst laden, wenn eingeloggt
-
-    async function loadRatings() {
-      const res = await fetch("/api/ratings/all");
-      const json = await res.json();
-
-      if (!json.success) return;
-
-      const userRatings = json.data;
-
-      const ratingMap: Record<string, number> = {};
-      const commentMap: Record<string, string> = {};
-
-      userRatings.forEach((r: any) => {
-        ratingMap[r.product_slug] = r.rating;
-        commentMap[r.product_slug] = r.comment || "";
-      });
-
-      setRatings(ratingMap);
-      setComments(commentMap);
-    }
-
-    loadRatings();
-  }, [user]);
-
-  // -------------------------------------------------------------
-  // 🔥 2) Rating setzen -> an API schicken + UI aktualisieren
-  // -------------------------------------------------------------
-  const saveRating = async (slug: string, value: number) => {
-    if (!user) return alert("Bitte zuerst einloggen!");
-
-    setRatings((prev) => ({ ...prev, [slug]: value }));
-
-    await fetch(`/api/ratings/${slug}`, {
-      method: "POST",
-      body: JSON.stringify({
-        rating: value,
-        comment: comments[slug] || "",
-      }),
-    });
-  };
-
-  // -------------------------------------------------------------
-  // 🔥 3) Kommentar speichern
-  // -------------------------------------------------------------
-  const saveComment = async (slug: string, text: string) => {
-    if (!user) return alert("Bitte zuerst einloggen!");
-
-    setComments((prev) => ({ ...prev, [slug]: text }));
-
-    await fetch(`/api/ratings/${slug}`, {
-      method: "POST",
-      body: JSON.stringify({
-        rating: ratings[slug] || 0,
-        comment: text,
-      }),
-    });
-  };
-
-  // -------------------------------------------------------------
-  // 🔥 SORTIERLOGIK
-  // -------------------------------------------------------------
+  // -----------------------------
+  // 🔥 SORTIEREN
+  // -----------------------------
   const sortedProducts = [...products].sort((a, b) => {
     const ra = ratings[a.slug] || 0;
     const rb = ratings[b.slug] || 0;
@@ -104,6 +43,7 @@ export default function CategoryPage({
     if (sortMode === "rating-asc") return ra - rb;
     if (sortMode === "name-asc") return a.name.localeCompare(b.name);
     if (sortMode === "name-desc") return b.name.localeCompare(a.name);
+
     return 0;
   });
 
@@ -129,43 +69,64 @@ export default function CategoryPage({
         <option value="name-desc">Z–A</option>
       </select>
 
+      {!loaded && (
+        <p className="text-gray-400 text-center">Lade Bewertungen…</p>
+      )}
+
       {/* GRID */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
         {sortedProducts.map((item) => (
           <Link
             key={item.slug}
             href={`/produkt/${item.slug}`}
-            className="group relative rounded-xl overflow-hidden bg-[#1A1F23] border border-[#2A3036]
-            hover:border-[#4CAF50] transition-all"
+            className="
+              group relative rounded-xl overflow-hidden bg-[#1A1F23] 
+              border border-[#2A3036] hover:border-[#4CAF50] 
+              transition-all
+            "
             style={{ aspectRatio: "2 / 3" }}
           >
+            {/* IMAGE */}
             <img
               src={item.imageUrl}
               alt={item.name}
               className="w-full h-full object-cover"
             />
 
+            {/* OVERLAY */}
             <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 p-3">
-              <h3 className="text-white text-sm font-semibold">{item.name}</h3>
 
-              {/* STAR RATING */}
-              <div className="flex items-center mt-1 gap-1" onClick={(e) => e.stopPropagation()}>
+              <h3 className="text-white text-sm font-semibold">
+                {item.name}
+              </h3>
+
+              {/* STARS */}
+              <div
+                className="flex items-center mt-1 gap-1"
+                onClick={(e) => e.stopPropagation()}
+              >
                 {[1, 2, 3, 4, 5].map((i) => (
                   <Star
                     key={i}
                     rating={ratings[item.slug] || 0}
                     index={i}
-                    onRate={(v) => saveRating(item.slug, v)}
+                    onRate={(v) => {
+                      if (!user) return alert("Bitte zuerst einloggen!");
+                      saveRating(item.slug, v);
+                    }}
                   />
                 ))}
               </div>
 
-              {/* COMMENT INPUT */}
+              {/* COMMENT */}
               <input
                 className="w-full mt-2 bg-[#222] text-white text-xs px-2 py-1 rounded"
                 placeholder="Kommentar…"
                 value={comments[item.slug] || ""}
-                onChange={(e) => saveComment(item.slug, e.target.value)}
+                onChange={(e) => {
+                  if (!user) return alert("Bitte zuerst einloggen!");
+                  saveComment(item.slug, e.target.value);
+                }}
                 onClick={(e) => e.stopPropagation()}
               />
             </div>
