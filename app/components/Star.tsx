@@ -1,7 +1,7 @@
 type Props = {
   rating: number;
   index: number;
-  onRate: (value: number) => void;
+  onRate: (value: number, fromUser: boolean) => void;
 };
 
 export default function Star({ rating, index, onRate }: Props) {
@@ -48,11 +48,12 @@ export default function Star({ rating, index, onRate }: Props) {
       {/* Klickbereiche */}
       <button
         className="absolute inset-y-0 left-0 w-1/2 cursor-pointer"
-        onClick={() => onRate(index - 0.5)}
+        onClick={() => onRate(index - 0.5, true)}
+
       />
       <button
         className="absolute inset-y-0 right-0 w-1/2 cursor-pointer"
-        onClick={() => onRate(index)}
+        onClick={() => onRate(index, true)}
       />
     </div>
   );
