@@ -303,3 +303,58 @@ TypeError: fetch failed
     code: 'UND_ERR_CONNECT_TIMEOUT'
   }
 }
+ ⚠ Fast Refresh had to perform a full reload when ./app/data/products.ts changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ ⨯ ./app/home-content.tsx:106:13
+Parsing ecmascript source code failed
+[0m [90m 104 |[39m                 [33m<[39m[33m/[39m[33mh2[39m[33m>[39m
+ [90m 105 |[39m               [33m<[39m[33m/[39m[33mLink[39m[33m>[39m
+[31m[1m>[22m[39m[90m 106 |[39m               )[33m;[39m
+ [90m     |[39m             [31m[1m^[22m[39m
+ [90m 107 |[39m             })} 
+ [90m 108 |[39m       [33m<[39m[33m/[39m[33mdiv[39m[33m>[39m
+ [90m 109 |[39m     [33m<[39m[33m/[39m[33mmain[39m[33m>[39m[0m
+
+Expected '</', got ';'
+
+Import trace:
+  Server Component:
+    ./app/home-content.tsx
+    ./app/page.tsx
+
+
+ ⨯ ./app/home-content.tsx:106:13
+Parsing ecmascript source code failed
+[0m [90m 104 |[39m                 [33m<[39m[33m/[39m[33mh2[39m[33m>[39m
+ [90m 105 |[39m               [33m<[39m[33m/[39m[33mLink[39m[33m>[39m
+[31m[1m>[22m[39m[90m 106 |[39m               )[33m;[39m
+ [90m     |[39m             [31m[1m^[22m[39m
+ [90m 107 |[39m             })} 
+ [90m 108 |[39m       [33m<[39m[33m/[39m[33mdiv[39m[33m>[39m
+ [90m 109 |[39m     [33m<[39m[33m/[39m[33mmain[39m[33m>[39m[0m
+
+Expected '</', got ';'
+
+Import trace:
+  Server Component:
+    ./app/home-content.tsx
+    ./app/page.tsx
+
+
+ ⨯ ./app/home-content.tsx:106:13
+Parsing ecmascript source code failed
+[0m [90m 104 |[39m                 [33m<[39m[33m/[39m[33mh2[39m[33m>[39m
+ [90m 105 |[39m               [33m<[39m[33m/[39m[33mLink[39m[33m>[39m
+[31m[1m>[22m[39m[90m 106 |[39m               )[33m;[39m
+ [90m     |[39m             [31m[1m^[22m[39m
+ [90m 107 |[39m             })} 
+ [90m 108 |[39m       [33m<[39m[33m/[39m[33mdiv[39m[33m>[39m
+ [90m 109 |[39m     [33m<[39m[33m/[39m[33mmain[39m[33m>[39m[0m
+
+Expected '</', got ';'
+
+Import trace:
+  Server Component:
+    ./app/home-content.tsx
+    ./app/page.tsx
+
+

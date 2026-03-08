@@ -26,6 +26,15 @@ export function getProductRouteSlug(
   return slugifyProductSegment(`${product.category}-${product.name}`);
 }
 
+export const DEFAULT_PRODUCT_IMAGE = "/images/placeholders/product-default.svg";
+
+export function getProductImageUrl(product: {
+  imageUrl?: string | null;
+}): string {
+  const imageUrl = product.imageUrl?.trim();
+  return imageUrl || DEFAULT_PRODUCT_IMAGE;
+}
+
 export const PIZZA_PRODUCTS: Product[] = [
   // --- Dr. Oetker Ristorante ---
   {
@@ -821,5 +830,3 @@ export const ALL_PRODUCTS: Product[] = [
   ...PROTEINPULVER_PRODUCTS,
   ...Eis_PRODUCTS
 ];
-
-

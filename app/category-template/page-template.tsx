@@ -5,7 +5,7 @@ import Link from "next/link";
 import BackButton from "../components/BackButton";
 import Star from "../components/Star";
 import { useUserRatings } from "../hooks/useUserRatings";
-import { getProductRouteSlug, type Product } from "@/app/data/products";
+import { getProductImageUrl, getProductRouteSlug, type Product } from "@/app/data/products";
 
 export default function CategoryPage({
   title,
@@ -60,6 +60,7 @@ export default function CategoryPage({
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
         {sortedProducts.map((item) => {
           const routeSlug = getProductRouteSlug(item);
+          const originalImageUrl = getProductImageUrl(item);
 
           return (
             <Link
@@ -80,9 +81,12 @@ export default function CategoryPage({
                 decoding="async"
                 onError={(e) => {
                   const image = e.currentTarget;
-                  if (image.dataset.fallbackApplied === "1") return;
+                  if (image.dataset.fallbackApplied === "1") {
+                    image.src = "/images/placeholders/product-default.svg";
+                    return;
+                  }
                   image.dataset.fallbackApplied = "1";
-                  image.src = item.imageUrl;
+                  image.src = originalImageUrl;
                 }}
               />
 
@@ -124,4 +128,3 @@ export default function CategoryPage({
     </div>
   );
 }
-

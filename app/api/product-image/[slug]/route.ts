@@ -1,7 +1,12 @@
 import { promises as fs } from "fs";
 import path from "path";
 import { NextResponse } from "next/server";
-import { ALL_PRODUCTS, getProductRouteSlug } from "@/app/data/products";
+import {
+  ALL_PRODUCTS,
+  DEFAULT_PRODUCT_IMAGE,
+  getProductImageUrl,
+  getProductRouteSlug,
+} from "@/app/data/products";
 
 export const runtime = "nodejs";
 
@@ -30,7 +35,7 @@ function imageResponse(
 }
 
 export async function GET(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ slug: string }> }
 ) {
   const { slug } = await context.params;
@@ -45,6 +50,12 @@ export async function GET(
 
   if (!product) {
     return NextResponse.json({ error: "produkt nicht gefunden" }, { status: 404 });
+  }
+
+  const sourceUrl = getProductImageUrl(product);
+
+  if (sourceUrl.startsWith("/")) {
+    return NextResponse.redirect(new URL(sourceUrl, request.url), 307);
   }
 
   const { imagePath, metaPath } = getCachePaths(slug);
@@ -64,15 +75,15 @@ export async function GET(
   let upstream: Response;
 
   try {
-    upstream = await fetch(product.imageUrl, {
+    upstream = await fetch(sourceUrl, {
       next: { revalidate: CACHE_MAX_AGE_SECONDS },
     });
   } catch {
-    return NextResponse.redirect(product.imageUrl, 307);
+    return NextResponse.redirect(new URL(DEFAULT_PRODUCT_IMAGE, request.url), 307);
   }
 
   if (!upstream.ok) {
-    return NextResponse.redirect(product.imageUrl, 307);
+    return NextResponse.redirect(new URL(DEFAULT_PRODUCT_IMAGE, request.url), 307);
   }
 
   const contentType =
@@ -87,7 +98,7 @@ export async function GET(
       JSON.stringify(
         {
           contentType,
-          sourceUrl: product.imageUrl,
+          sourceUrl,
           cachedAt: new Date().toISOString(),
         },
         null,
@@ -99,4 +110,3 @@ export async function GET(
 
   return imageResponse(imageData, contentType, "MISS");
 }
-

@@ -1,14 +1,18 @@
 "use client";
-import Link from "next/link";
-import { ALL_PRODUCTS } from "./data/products";
 
+import Link from "next/link";
+import {
+  ALL_PRODUCTS,
+  getProductImageUrl,
+  getProductRouteSlug,
+} from "./data/products";
 
 const categories = [
-  { name: "Tiefkühlpizza", icon: "🍕", slug: "pizza" },
+  { name: "Tiefkuehlpizza", icon: "🍕", slug: "pizza" },
   { name: "Chips", icon: "🍟", slug: "chips" },
-  { name: "Süßigkeiten", icon: "🍬", slug: "suessigkeiten" },
-  { name: "Tiefkühlgerichte", icon: "🍲", slug: "tiefkuehlgerichte" },
-  { name: "Getränke", icon: "🥤", slug: "getraenke" },
+  { name: "Suessigkeiten", icon: "🍬", slug: "suessigkeiten" },
+  { name: "Tiefkuehlgerichte", icon: "🍲", slug: "tiefkuehlgerichte" },
+  { name: "Getraenke", icon: "🥤", slug: "getraenke" },
   { name: "Eis", icon: "🍦", slug: "eis" },
   { name: "Proteinpulver", icon: "💪", slug: "proteinpulver" },
   { name: "Proteinriegel", icon: "🍫", slug: "proteinriegel" },
@@ -36,36 +40,52 @@ export default function HomeContent() {
           gap-6 max-w-6xl mx-auto
         "
       >
-       {showProducts
-          ? productResults.map((product) => (
-              <Link
-                key={product.name}
-                href={`/${product.slug}`}
-                className="
-                  group relative rounded-xl overflow-hidden cursor-pointer
-                  bg-[#1A1F23] border border-[#2A3036]
-                  hover:border-[#4CAF50] 
-                  hover:shadow-[0_0_25px_rgba(76,175,80,0.3)]
-                  transition-all
-                "
-                style={{ aspectRatio: "2/3" }}
-              >
-                <div className="w-full h-full">
-                  <img
-                    src={product.imageUrl}
-                    alt={product.name}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
+        {showProducts
+          ? productResults.map((product) => {
+              const routeSlug = getProductRouteSlug(product);
+              const originalImageUrl = getProductImageUrl(product);
 
-                <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 via-black/40 to-transparent p-3">
-                  <h3 className="text-sm font-semibold text-white drop-shadow-md">
-                    {product.name}
-                  </h3>
-                  <p className="text-xs text-gray-300">{product.category}</p>
-                </div>
-              </Link>
-            ))
+              return (
+                <Link
+                  key={routeSlug}
+                  href={`/produkt/${routeSlug}`}
+                  className="
+                    group relative rounded-xl overflow-hidden cursor-pointer
+                    bg-[#1A1F23] border border-[#2A3036]
+                    hover:border-[#4CAF50]
+                    hover:shadow-[0_0_25px_rgba(76,175,80,0.3)]
+                    transition-all
+                  "
+                  style={{ aspectRatio: "2/3" }}
+                >
+                  <div className="w-full h-full">
+                    <img
+                      src={`/api/product-image/${routeSlug}`}
+                      alt={product.name}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                      decoding="async"
+                      onError={(e) => {
+                        const image = e.currentTarget;
+                        if (image.dataset.fallbackApplied === "1") {
+                          image.src = "/images/placeholders/product-default.svg";
+                          return;
+                        }
+                        image.dataset.fallbackApplied = "1";
+                        image.src = originalImageUrl;
+                      }}
+                    />
+                  </div>
+
+                  <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 via-black/40 to-transparent p-3">
+                    <h3 className="text-sm font-semibold text-white drop-shadow-md">
+                      {product.name}
+                    </h3>
+                    <p className="text-xs text-gray-300">{product.category}</p>
+                  </div>
+                </Link>
+              );
+            })
           : categoryResults.map((cat) => (
               <Link
                 key={cat.slug}
@@ -98,7 +118,7 @@ export default function HomeContent() {
                   {cat.name}
                 </h2>
               </Link>
-            ))} 
+            ))}
       </div>
     </main>
   );

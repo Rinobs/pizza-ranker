@@ -3,7 +3,11 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import Star from "@/app/components/Star";
-import { ALL_PRODUCTS, getProductRouteSlug } from "@/app/data/products";
+import {
+  ALL_PRODUCTS,
+  getProductImageUrl,
+  getProductRouteSlug,
+} from "@/app/data/products";
 import { useUserRatings } from "@/app/hooks/useUserRatings";
 
 export default function ProductPage() {
@@ -27,6 +31,8 @@ export default function ProductPage() {
     );
   }
 
+  const originalImageUrl = getProductImageUrl(product);
+
   const facts = [
     ["Kategorie", product.category],
     product.price ? ["Preis", product.price] : null,
@@ -49,9 +55,12 @@ export default function ProductPage() {
         decoding="async"
         onError={(e) => {
           const image = e.currentTarget;
-          if (image.dataset.fallbackApplied === "1") return;
+          if (image.dataset.fallbackApplied === "1") {
+            image.src = "/images/placeholders/product-default.svg";
+            return;
+          }
           image.dataset.fallbackApplied = "1";
-          image.src = product.imageUrl;
+          image.src = originalImageUrl;
         }}
       />
 
