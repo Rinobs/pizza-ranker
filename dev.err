@@ -358,3 +358,61 @@ Import trace:
     ./app/page.tsx
 
 
+C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\node_modules_861fd42b._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\[root-of-the-server]__847b2065._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\[turbopack]_runtime.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\node_modules_next_8a2e2d86._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\require-hook.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\require.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\load-components.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\next-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\lib\trace\tracer.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\dev\next-dev-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\base-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\trace\trace.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\lib\router-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+ ⨯ Error: supabaseUrl is required.
+    at module evaluation (C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\[root-of-the-server]__847b2065._.js:853:208)
+    at instantiateModule (C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\[turbopack]_runtime.js:715:9)
+    at getOrInstantiateModuleFromParent (C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\[turbopack]_runtime.js:738:12)
+    at Context.esmImport [as i] (C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\[turbopack]_runtime.js:228:20)
+    at module evaluation (C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\[root-of-the-server]__847b2065._.js:869:143)
+    at instantiateModule (C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\[turbopack]_runtime.js:715:9)
+    at getOrInstantiateModuleFromParent (C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\[turbopack]_runtime.js:738:12)
+    at Context.esmImport [as i] (C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\[turbopack]_runtime.js:228:20)
+    at instantiateModule (C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\[turbopack]_runtime.js:715:9)
+    at instantiateRuntimeModule (C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\[turbopack]_runtime.js:743:12)
+    at getOrInstantiateRuntimeModule (C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\[turbopack]_runtime.js:756:12)
+    at Object.m (C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\[turbopack]_runtime.js:765:18)
+    at Object.<anonymous> (C:\Users\nicob\pizza-ranker\.next\dev\server\app\api\home\sections\route.js:9:3) {
+  page: '/api/home/sections'
+}
+C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\node_modules_861fd42b._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\[root-of-the-server]__847b2065._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\[turbopack]_runtime.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\node_modules_next_8a2e2d86._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\require-hook.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\require.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\load-components.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\next-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\lib\trace\tracer.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\dev\next-dev-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\base-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\trace\trace.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\lib\router-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+ ⨯ Error: supabaseUrl is required.
+    at module evaluation (C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\[root-of-the-server]__847b2065._.js:853:208)
+    at instantiateModule (C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\[turbopack]_runtime.js:715:9)
+    at getOrInstantiateModuleFromParent (C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\[turbopack]_runtime.js:738:12)
+    at Context.esmImport [as i] (C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\[turbopack]_runtime.js:228:20)
+    at module evaluation (C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\[root-of-the-server]__847b2065._.js:869:143)
+    at instantiateModule (C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\[turbopack]_runtime.js:715:9)
+    at getOrInstantiateModuleFromParent (C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\[turbopack]_runtime.js:738:12)
+    at Context.esmImport [as i] (C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\[turbopack]_runtime.js:228:20)
+    at instantiateModule (C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\[turbopack]_runtime.js:715:9)
+    at instantiateRuntimeModule (C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\[turbopack]_runtime.js:743:12)
+    at getOrInstantiateRuntimeModule (C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\[turbopack]_runtime.js:756:12)
+    at Object.m (C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\[turbopack]_runtime.js:765:18)
+    at Object.<anonymous> (C:\Users\nicob\pizza-ranker\.next\dev\server\app\api\home\sections\route.js:9:3) {
+  page: '/api/home/sections'
+}
