@@ -7,9 +7,10 @@ export default function LoginButton() {
     <button
       onClick={() => signIn("google")}
       className="
-        px-3 py-1.5 rounded-lg
-        bg-[#4CAF50] text-white font-medium
-        hover:bg-[#43a046] transition
+        px-4 py-2 rounded-xl
+        bg-[#1B222D] text-white font-medium border border-[#2D3A4B]
+        hover:bg-[#212B38] hover:border-[#5EE287] hover:text-[#CFFFE0]
+        transition-all duration-300
       "
     >
       Login

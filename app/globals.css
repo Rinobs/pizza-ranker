@@ -1,6 +1,19 @@
 @import "tailwindcss";
 
+:root {
+  --app-bg-start: #0f141a;
+  --app-bg-mid: #121a24;
+  --app-bg-end: #0f141a;
+  --surface-1: #1b222d;
+  --surface-2: #212b38;
+  --border-1: #2d3a4b;
+  --text-main: #e8edf5;
+  --text-muted: #8ca1b8;
+  --accent: #5ee287;
+}
+
 body {
-  background: #14181C;
-  color: #000000;
+  min-height: 100vh;
+  background: linear-gradient(180deg, var(--app-bg-start) 0%, var(--app-bg-mid) 48%, var(--app-bg-end) 100%);
+  color: var(--text-main);
 }

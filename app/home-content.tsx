@@ -75,18 +75,20 @@ function ProductCard({ product }: { product: RankedProduct }) {
     <Link
       href={`/produkt/${product.routeSlug}`}
       className="
-        group relative rounded-xl overflow-hidden cursor-pointer
-        bg-[#1A1F23] border border-[#2A3036]
-        hover:border-[#4CAF50]
-        hover:shadow-[0_0_25px_rgba(76,175,80,0.3)]
-        transition-all
+        group relative rounded-2xl overflow-hidden cursor-pointer
+        bg-[#1B222D] border border-[#2D3A4B]
+        shadow-[0_8px_24px_rgba(0,0,0,0.24)]
+        hover:border-[#5EE287]
+        hover:shadow-[0_16px_40px_rgba(34,197,94,0.28)]
+        hover:-translate-y-1.5 hover:scale-[1.02]
+        transition-all duration-300 ease-out
       "
-      style={{ aspectRatio: "2/3" }}
+      style={{ aspectRatio: "3/4" }}
     >
       <img
         src={`/api/product-image/${product.routeSlug}`}
         alt={product.name}
-        className="w-full h-full object-cover"
+        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         loading="lazy"
         decoding="async"
         onError={(e) => {
@@ -100,13 +102,15 @@ function ProductCard({ product }: { product: RankedProduct }) {
         }}
       />
 
-      <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 via-black/40 to-transparent p-3">
-        <h3 className="text-sm font-semibold text-white drop-shadow-md line-clamp-2">
+      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent opacity-90 group-hover:opacity-100 transition-opacity" />
+
+      <div className="absolute bottom-0 left-0 w-full p-4">
+        <h3 className="text-sm sm:text-base font-semibold text-white drop-shadow-md line-clamp-2">
           {product.name}
         </h3>
-        <p className="text-xs text-gray-300">{product.category}</p>
+        <p className="text-xs sm:text-sm text-gray-200">{product.category}</p>
         {product.ratingAvg !== null && (
-          <p className="text-xs text-yellow-300 mt-1">
+          <p className="text-xs sm:text-sm text-yellow-300 mt-1.5">
             {"\u2B50"} {product.ratingAvg.toFixed(1)} ({product.ratingCount})
           </p>
         )}
@@ -125,9 +129,11 @@ function ProductSection({
   if (products.length === 0) return null;
 
   return (
-    <section className="mb-12">
-      <h2 className="text-2xl font-bold mb-4">{title}</h2>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+    <section className="mb-16">
+      <h2 className="text-2xl sm:text-3xl font-bold mb-6 tracking-tight text-[#E8F6ED]">
+        {title}
+      </h2>
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5 md:gap-7">
         {products.map((product) => (
           <ProductCard key={`${title}-${product.routeSlug}`} product={product} />
         ))}
@@ -179,12 +185,14 @@ export default function HomeContent() {
   }, [fallback]);
 
   return (
-    <main className="min-h-screen bg-[#14181C] text-white px-6 pb-20 pt-24">
-      <div className="text-center pb-10">
-        <h1 className="text-5xl font-extrabold tracking-tight text-white">
+    <main className="min-h-screen bg-gradient-to-b from-[#0F141A] via-[#121A24] to-[#0F141A] text-white px-4 sm:px-8 lg:px-12 pb-24 pt-28">
+      <div className="text-center pb-14">
+        <h1 className="text-5xl sm:text-6xl font-extrabold tracking-tight text-white">
           FoodRanker
         </h1>
-        <p className="text-gray-400 mt-1">Finde und bewerte deine Lieblingsprodukte.</p>
+        <p className="text-[#B7C4D3] mt-3 text-base sm:text-lg">
+          Finde und bewerte deine Lieblingsprodukte.
+        </p>
       </div>
 
       <div className="max-w-7xl mx-auto">
@@ -205,25 +213,28 @@ export default function HomeContent() {
           products={sections.bestThisWeek}
         />
 
-        <section className="mt-14">
-          <h2 className="text-2xl font-bold mb-4">Kategorien entdecken</h2>
-          <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <section className="mt-20">
+          <h2 className="text-2xl sm:text-3xl font-bold mb-6 tracking-tight text-[#E8F6ED]">
+            Kategorien entdecken
+          </h2>
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-7">
             {categories.map((cat) => (
               <Link
                 key={cat.slug}
                 href={`/${cat.slug}`}
                 className="
-                  group relative p-6 rounded-xl
-                  bg-[#1A1F23] border border-[#2A3036]
-                  hover:border-[#4CAF50] hover:bg-[#1F262B]
-                  shadow hover:shadow-lg transition-all
+                  group relative p-7 rounded-2xl
+                  bg-[#1B222D] border border-[#2D3A4B]
+                  hover:border-[#5EE287] hover:bg-[#212B38]
+                  shadow-[0_8px_24px_rgba(0,0,0,0.24)] hover:shadow-[0_16px_34px_rgba(34,197,94,0.22)]
+                  hover:-translate-y-1 transition-all duration-300
                   flex flex-col items-center justify-center text-center cursor-pointer
                 "
               >
-                <div className="text-5xl mb-4 transition-transform group-hover:scale-110">
+                <div className="text-5xl mb-5 transition-transform duration-300 group-hover:scale-110">
                   {cat.icon}
                 </div>
-                <h3 className="text-xl font-semibold tracking-wide text-white group-hover:text-[#4CAF50] transition">
+                <h3 className="text-xl font-semibold tracking-wide text-white group-hover:text-[#8AF5AC] transition-colors duration-300">
                   {cat.name}
                 </h3>
               </Link>
@@ -231,7 +242,7 @@ export default function HomeContent() {
           </div>
         </section>
 
-        <p className="text-xs text-gray-500 mt-8 text-center">
+        <p className="text-xs text-[#8CA1B8] mt-10 text-center">
           {isLoading
             ? "Lade Highlights..."
             : sections.hasLiveRatings

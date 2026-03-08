@@ -16,9 +16,7 @@ export default function CategoryPage({
   icon: string;
   products: Product[];
 }) {
-  const { user, ratings, comments, saveRating, saveComment, loaded } =
-    useUserRatings();
-
+  const { user, ratings, comments, saveRating, saveComment, loaded } = useUserRatings();
   const [sortMode, setSortMode] = React.useState("rating-desc");
 
   const sortedProducts = [...products].sort((a, b) => {
@@ -36,18 +34,18 @@ export default function CategoryPage({
   });
 
   return (
-    <div className="max-w-4xl mx-auto mt-28 px-4">
+    <div className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-12 pb-24 text-white">
       <BackButton />
 
-      <div className="flex items-center gap-4 mb-8">
+      <div className="flex items-center gap-4 mb-10">
         <span className="text-6xl">{icon}</span>
-        <h1 className="text-4xl font-extrabold text-white">{title}</h1>
+        <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-[#E8F6ED]">{title}</h1>
       </div>
 
       <select
         value={sortMode}
         onChange={(e) => setSortMode(e.target.value)}
-        className="w-full border rounded-lg px-3 py-2 mb-6 bg-[#1F2428] text-white border-[#2A3036]"
+        className="w-full border rounded-xl px-4 py-3 mb-8 bg-[#1B222D] text-white border-[#2D3A4B] focus:border-[#5EE287] outline-none transition-colors"
       >
         <option value="rating-desc">Beste zuerst</option>
         <option value="rating-asc">Schlechteste zuerst</option>
@@ -55,9 +53,9 @@ export default function CategoryPage({
         <option value="name-desc">Z-A</option>
       </select>
 
-      {!loaded && <p className="text-gray-400 text-center">Lade Bewertungen...</p>}
+      {!loaded && <p className="text-[#8CA1B8] text-center mb-8">Lade Bewertungen...</p>}
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5 md:gap-7">
         {sortedProducts.map((item) => {
           const routeSlug = getProductRouteSlug(item);
           const originalImageUrl = getProductImageUrl(item);
@@ -67,16 +65,20 @@ export default function CategoryPage({
               key={routeSlug}
               href={`/produkt/${routeSlug}`}
               className="
-                group relative rounded-xl overflow-hidden bg-[#1A1F23]
-                border border-[#2A3036] hover:border-[#4CAF50]
-                transition-all
+                group relative rounded-2xl overflow-hidden
+                bg-[#1B222D] border border-[#2D3A4B]
+                shadow-[0_8px_24px_rgba(0,0,0,0.24)]
+                hover:border-[#5EE287]
+                hover:shadow-[0_16px_40px_rgba(34,197,94,0.28)]
+                hover:-translate-y-1.5 hover:scale-[1.02]
+                transition-all duration-300 ease-out
               "
-              style={{ aspectRatio: "2 / 3" }}
+              style={{ aspectRatio: "3 / 4" }}
             >
               <img
                 src={`/api/product-image/${routeSlug}`}
                 alt={item.name}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 loading="lazy"
                 decoding="async"
                 onError={(e) => {
@@ -90,12 +92,17 @@ export default function CategoryPage({
                 }}
               />
 
-              <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 p-3">
-                <h3 className="text-white text-sm font-semibold">{item.name}</h3>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent opacity-95 group-hover:opacity-100 transition-opacity" />
+
+              <div className="absolute bottom-0 left-0 w-full p-4">
+                <h3 className="text-white text-sm sm:text-base font-semibold line-clamp-2">{item.name}</h3>
 
                 <div
-                  className="flex items-center mt-1 gap-1"
-                  onClick={(e) => e.stopPropagation()}
+                  className="flex items-center mt-2 gap-1"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
                 >
                   {[1, 2, 3, 4, 5].map((i) => (
                     <Star
@@ -111,14 +118,17 @@ export default function CategoryPage({
                 </div>
 
                 <input
-                  className="w-full mt-2 bg-[#222] text-white text-xs px-2 py-1 rounded"
+                  className="w-full mt-3 bg-[#141C27]/95 border border-[#2D3A4B] text-white text-xs sm:text-sm px-3 py-2 rounded-lg placeholder:text-[#8CA1B8]"
                   placeholder="Kommentar..."
                   value={comments[routeSlug] || ""}
                   onChange={(e) => {
                     if (!user) return alert("Bitte zuerst einloggen!");
                     saveComment(routeSlug, e.target.value);
                   }}
-                  onClick={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
                 />
               </div>
             </Link>

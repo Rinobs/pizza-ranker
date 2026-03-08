@@ -21,16 +21,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="de" className="h-full bg-[#14181C]">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} bg-[#14181C] text-white min-h-screen`}
-      >
+    <html lang="de" className="h-full">
+      <body className={`${geistSans.variable} ${geistMono.variable} min-h-screen text-white`}>
         <Providers>
           <Header />
-          {/* ❗ KEIN Suspense um Main! */}
-          <main className="min-h-screen bg-[#14181C] pt-24">
-            {children}
-          </main>
+          <main className="min-h-screen pt-24">{children}</main>
         </Providers>
       </body>
     </html>
