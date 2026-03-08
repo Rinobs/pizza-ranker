@@ -9,6 +9,22 @@ export interface Product {
   fat?: number;
   carbs?: number;
 }
+function slugifyProductSegment(value: string): string {
+  const slug = value
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  return slug || "produkt";
+}
+
+export function getProductRouteSlug(
+  product: Pick<Product, "name" | "category">
+): string {
+  return slugifyProductSegment(`${product.category}-${product.name}`);
+}
 
 export const PIZZA_PRODUCTS: Product[] = [
   // --- Dr. Oetker Ristorante ---

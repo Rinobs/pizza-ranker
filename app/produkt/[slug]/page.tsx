@@ -1,25 +1,42 @@
-import { notFound } from "next/navigation";
-import Star from "@/components/Star";
-import { useUserRatings } from "@/hooks/useUserRatings";
+"use client";
 
-export default function ProductPage({
-  params,
-}: {
-  params: { slug: string };
-}) {
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import Star from "@/app/components/Star";
+import { ALL_PRODUCTS, getProductRouteSlug } from "@/app/data/products";
+import { useUserRatings } from "@/app/hooks/useUserRatings";
+
+export default function ProductPage() {
   const { ratings, comments, saveRating, saveComment, user } = useUserRatings();
+  const params = useParams<{ slug: string }>();
+  const routeSlug = params?.slug;
 
-  // Später aus DB / data laden
-  const product = {
-    name: params.slug.replace("-", " "),
-    imageUrl: `/images/${params.slug}.jpg`,
-    facts: {
-      Kategorie: "Pizza",
-      Marke: "Beispiel",
-    },
-  };
+  if (!routeSlug) return null;
 
-  if (!product) return notFound();
+  const product =
+    ALL_PRODUCTS.find((item) => getProductRouteSlug(item) === routeSlug) ?? null;
+
+  if (!product) {
+    return (
+      <div className="max-w-3xl mx-auto mt-28 px-4 text-white">
+        <h1 className="text-3xl font-bold mb-4">Produkt nicht gefunden</h1>
+        <Link href="/" className="text-blue-300 underline">
+          Zurueck zur Startseite
+        </Link>
+      </div>
+    );
+  }
+
+  const facts = [
+    ["Kategorie", product.category],
+    product.price ? ["Preis", product.price] : null,
+    typeof product.kcal === "number" ? ["Kalorien", `${product.kcal} kcal`] : null,
+    typeof product.protein === "number" ? ["Protein", `${product.protein} g`] : null,
+    typeof product.fat === "number" ? ["Fett", `${product.fat} g`] : null,
+    typeof product.carbs === "number"
+      ? ["Kohlenhydrate", `${product.carbs} g`]
+      : null,
+  ].filter((entry): entry is [string, string] => Array.isArray(entry));
 
   return (
     <div className="max-w-3xl mx-auto mt-28 px-4 text-white">
@@ -34,9 +51,9 @@ export default function ProductPage({
       <div className="mb-8">
         <h2 className="text-xl font-semibold mb-2">Fakten</h2>
         <ul className="text-gray-300">
-          {Object.entries(product.facts).map(([k, v]) => (
-            <li key={k}>
-              <strong>{k}:</strong> {v}
+          {facts.map(([key, value]) => (
+            <li key={key}>
+              <strong>{key}:</strong> {value}
             </li>
           ))}
         </ul>
@@ -49,11 +66,11 @@ export default function ProductPage({
           {[1, 2, 3, 4, 5].map((i) => (
             <Star
               key={i}
-              rating={ratings[params.slug] || 0}
+              rating={ratings[routeSlug] || 0}
               index={i}
-              onRate={(v) => {
+              onRate={(value) => {
                 if (!user) return alert("Bitte einloggen!");
-                saveRating(params.slug, v);
+                saveRating(routeSlug, value);
               }}
             />
           ))}
@@ -62,10 +79,10 @@ export default function ProductPage({
         <textarea
           className="w-full bg-[#222] rounded p-2"
           placeholder="Kommentar"
-          value={comments[params.slug] || ""}
+          value={comments[routeSlug] || ""}
           onChange={(e) => {
             if (!user) return alert("Bitte einloggen!");
-            saveComment(params.slug, e.target.value);
+            saveComment(routeSlug, e.target.value);
           }}
         />
       </div>

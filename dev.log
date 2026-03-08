@@ -1,0 +1,99 @@
+
+> pizza-ranker@0.1.0 dev
+> next dev
+
+   ▲ Next.js 16.0.7 (Turbopack)
+   - Local:         http://localhost:3000
+   - Network:       http://192.168.178.68:3000
+   - Environments: .env.local, .env
+
+ ✓ Starting...
+ ✓ Ready in 1486ms
+ GET / 200 in 2.4s (compile: 2.2s, render: 143ms)
+ GET /api/auth/session 200 in 1217ms (compile: 1179ms, render: 38ms)
+ GET /pizza 200 in 389ms (compile: 368ms, render: 21ms)
+ GET /produkt/pizza 500 in 1353ms (compile: 1165ms, render: 188ms)
+ GET /produkt/pizza 500 in 23ms (compile: 11ms, render: 11ms)
+ GET /pizza 200 in 213ms (compile: 6ms, render: 208ms)
+ GET /api/auth/session 500 in 22ms (compile: 9ms, render: 12ms)
+ POST /api/auth/_log 500 in 15ms (compile: 7ms, render: 8ms)
+ GET /pizza 200 in 23ms (compile: 4ms, render: 20ms)
+ ✓ Compiled in 47ms
+ GET /produkt/pizza 200 in 877ms (compile: 847ms, render: 30ms)
+ GET /produkt/pizza 500 in 115ms (compile: 11ms, render: 104ms)
+ GET / 200 in 50ms (compile: 4ms, render: 45ms)
+ GET /api/auth/session 200 in 26ms (compile: 13ms, render: 13ms)
+ GET /pizza 200 in 20ms (compile: 3ms, render: 16ms)
+ GET /produkt/pizza 500 in 72ms (compile: 15ms, render: 56ms)
+ GET /pizza 200 in 23ms (compile: 3ms, render: 20ms)
+ ✓ Compiled in 78ms
+ GET /produkt/pizza 200 in 144ms (compile: 72ms, render: 72ms)
+ GET /pizza 200 in 133ms (compile: 3ms, render: 130ms)
+ GET /api/auth/session 200 in 37ms (compile: 11ms, render: 26ms)
+ GET /produkt/pizza 200 in 51ms (compile: 11ms, render: 41ms)
+ GET /api/auth/session 200 in 22ms (compile: 11ms, render: 11ms)
+ GET /images/pizza.jpg 404 in 426ms (compile: 380ms, render: 46ms)
+ GET /pizza 200 in 164ms (compile: 3ms, render: 161ms)
+ GET /api/auth/session 200 in 28ms (compile: 12ms, render: 15ms)
+ GET /produkt/pizza 200 in 23ms (compile: 9ms, render: 14ms)
+ GET /images/pizza.jpg 404 in 38ms (compile: 6ms, render: 31ms)
+ GET /produkt/pizza 200 in 22ms (compile: 9ms, render: 14ms)
+ GET /images/pizza.jpg 404 in 40ms (compile: 7ms, render: 33ms)
+ ✓ Compiled in 46ms
+ GET /pizza 200 in 309ms (compile: 91ms, render: 218ms)
+ GET /api/auth/session 200 in 25ms (compile: 9ms, render: 16ms)
+ ✓ Compiled in 42ms
+ ✓ Compiled in 96ms
+ GET /pizza 200 in 124ms (compile: 91ms, render: 32ms)
+ GET /pizza 200 in 157ms (compile: 3ms, render: 154ms)
+ GET /produkt/pizza-dr-oetker-ristorante-mozzarella 200 in 207ms (compile: 118ms, render: 89ms)
+ GET /produkt/pizza-dr-oetker-ristorante-margherita 200 in 44ms (compile: 3ms, render: 40ms)
+ GET /produkt/pizza-dr-oetker-ristorante-mozzarella 200 in 36ms (compile: 13ms, render: 23ms)
+ GET /produkt/pizza-dr-oetker-ristorante-margherita 200 in 31ms (compile: 11ms, render: 20ms)
+ GET /produkt/pizza-dr-oetker-ristorante-funghi 200 in 26ms (compile: 11ms, render: 15ms)
+ GET /produkt/pizza-dr-oetker-ristorante-speciale 200 in 36ms (compile: 13ms, render: 23ms)
+ GET /proteinpulver 200 in 334ms (compile: 270ms, render: 65ms)
+ GET /produkt/pizza-dr-oetker-ristorante-pollo 200 in 29ms (compile: 10ms, render: 19ms)
+ GET /proteinpulver 200 in 45ms (compile: 2ms, render: 42ms)
+ GET /produkt/pizza-dr-oetker-ristorante-spinaci 200 in 30ms (compile: 12ms, render: 18ms)
+ GET /produkt/pizza-dr-oetker-tradizionale-tonno 200 in 33ms (compile: 13ms, render: 20ms)
+ GET /produkt/proteinpulver-esn-designer-whey-a-vanilla 200 in 46ms (compile: 11ms, render: 35ms)
+ GET /produkt/pizza-dr-oetker-ristorante-mozzarella 200 in 33ms (compile: 11ms, render: 21ms)
+ GET /produkt/pizza-dr-oetker-ristorante-prosciutto 200 in 30ms (compile: 10ms, render: 20ms)
+ GET /produkt/pizza-wagner-steinofen-peperoni-salami 200 in 25ms (compile: 10ms, render: 15ms)
+ GET /produkt/pizza-gustavo-gusto-margherita 200 in 27ms (compile: 12ms, render: 15ms)
+ GET /produkt/pizza-gustavo-gusto-salame-piccante 200 in 31ms (compile: 11ms, render: 19ms)
+ GET /produkt/pizza-lidl-trattoria-alfredo-spinaci 200 in 29ms (compile: 10ms, render: 19ms)
+ GET / 200 in 110ms (compile: 86ms, render: 24ms)
+ GET /proteinriegel 200 in 296ms (compile: 278ms, render: 18ms)
+ GET /produkt/proteinriegel-barebells-salty-peanut 200 in 30ms (compile: 13ms, render: 17ms)
+ ✓ Compiled in 46ms
+ ✓ Compiled in 44ms
+ GET /proteinriegel 200 in 238ms (compile: 102ms, render: 136ms)
+ GET /proteinriegel 200 in 104ms (compile: 2ms, render: 101ms)
+ GET /api/auth/session 200 in 36ms (compile: 11ms, render: 25ms)
+ GET /produkt/proteinriegel-barebells-salty-peant 200 in 145ms (compile: 112ms, render: 32ms)
+ GET / 200 in 137ms (compile: 105ms, render: 33ms)
+ GET /pizza 200 in 134ms (compile: 106ms, render: 28ms)
+ GET /produkt/pizza-dr-oetker-tradizionale-spinaci-e-ricotta 200 in 31ms (compile: 13ms, render: 19ms)
+ ✓ Compiled in 47ms
+ GET /pizza 200 in 291ms (compile: 90ms, render: 201ms)
+ GET /api/auth/session 200 in 43ms (compile: 10ms, render: 33ms)
+ GET /produkt/pizza-dr-oetker-ristorante-mozzarella 200 in 164ms (compile: 127ms, render: 37ms)
+ ✓ Compiled in 43ms
+ ✓ Compiled in 47ms
+ GET /produkt/pizza-dr-oetker-ristorante-mozzarella 200 in 295ms (compile: 125ms, render: 169ms)
+ GET /produkt/pizza-dr-oetker-ristorante-mozzarella 200 in 138ms (compile: 5ms, render: 133ms)
+ GET /api/auth/session 200 in 22ms (compile: 11ms, render: 11ms)
+ GET /produkt/pizza-dr-oetker-ristorante-mozzarella 200 in 45ms (compile: 9ms, render: 36ms)
+ GET /pizza 200 in 327ms (compile: 97ms, render: 230ms)
+ GET /produkt/pizza-dr-oetker-ristorante-margherita 200 in 74ms (compile: 3ms, render: 71ms)
+ GET /pizza 200 in 19ms (compile: 4ms, render: 15ms)
+ GET /produkt/pizza-dr-oetker-ristorante-margherita 200 in 26ms (compile: 9ms, render: 17ms)
+ GET /produkt/pizza-dr-oetker-ristorante-funghi 200 in 26ms (compile: 9ms, render: 16ms)
+ GET /produkt/pizza-dr-oetker-ristorante-prosciutto 200 in 27ms (compile: 10ms, render: 17ms)
+ GET /produkt/pizza-dr-oetker-tradizionale-spinaci-e-ricotta 200 in 26ms (compile: 10ms, render: 16ms)
+ GET /produkt/pizza-dr-oetker-ristorante-mozzarella 200 in 27ms (compile: 9ms, render: 18ms)
+ GET /produkt/pizza-dr-oetker-ristorante-mozzarella 200 in 28ms (compile: 9ms, render: 19ms)
+ GET /produkt/pizza-dr-oetker-ristorante-margherita 200 in 26ms (compile: 10ms, render: 16ms)
+ GET /produkt/pizza-dr-oetker-ristorante-funghi 200 in 29ms (compile: 12ms, render: 18ms)
