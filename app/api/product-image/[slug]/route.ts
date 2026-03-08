@@ -25,7 +25,9 @@ function imageResponse(
   contentType: string,
   cacheState: "HIT" | "MISS"
 ) {
-  return new NextResponse(data, {
+  const body = Uint8Array.from(data).buffer;
+
+  return new NextResponse(body, {
     headers: {
       "Content-Type": contentType,
       "Cache-Control": `public, max-age=${CACHE_MAX_AGE_SECONDS}, stale-while-revalidate=86400`,
