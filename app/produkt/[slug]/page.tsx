@@ -43,9 +43,16 @@ export default function ProductPage() {
       <h1 className="text-4xl font-bold mb-6">{product.name}</h1>
 
       <img
-        src={product.imageUrl}
+        src={`/api/product-image/${routeSlug}`}
         className="w-full rounded-xl mb-6"
         alt={product.name}
+        decoding="async"
+        onError={(e) => {
+          const image = e.currentTarget;
+          if (image.dataset.fallbackApplied === "1") return;
+          image.dataset.fallbackApplied = "1";
+          image.src = product.imageUrl;
+        }}
       />
 
       <div className="mb-8">
@@ -89,3 +96,4 @@ export default function ProductPage() {
     </div>
   );
 }
+

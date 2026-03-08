@@ -1,0 +1,102 @@
+import { promises as fs } from "fs";
+import path from "path";
+import { NextResponse } from "next/server";
+import { ALL_PRODUCTS, getProductRouteSlug } from "@/app/data/products";
+
+export const runtime = "nodejs";
+
+const CACHE_DIR = path.join(process.cwd(), "public", "image-cache");
+const CACHE_MAX_AGE_SECONDS = 60 * 60 * 24 * 30; // 30 Tage
+
+function getCachePaths(slug: string) {
+  return {
+    imagePath: path.join(CACHE_DIR, `${slug}.bin`),
+    metaPath: path.join(CACHE_DIR, `${slug}.json`),
+  };
+}
+
+function imageResponse(
+  data: Buffer,
+  contentType: string,
+  cacheState: "HIT" | "MISS"
+) {
+  return new NextResponse(data, {
+    headers: {
+      "Content-Type": contentType,
+      "Cache-Control": `public, max-age=${CACHE_MAX_AGE_SECONDS}, stale-while-revalidate=86400`,
+      "X-Image-Cache": cacheState,
+    },
+  });
+}
+
+export async function GET(
+  _request: Request,
+  context: { params: Promise<{ slug: string }> }
+) {
+  const { slug } = await context.params;
+
+  if (!/^[a-z0-9-]+$/.test(slug)) {
+    return NextResponse.json({ error: "ungueltiger slug" }, { status: 400 });
+  }
+
+  const product = ALL_PRODUCTS.find(
+    (item) => getProductRouteSlug(item) === slug
+  );
+
+  if (!product) {
+    return NextResponse.json({ error: "produkt nicht gefunden" }, { status: 404 });
+  }
+
+  const { imagePath, metaPath } = getCachePaths(slug);
+
+  try {
+    const [cachedImage, cachedMetaRaw] = await Promise.all([
+      fs.readFile(imagePath),
+      fs.readFile(metaPath, "utf8"),
+    ]);
+
+    const cachedMeta = JSON.parse(cachedMetaRaw) as { contentType?: string };
+    return imageResponse(cachedImage, cachedMeta.contentType || "image/jpeg", "HIT");
+  } catch {
+    // Cache miss: wir laden das Bild und speichern es lokal.
+  }
+
+  let upstream: Response;
+
+  try {
+    upstream = await fetch(product.imageUrl, {
+      next: { revalidate: CACHE_MAX_AGE_SECONDS },
+    });
+  } catch {
+    return NextResponse.redirect(product.imageUrl, 307);
+  }
+
+  if (!upstream.ok) {
+    return NextResponse.redirect(product.imageUrl, 307);
+  }
+
+  const contentType =
+    upstream.headers.get("content-type")?.split(";")[0] || "image/jpeg";
+  const imageData = Buffer.from(await upstream.arrayBuffer());
+
+  await fs.mkdir(CACHE_DIR, { recursive: true });
+  await Promise.all([
+    fs.writeFile(imagePath, imageData),
+    fs.writeFile(
+      metaPath,
+      JSON.stringify(
+        {
+          contentType,
+          sourceUrl: product.imageUrl,
+          cachedAt: new Date().toISOString(),
+        },
+        null,
+        2
+      ),
+      "utf8"
+    ),
+  ]);
+
+  return imageResponse(imageData, contentType, "MISS");
+}
+

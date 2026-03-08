@@ -155,3 +155,151 @@ C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\ssr\app_fc4347a5._.js: Inval
  ⚠ Fast Refresh had to perform a full reload when ./app/data/products.ts changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
  ⚠ Fast Refresh had to perform a full reload when ./app/data/products.ts changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
  ⚠ Fast Refresh had to perform a full reload when ./app/data/products.ts changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\[root-of-the-server]__b5e270dd._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\compiled\next-server\app-route-turbo.runtime.dev.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\node_modules_next_60889fac._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\base-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\next-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\dev\next-dev-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\trace\trace.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\lib\router-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\lib\start-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+TypeError: fetch failed
+    at async GET (C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\[root-of-the-server]__b5e270dd._.js:910:22) {
+  [cause]: Error [ConnectTimeoutError]: Connect Timeout Error (attempted address: images.openfoodfacts.org:443, timeout: 10000ms)
+      at ignore-listed frames {
+    code: 'UND_ERR_CONNECT_TIMEOUT'
+  }
+}
+C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\[root-of-the-server]__b5e270dd._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\compiled\next-server\app-route-turbo.runtime.dev.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\node_modules_next_60889fac._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\base-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\next-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\dev\next-dev-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\trace\trace.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\lib\router-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\lib\start-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+TypeError: fetch failed
+    at async GET (C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\[root-of-the-server]__b5e270dd._.js:910:22) {
+  [cause]: Error [ConnectTimeoutError]: Connect Timeout Error (attempted address: images.openfoodfacts.org:443, timeout: 10000ms)
+      at ignore-listed frames {
+    code: 'UND_ERR_CONNECT_TIMEOUT'
+  }
+}
+C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\[root-of-the-server]__b5e270dd._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\compiled\next-server\app-route-turbo.runtime.dev.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\node_modules_next_60889fac._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\base-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\next-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\dev\next-dev-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\trace\trace.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\lib\router-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\lib\start-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+TypeError: fetch failed
+    at async GET (C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\[root-of-the-server]__b5e270dd._.js:910:22) {
+  [cause]: Error [ConnectTimeoutError]: Connect Timeout Error (attempted address: images.openfoodfacts.org:443, timeout: 10000ms)
+      at ignore-listed frames {
+    code: 'UND_ERR_CONNECT_TIMEOUT'
+  }
+}
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\lib\incremental-cache\index.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\ssr\node_modules_473cc24e._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+Failed to set fetch cache https://img.rewe-static.de/9977185/44315103_digital-image.png Error: Failed to set Next.js data cache for https://img.rewe-static.de/9977185/44315103_digital-image.png, items over 2MB can not be cached (2616792 bytes)
+    at ignore-listed frames
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\lib\incremental-cache\index.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\ssr\node_modules_473cc24e._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+Failed to set fetch cache https://www.original-wagner.de/sites/default/files/2025-01/STO_Speciale_15Grad.png Error: Failed to set Next.js data cache for https://www.original-wagner.de/sites/default/files/2025-01/STO_Speciale_15Grad.png, items over 2MB can not be cached (6430245 bytes)
+    at ignore-listed frames
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\lib\incremental-cache\index.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\ssr\node_modules_473cc24e._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+Failed to set fetch cache https://www.original-wagner.de/sites/default/files/2025-01/STO_Margherita_15Grad.png Error: Failed to set Next.js data cache for https://www.original-wagner.de/sites/default/files/2025-01/STO_Margherita_15Grad.png, items over 2MB can not be cached (6250306 bytes)
+    at ignore-listed frames
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\lib\incremental-cache\index.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\ssr\node_modules_473cc24e._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+Failed to set fetch cache https://www.original-wagner.de/sites/default/files/2025-01/STO_Peperoni_15Grad.png Error: Failed to set Next.js data cache for https://www.original-wagner.de/sites/default/files/2025-01/STO_Peperoni_15Grad.png, items over 2MB can not be cached (6565206 bytes)
+    at ignore-listed frames
+C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\[root-of-the-server]__b5e270dd._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\compiled\next-server\app-route-turbo.runtime.dev.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\node_modules_next_60889fac._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\base-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\next-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\dev\next-dev-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\trace\trace.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\lib\router-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\lib\start-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+TypeError: fetch failed
+    at async GET (C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\[root-of-the-server]__b5e270dd._.js:910:22) {
+  [cause]: Error [ConnectTimeoutError]: Connect Timeout Error (attempted address: images.openfoodfacts.org:443, timeout: 10000ms)
+      at ignore-listed frames {
+    code: 'UND_ERR_CONNECT_TIMEOUT'
+  }
+}
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\lib\incremental-cache\index.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\ssr\node_modules_473cc24e._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+Failed to set fetch cache https://images.openfoodfacts.org/images/products/405/648/944/3025/front_de.26.full.jpg Error: Failed to set Next.js data cache for https://images.openfoodfacts.org/images/products/405/648/944/3025/front_de.26.full.jpg, items over 2MB can not be cached (2310771 bytes)
+    at ignore-listed frames
+C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\[root-of-the-server]__b5e270dd._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\compiled\next-server\app-route-turbo.runtime.dev.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\node_modules_next_60889fac._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\base-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\next-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\dev\next-dev-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\trace\trace.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\lib\router-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\lib\start-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+TypeError: fetch failed
+    at async GET (C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\[root-of-the-server]__b5e270dd._.js:910:22) {
+  [cause]: Error [ConnectTimeoutError]: Connect Timeout Error (attempted address: images.openfoodfacts.org:443, timeout: 10000ms)
+      at ignore-listed frames {
+    code: 'UND_ERR_CONNECT_TIMEOUT'
+  }
+}
+C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\[root-of-the-server]__b5e270dd._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\compiled\next-server\app-route-turbo.runtime.dev.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\node_modules_next_60889fac._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\base-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\next-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\dev\next-dev-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\trace\trace.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\lib\router-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\lib\start-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+TypeError: fetch failed
+    at async GET (C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\[root-of-the-server]__b5e270dd._.js:910:22) {
+  [cause]: Error [ConnectTimeoutError]: Connect Timeout Error (attempted address: images.openfoodfacts.org:443, timeout: 10000ms)
+      at ignore-listed frames {
+    code: 'UND_ERR_CONNECT_TIMEOUT'
+  }
+}
+C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\[root-of-the-server]__b5e270dd._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\compiled\next-server\app-route-turbo.runtime.dev.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\node_modules_next_60889fac._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\base-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\next-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\dev\next-dev-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\trace\trace.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\lib\router-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\lib\start-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+TypeError: fetch failed
+    at async GET (C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\[root-of-the-server]__b5e270dd._.js:910:22) {
+  [cause]: Error [ConnectTimeoutError]: Connect Timeout Error (attempted address: images.openfoodfacts.org:443, timeout: 10000ms)
+      at ignore-listed frames {
+    code: 'UND_ERR_CONNECT_TIMEOUT'
+  }
+}
+C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\[root-of-the-server]__b5e270dd._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\compiled\next-server\app-route-turbo.runtime.dev.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\node_modules_next_60889fac._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\base-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\next-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\dev\next-dev-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\trace\trace.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\lib\router-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\nicob\pizza-ranker\node_modules\next\dist\server\lib\start-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+TypeError: fetch failed
+    at async GET (C:\Users\nicob\pizza-ranker\.next\dev\server\chunks\[root-of-the-server]__b5e270dd._.js:910:22) {
+  [cause]: Error [ConnectTimeoutError]: Connect Timeout Error (attempted address: images.openfoodfacts.org:443, timeout: 10000ms)
+      at ignore-listed frames {
+    code: 'UND_ERR_CONNECT_TIMEOUT'
+  }
+}

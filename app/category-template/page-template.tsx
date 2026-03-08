@@ -73,9 +73,17 @@ export default function CategoryPage({
               style={{ aspectRatio: "2 / 3" }}
             >
               <img
-                src={item.imageUrl}
+                src={`/api/product-image/${routeSlug}`}
                 alt={item.name}
                 className="w-full h-full object-cover"
+                loading="lazy"
+                decoding="async"
+                onError={(e) => {
+                  const image = e.currentTarget;
+                  if (image.dataset.fallbackApplied === "1") return;
+                  image.dataset.fallbackApplied = "1";
+                  image.src = item.imageUrl;
+                }}
               />
 
               <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 p-3">
@@ -116,3 +124,4 @@ export default function CategoryPage({
     </div>
   );
 }
+
