@@ -58,16 +58,19 @@ export default function Header() {
   const isCategoryRoute = CATEGORY_LINKS.some((category) =>
     Boolean(pathname?.startsWith(category.href))
   );
+
+  const closeCategories = () => setIsCategoriesOpen(false);
+
   useEffect(() => {
     function handlePointerDown(event: MouseEvent) {
       if (!categoriesWrapperRef.current) return;
       if (categoriesWrapperRef.current.contains(event.target as Node)) return;
-      setIsCategoriesOpen(false);
+      closeCategories();
     }
 
     function handleEscape(event: KeyboardEvent) {
       if (event.key === "Escape") {
-        setIsCategoriesOpen(false);
+        closeCategories();
       }
     }
 
@@ -79,6 +82,17 @@ export default function Header() {
       document.removeEventListener("keydown", handleEscape);
     };
   }, []);
+
+  useEffect(() => {
+    if (!isCategoriesOpen) return;
+
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isCategoriesOpen]);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -102,7 +116,7 @@ export default function Header() {
     <header className="sticky top-0 z-50 w-full backdrop-blur-md bg-[#101722]/80 border-b border-[#233042]/80 shadow-[0_10px_30px_rgba(0,0,0,0.25)]">
       <div className="relative max-w-7xl mx-auto px-4 sm:px-8 lg:px-12">
         <nav className="h-20 flex items-center justify-between gap-4">
-          <Link href="/" className="flex items-center gap-3 group">
+          <Link href="/" onClick={closeCategories} className="flex items-center gap-3 group">
             <span className="text-2xl">{"\u{1F355}"}</span>
             <span className="text-xl font-semibold tracking-wide text-white group-hover:text-[#8AF5AC] transition-colors select-none">
               FoodRanker
@@ -124,7 +138,7 @@ export default function Header() {
           </form>
 
           <div className="flex items-center gap-2 text-sm font-medium">
-            <Link href="/" className={navItemClass(pathname === "/")}>
+            <Link href="/" onClick={closeCategories} className={navItemClass(pathname === "/")}>
               <FiHome size={18} />
               <span className="hidden md:inline">Home</span>
             </Link>
@@ -149,6 +163,7 @@ export default function Header() {
 
               <div
                 className={`
+                  hidden md:block
                   absolute right-0 mt-3 w-[92vw] max-w-[860px]
                   transition-all duration-300 ease-out
                   ${
@@ -179,7 +194,7 @@ export default function Header() {
                         <Link
                           key={category.href}
                           href={category.href}
-                          onClick={() => setIsCategoriesOpen(false)}
+                          onClick={closeCategories}
                           className={`
                             group rounded-xl border px-3 py-3 transition-all duration-300
                             ${
@@ -206,11 +221,83 @@ export default function Header() {
                   </div>
                 </div>
               </div>
+
+              <div
+                className={`
+                  md:hidden fixed inset-0 z-[80]
+                  transition-opacity duration-300
+                  ${
+                    isCategoriesOpen
+                      ? "opacity-100 pointer-events-auto"
+                      : "opacity-0 pointer-events-none"
+                  }
+                `}
+              >
+                <button
+                  type="button"
+                  aria-label="Kategorien schliessen"
+                  onClick={closeCategories}
+                  className="absolute inset-0 bg-[#0A111A]/65 backdrop-blur-[2px]"
+                />
+
+                <div
+                  className={`
+                    absolute left-0 right-0 bottom-0
+                    rounded-t-3xl border-t border-[#2D3A4B]
+                    bg-[#141E2A] px-4 pb-6 pt-3
+                    shadow-[0_-18px_40px_rgba(0,0,0,0.45)]
+                    transition-transform duration-300 ease-out
+                    ${isCategoriesOpen ? "translate-y-0" : "translate-y-full"}
+                  `}
+                >
+                  <div className="mx-auto mb-4 h-1.5 w-14 rounded-full bg-[#3B4A5E]" />
+
+                  <div className="mb-4">
+                    <p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">
+                      Kategorien
+                    </p>
+                    <h3 className="text-lg font-semibold text-[#E8F6ED]">
+                      Schnell wechseln
+                    </h3>
+                  </div>
+
+                  <div className="space-y-2.5 max-h-[62vh] overflow-y-auto pr-1">
+                    {CATEGORY_LINKS.map((category) => {
+                      const isActive = Boolean(pathname?.startsWith(category.href));
+
+                      return (
+                        <Link
+                          key={`mobile-${category.href}`}
+                          href={category.href}
+                          onClick={closeCategories}
+                          className={`
+                            flex items-center gap-3 rounded-xl border px-3 py-3 transition-all duration-300
+                            ${
+                              isActive
+                                ? "border-[#5EE287] bg-[#1E2A3A]"
+                                : "border-[#2D3A4B] bg-[#121B27] hover:border-[#5EE287] hover:bg-[#1B2736]"
+                            }
+                          `}
+                        >
+                          <span className="text-2xl leading-none">{category.icon}</span>
+                          <div>
+                            <p className="font-semibold text-white">{category.name}</p>
+                            <p className="text-xs text-[#8CA1B8] mt-0.5">{category.description}</p>
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
             </div>
 
             {session ? (
               <button
-                onClick={() => signOut()}
+                onClick={() => {
+                  closeCategories();
+                  signOut();
+                }}
                 className="px-4 py-2 rounded-xl bg-[#1B222D] border border-[#2D3A4B] text-white hover:bg-[#212B38] hover:border-[#5EE287] transition-all duration-300"
               >
                 Logout
