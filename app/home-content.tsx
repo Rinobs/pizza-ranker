@@ -295,7 +295,7 @@ export default function HomeContent() {
         {searchQuery ? (
           <section className="mb-16">
             <h2 className="text-2xl sm:text-3xl font-bold mb-6 tracking-tight text-[#E8F6ED]">
-              {"\u{1F50E}"} Suchergebnisse f\u00FCr {searchQuery}
+              {"\u{1F50E}"} Suchergebnisse: {searchQuery}
             </h2>
 
             {searchResults.length > 0 ? (
