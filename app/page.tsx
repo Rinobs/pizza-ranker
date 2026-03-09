@@ -1,5 +1,10 @@
+import { Suspense } from "react";
 import HomeContent from "./home-content";
 
 export default function Home() {
-  return <HomeContent />;
+  return (
+    <Suspense fallback={<main className="min-h-screen" />}>
+      <HomeContent />
+    </Suspense>
+  );
 }
