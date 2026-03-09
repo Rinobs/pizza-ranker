@@ -8,17 +8,33 @@ const PRODUCT_SLUG_PATTERN = /^[a-z0-9-]+$/;
 const MAX_COMMENT_LENGTH = 1000;
 
 function normalizeRating(value: unknown) {
-  if (typeof value !== "number" || !Number.isInteger(value)) {
+  let parsed: number | null = null;
+
+  if (typeof value === "number") {
+    parsed = Number.isFinite(value) ? value : null;
+  } else if (typeof value === "string") {
+    const normalized = value.replace(",", ".").trim();
+    if (normalized.length > 0) {
+      const numeric = Number(normalized);
+      parsed = Number.isFinite(numeric) ? numeric : null;
+    }
+  }
+
+  if (parsed === null) {
     return null;
   }
 
-  if (value < 0 || value > 5) {
+  if (parsed < 0 || parsed > 5) {
     return null;
   }
 
-  return value;
+  const rounded = Math.round(parsed * 2) / 2;
+  if (Math.abs(parsed - rounded) > 1e-6) {
+    return null;
+  }
+
+  return rounded;
 }
-
 function normalizeComment(value: unknown) {
   if (typeof value !== "string") {
     return null;
@@ -76,7 +92,7 @@ export async function POST(req: Request) {
   const rating = normalizeRating(body.rating);
   if (rating === null) {
     return NextResponse.json(
-      { success: false, error: "Rating must be an integer between 0 and 5" },
+      { success: false, error: "Rating must be between 0 and 5 in 0.5 steps" },
       { status: 400 }
     );
   }
