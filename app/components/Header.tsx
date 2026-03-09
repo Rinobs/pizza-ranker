@@ -62,7 +62,7 @@ export default function Header() {
   const closeCategories = () => setIsCategoriesOpen(false);
 
   useEffect(() => {
-    function handlePointerDown(event: MouseEvent) {
+    function handlePointerDown(event: PointerEvent) {
       if (!categoriesWrapperRef.current) return;
       if (categoriesWrapperRef.current.contains(event.target as Node)) return;
       closeCategories();
@@ -74,11 +74,11 @@ export default function Header() {
       }
     }
 
-    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("pointerdown", handlePointerDown);
     document.addEventListener("keydown", handleEscape);
 
     return () => {
-      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("pointerdown", handlePointerDown);
       document.removeEventListener("keydown", handleEscape);
     };
   }, []);
@@ -106,7 +106,7 @@ export default function Header() {
   };
 
   const navItemClass = (active: boolean) =>
-    `flex items-center gap-2 px-3 py-2 rounded-xl transition-all duration-300 ${
+    `min-h-11 touch-manipulation flex items-center gap-2 px-3 py-2 rounded-xl transition-all duration-300 ${
       active
         ? "bg-[#1B222D] border border-[#2D3A4B] text-white"
         : "text-[#B7C4D3] hover:text-white hover:bg-[#1B222D]/70"
@@ -118,7 +118,7 @@ export default function Header() {
         <nav className="h-20 flex items-center justify-between gap-4">
           <Link href="/" onClick={closeCategories} className="flex items-center gap-3 group">
             <span className="text-2xl">{"\u{1F355}"}</span>
-            <span className="text-xl font-semibold tracking-wide text-white group-hover:text-[#8AF5AC] transition-colors select-none">
+            <span className="hidden sm:inline text-xl font-semibold tracking-wide text-white group-hover:text-[#8AF5AC] transition-colors select-none">
               FoodRanker
             </span>
           </Link>
@@ -137,7 +137,7 @@ export default function Header() {
             />
           </form>
 
-          <div className="flex items-center gap-2 text-sm font-medium">
+          <div className="flex items-center gap-1.5 sm:gap-2 text-sm font-medium">
             <Link href="/" onClick={closeCategories} className={navItemClass(pathname === "/")}>
               <FiHome size={18} />
               <span className="hidden md:inline">Home</span>
@@ -152,7 +152,7 @@ export default function Header() {
                 className={navItemClass(isCategoryRoute || isCategoriesOpen)}
               >
                 <FiGrid size={18} />
-                <span className="hidden md:inline">Kategorien</span>
+                <span className="inline md:inline">Kategorien</span>
                 <FiChevronDown
                   size={16}
                   className={`transition-transform duration-300 ${
@@ -298,7 +298,7 @@ export default function Header() {
                   closeCategories();
                   signOut();
                 }}
-                className="px-4 py-2 rounded-xl bg-[#1B222D] border border-[#2D3A4B] text-white hover:bg-[#212B38] hover:border-[#5EE287] transition-all duration-300"
+                className="min-h-11 touch-manipulation px-3 sm:px-4 py-2 rounded-xl bg-[#1B222D] border border-[#2D3A4B] text-white hover:bg-[#212B38] hover:border-[#5EE287] transition-all duration-300"
               >
                 Logout
               </button>
