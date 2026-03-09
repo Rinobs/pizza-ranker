@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { getSupabaseAdminClient, RATINGS_TABLE } from "@/lib/supabase";
 import { ALL_PRODUCTS, getProductRouteSlug, type Product } from "@/app/data/products";
 
 export const runtime = "nodejs";
@@ -204,25 +204,17 @@ function mergeOnlineDetails(base: ProductDetails, online: OpenFoodFactsProduct):
 }
 
 async function loadRatingSummary(routeSlug: string) {
-  const supabaseUrl = process.env.SUPABASE_URL;
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const supabase = getSupabaseAdminClient();
 
-  if (!supabaseUrl || !serviceRoleKey) {
+  if (!supabase) {
     return {
       durchschnittsbewertung: PLACEHOLDER_NUMBER,
       kommentare: [PLACEHOLDER_TEXT],
     };
   }
 
-  const supabase = createClient(supabaseUrl, serviceRoleKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  });
-
   const { data, error } = await supabase
-    .from("ratings")
+    .from(RATINGS_TABLE)
     .select("rating, comment")
     .eq("product_slug", routeSlug);
 

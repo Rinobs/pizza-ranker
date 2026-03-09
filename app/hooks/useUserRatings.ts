@@ -3,6 +3,18 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 
+type RatingRow = {
+  product_slug: string;
+  rating: number;
+  comment: string | null;
+};
+
+type RatingsResponse = {
+  success: boolean;
+  data?: RatingRow[];
+  ratings?: RatingRow[];
+};
+
 export function useUserRatings() {
   const { data: session } = useSession();
   const user = session?.user;
@@ -11,62 +23,86 @@ export function useUserRatings() {
   const [comments, setComments] = useState<Record<string, string>>({});
   const [loaded, setLoaded] = useState(false);
 
-  // -----------------------------------------
-  // 🔥 Ratings laden
-  // -----------------------------------------
   useEffect(() => {
-    if (!user) return;
+    let cancelled = false;
 
-    async function load() {
-      const res = await fetch("/api/ratings/all");
-      const json = await res.json();
-
-      if (!json.success) return;
-
-      const rMap: Record<string, number> = {};
-      const cMap: Record<string, string> = {};
-
-      json.data.forEach((r: any) => {
-        rMap[r.product_slug] = r.rating;
-        cMap[r.product_slug] = r.comment || "";
-      });
-
-      setRatings(rMap);
-      setComments(cMap);
+    if (!user) {
+      setRatings({});
+      setComments({});
       setLoaded(true);
+      return () => {
+        cancelled = true;
+      };
     }
 
-    load();
+    setLoaded(false);
+
+    async function load() {
+      try {
+        const response = await fetch("/api/ratings/all", {
+          cache: "no-store",
+        });
+
+        const json = (await response.json()) as RatingsResponse;
+
+        if (!response.ok || !json.success) {
+          return;
+        }
+
+        const rows = Array.isArray(json.data)
+          ? json.data
+          : Array.isArray(json.ratings)
+            ? json.ratings
+            : [];
+
+        const nextRatings: Record<string, number> = {};
+        const nextComments: Record<string, string> = {};
+
+        for (const row of rows) {
+          nextRatings[row.product_slug] = row.rating;
+          nextComments[row.product_slug] = row.comment ?? "";
+        }
+
+        if (cancelled) return;
+        setRatings(nextRatings);
+        setComments(nextComments);
+      } finally {
+        if (!cancelled) {
+          setLoaded(true);
+        }
+      }
+    }
+
+    void load();
+
+    return () => {
+      cancelled = true;
+    };
   }, [user]);
 
-  // -----------------------------------------
-  // 🔥 Rating speichern
-  // -----------------------------------------
-  async function saveRating(slug: string, value: number) {
-    setRatings((prev) => ({ ...prev, [slug]: value }));
+  async function persistRating(slug: string, rating: number, comment: string) {
+    if (!user) return;
 
     await fetch(`/api/ratings/${slug}`, {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
-        rating: value,
-        comment: comments[slug] || "",
+        rating,
+        comment,
       }),
     });
   }
 
-  // -----------------------------------------
-  // 🔥 Kommentar speichern
-  // -----------------------------------------
+  async function saveRating(slug: string, value: number) {
+    setRatings((prev) => ({ ...prev, [slug]: value }));
+    await persistRating(slug, value, comments[slug] || "");
+  }
+
   async function saveComment(slug: string, text: string) {
     setComments((prev) => ({ ...prev, [slug]: text }));
-
-    await fetch(`/api/ratings/${slug}`, {
-      method: "POST",
-      body: JSON.stringify({
-        rating: ratings[slug] || 0,
-        comment: text,
-      }),
-    });
+    await persistRating(slug, ratings[slug] || 0, text);
   }
 
   return {

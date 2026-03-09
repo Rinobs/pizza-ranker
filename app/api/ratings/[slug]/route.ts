@@ -1,46 +1,114 @@
-import { NextResponse, NextRequest } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { getSupabaseAdminClient, RATINGS_TABLE } from "@/lib/supabase";
+import { getStableUserId } from "@/lib/user-id";
 
-export async function POST(req: NextRequest, context: { params: Promise<{ slug: string }> }) {
+const PRODUCT_SLUG_PATTERN = /^[a-z0-9-]+$/;
+const MAX_COMMENT_LENGTH = 1000;
+
+function normalizeRating(value: unknown) {
+  if (typeof value !== "number" || !Number.isInteger(value)) {
+    return null;
+  }
+
+  if (value < 0 || value > 5) {
+    return null;
+  }
+
+  return value;
+}
+
+function normalizeComment(value: unknown) {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  if (trimmed.length === 0) {
+    return null;
+  }
+
+  return trimmed.slice(0, MAX_COMMENT_LENGTH);
+}
+
+export async function POST(
+  req: NextRequest,
+  context: { params: Promise<{ slug: string }> }
+) {
   const { slug } = await context.params;
 
+  if (!PRODUCT_SLUG_PATTERN.test(slug)) {
+    return NextResponse.json(
+      { success: false, error: "Invalid product slug" },
+      { status: 400 }
+    );
+  }
+
   const session = await getServerSession(authOptions);
-  if (!session) {
+  const userEmail = session?.user?.email;
+
+  if (!userEmail) {
     return NextResponse.json(
       { success: false, error: "Not authenticated" },
       { status: 401 }
     );
   }
 
-  const user = session.user;
-  if (!user?.email) {
+  const userId = getStableUserId(userEmail);
+
+  const supabase = getSupabaseAdminClient();
+  if (!supabase) {
     return NextResponse.json(
-      { success: false, error: "Missing user email" },
+      { success: false, error: "Supabase is not configured" },
+      { status: 500 }
+    );
+  }
+
+  let body: { rating?: unknown; comment?: unknown };
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json(
+      { success: false, error: "Invalid JSON body" },
       { status: 400 }
     );
   }
 
-  const body = await req.json();
-  const { rating, comment } = body;
+  const rating = normalizeRating(body.rating);
+  if (rating === null) {
+    return NextResponse.json(
+      { success: false, error: "Rating must be an integer between 0 and 5" },
+      { status: 400 }
+    );
+  }
 
-  // UPSERT → überschreibt vorhandene Bewertung
+  if (typeof body.comment === "string" && body.comment.trim().length > MAX_COMMENT_LENGTH) {
+    return NextResponse.json(
+      { success: false, error: `Comment must be at most ${MAX_COMMENT_LENGTH} characters` },
+      { status: 400 }
+    );
+  }
+
+  const comment = normalizeComment(body.comment);
+  const now = new Date().toISOString();
+
   const { data, error } = await supabase
-    .from("ratings")
+    .from(RATINGS_TABLE)
     .upsert(
       {
-        user_id: user.email,
+        user_id: userId,
         product_slug: slug,
         rating,
         comment,
+        updated_at: now,
       },
       { onConflict: "user_id,product_slug" }
     )
-    .select();
+    .select("product_slug, rating, comment, updated_at")
+    .single();
 
   if (error) {
-    console.error(error);
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 400 }

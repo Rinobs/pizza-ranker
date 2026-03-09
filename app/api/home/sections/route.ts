@@ -1,4 +1,4 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import {
   ALL_PRODUCTS,
   PIZZA_PRODUCTS,
@@ -6,7 +6,7 @@ import {
   getProductRouteSlug,
   type Product,
 } from "@/app/data/products";
-import { createClient } from "@supabase/supabase-js";
+import { getSupabaseAdminClient, RATINGS_TABLE } from "@/lib/supabase";
 
 type RankedProduct = {
   name: string;
@@ -145,22 +145,13 @@ function fallbackSections() {
 export async function GET() {
   const fallback = fallbackSections();
 
-  const supabaseUrl = process.env.SUPABASE_URL;
-  const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!supabaseUrl || !supabaseServiceRoleKey) {
+  const supabase = getSupabaseAdminClient();
+  if (!supabase) {
     return NextResponse.json(fallback);
   }
 
-  const supabase = createClient(supabaseUrl, supabaseServiceRoleKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  });
-
   const { data, error } = await supabase
-    .from("ratings")
+    .from(RATINGS_TABLE)
     .select("product_slug, rating, updated_at");
 
   if (error || !Array.isArray(data)) {
@@ -206,4 +197,3 @@ export async function GET() {
     generatedAt: new Date().toISOString(),
   });
 }
-
