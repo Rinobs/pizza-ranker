@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import {
@@ -11,9 +11,18 @@ import { getStableUserId } from "@/lib/user-id";
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-type FollowRow = {
+type FollowingRow = {
   following_user_id: string;
   inserted_at: string | null;
+};
+
+type FollowerRow = {
+  follower_user_id: string;
+  inserted_at: string | null;
+};
+
+type FollowBackRow = {
+  following_user_id: string;
 };
 
 type ProfileRow = {
@@ -25,7 +34,19 @@ function isUuid(value: string) {
   return UUID_PATTERN.test(value);
 }
 
-export async function GET() {
+function buildProfileByUserId(rows: ProfileRow[]) {
+  const map = new Map<string, string>();
+
+  for (const row of rows) {
+    const username = typeof row.username === "string" ? row.username.trim() : "";
+    if (!username) continue;
+    map.set(row.user_id, username);
+  }
+
+  return map;
+}
+
+export async function GET(request: NextRequest) {
   const session = await getServerSession(authOptions);
   const userEmail = session?.user?.email;
 
@@ -45,11 +66,68 @@ export async function GET() {
   }
 
   const userId = getStableUserId(userEmail);
+  const requestedType = (request.nextUrl.searchParams.get("type") || "following")
+    .trim()
+    .toLowerCase();
+
+  if (requestedType !== "following" && requestedType !== "followers") {
+    return NextResponse.json(
+      { success: false, error: "Invalid follow list type" },
+      { status: 400 }
+    );
+  }
+
+  if (requestedType === "following") {
+    const { data, error } = await supabase
+      .from(USER_FOLLOWS_TABLE)
+      .select("following_user_id, inserted_at")
+      .eq("follower_user_id", userId)
+      .order("inserted_at", { ascending: false });
+
+    if (error) {
+      return NextResponse.json(
+        { success: false, error: error.message },
+        { status: 400 }
+      );
+    }
+
+    const rows = (data ?? []) as FollowingRow[];
+    if (rows.length === 0) {
+      return NextResponse.json({ success: true, data: [] });
+    }
+
+    const followedUserIds = Array.from(new Set(rows.map((row) => row.following_user_id)));
+
+    const { data: profileData, error: profileError } = await supabase
+      .from(USER_PROFILES_TABLE)
+      .select("user_id, username")
+      .in("user_id", followedUserIds);
+
+    if (profileError) {
+      return NextResponse.json(
+        { success: false, error: profileError.message },
+        { status: 400 }
+      );
+    }
+
+    const profileByUserId = buildProfileByUserId((profileData ?? []) as ProfileRow[]);
+
+    const result = rows
+      .filter((row) => isUuid(row.following_user_id))
+      .map((row) => ({
+        userId: row.following_user_id,
+        username: profileByUserId.get(row.following_user_id) ?? "Unbekannt",
+        isFollowing: true,
+        followedAt: row.inserted_at,
+      }));
+
+    return NextResponse.json({ success: true, data: result });
+  }
 
   const { data, error } = await supabase
     .from(USER_FOLLOWS_TABLE)
-    .select("following_user_id, inserted_at")
-    .eq("follower_user_id", userId)
+    .select("follower_user_id, inserted_at")
+    .eq("following_user_id", userId)
     .order("inserted_at", { ascending: false });
 
   if (error) {
@@ -59,17 +137,22 @@ export async function GET() {
     );
   }
 
-  const rows = (data ?? []) as FollowRow[];
+  const rows = (data ?? []) as FollowerRow[];
   if (rows.length === 0) {
     return NextResponse.json({ success: true, data: [] });
   }
 
-  const followedUserIds = Array.from(new Set(rows.map((row) => row.following_user_id)));
+  const followerUserIds = Array.from(new Set(rows.map((row) => row.follower_user_id)));
 
-  const { data: profileData, error: profileError } = await supabase
-    .from(USER_PROFILES_TABLE)
-    .select("user_id, username")
-    .in("user_id", followedUserIds);
+  const [{ data: profileData, error: profileError }, { data: followBackData, error: followBackError }] =
+    await Promise.all([
+      supabase.from(USER_PROFILES_TABLE).select("user_id, username").in("user_id", followerUserIds),
+      supabase
+        .from(USER_FOLLOWS_TABLE)
+        .select("following_user_id")
+        .eq("follower_user_id", userId)
+        .in("following_user_id", followerUserIds),
+    ]);
 
   if (profileError) {
     return NextResponse.json(
@@ -78,20 +161,24 @@ export async function GET() {
     );
   }
 
-  const profileByUserId = new Map<string, string>();
-
-  for (const row of (profileData ?? []) as ProfileRow[]) {
-    const username = typeof row.username === "string" ? row.username.trim() : "";
-    if (!username) continue;
-    profileByUserId.set(row.user_id, username);
+  if (followBackError) {
+    return NextResponse.json(
+      { success: false, error: followBackError.message },
+      { status: 400 }
+    );
   }
 
+  const profileByUserId = buildProfileByUserId((profileData ?? []) as ProfileRow[]);
+  const followingBackSet = new Set(
+    ((followBackData ?? []) as FollowBackRow[]).map((row) => row.following_user_id)
+  );
+
   const result = rows
-    .filter((row) => isUuid(row.following_user_id))
+    .filter((row) => isUuid(row.follower_user_id))
     .map((row) => ({
-      userId: row.following_user_id,
-      username: profileByUserId.get(row.following_user_id) ?? "Unbekannt",
-      isFollowing: true,
+      userId: row.follower_user_id,
+      username: profileByUserId.get(row.follower_user_id) ?? "Unbekannt",
+      isFollowing: followingBackSet.has(row.follower_user_id),
       followedAt: row.inserted_at,
     }));
 
@@ -212,4 +299,3 @@ export async function POST(req: NextRequest) {
     },
   });
 }
-

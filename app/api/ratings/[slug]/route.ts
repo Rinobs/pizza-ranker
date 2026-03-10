@@ -35,6 +35,7 @@ function normalizeRating(value: unknown) {
 
   return rounded;
 }
+
 function normalizeComment(value: unknown) {
   if (typeof value !== "string") {
     return null;
@@ -132,4 +133,58 @@ export async function POST(
   }
 
   return NextResponse.json({ success: true, data });
+}
+
+export async function DELETE(
+  _req: NextRequest,
+  context: { params: Promise<{ slug: string }> }
+) {
+  const { slug } = await context.params;
+
+  if (!PRODUCT_SLUG_PATTERN.test(slug)) {
+    return NextResponse.json(
+      { success: false, error: "Invalid product slug" },
+      { status: 400 }
+    );
+  }
+
+  const session = await getServerSession(authOptions);
+  const userEmail = session?.user?.email;
+
+  if (!userEmail) {
+    return NextResponse.json(
+      { success: false, error: "Not authenticated" },
+      { status: 401 }
+    );
+  }
+
+  const supabase = getSupabaseAdminClient();
+  if (!supabase) {
+    return NextResponse.json(
+      { success: false, error: "Supabase is not configured" },
+      { status: 500 }
+    );
+  }
+
+  const userId = getStableUserId(userEmail);
+
+  const { error } = await supabase
+    .from(RATINGS_TABLE)
+    .delete()
+    .eq("user_id", userId)
+    .eq("product_slug", slug);
+
+  if (error) {
+    return NextResponse.json(
+      { success: false, error: error.message },
+      { status: 400 }
+    );
+  }
+
+  return NextResponse.json({
+    success: true,
+    data: {
+      product_slug: slug,
+    },
+  });
 }

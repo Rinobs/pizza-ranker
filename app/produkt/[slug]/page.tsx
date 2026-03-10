@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -128,6 +128,7 @@ export default function ProductPage() {
     submittingComments,
     commentErrors,
     saveRating,
+    deleteRating,
     updateCommentDraft,
     submitComment,
     user,
@@ -213,6 +214,8 @@ export default function ProductPage() {
   const originalImageUrl = getProductImageUrl(product);
   const fallback = createFallbackDetails(product);
   const mergedDetails = mergeDetails(fallback, details);
+  const hasOwnRatingOrComment =
+    (ratings[routeSlug] || 0) > 0 || (commentDrafts[routeSlug] || "").trim().length > 0;
 
   const keyFacts: Array<[string, string | number]> = [
     ["Kategorie", product.category],
@@ -408,27 +411,48 @@ export default function ProductPage() {
                 disabled={!user}
               />
 
-              <div className="flex items-center justify-between mt-3">
+              <div className="flex items-center justify-between mt-3 gap-3">
                 <p className="text-xs text-[#8CA1B8]">
                   {(commentDrafts[routeSlug] || "").length}/1000 Zeichen
                 </p>
-                <button
-                  type="button"
-                  className="px-4 py-2 rounded-lg bg-[#5EE287] text-[#0C1910] font-semibold hover:bg-[#75F39B] disabled:opacity-60 disabled:cursor-not-allowed"
-                  disabled={!user || submittingComments[routeSlug] === true}
-                  onClick={async () => {
-                    const response = await submitComment(routeSlug);
-                    if (!response.success) {
-                      setCommentMessage(response.error || "Kommentar konnte nicht gesendet werden.");
-                      return;
-                    }
 
-                    setCommentMessage("Kommentar erfolgreich gespeichert.");
-                    setDetailsReloadToken((prev) => prev + 1);
-                  }}
-                >
-                  {submittingComments[routeSlug] ? "Sende..." : "Kommentar absenden"}
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    className="px-4 py-2 rounded-lg bg-[#2A1111] border border-[#5A2A2A] text-red-200 font-semibold hover:bg-[#3A1717] disabled:opacity-60 disabled:cursor-not-allowed"
+                    disabled={!user || submittingComments[routeSlug] === true || !hasOwnRatingOrComment}
+                    onClick={async () => {
+                      const response = await deleteRating(routeSlug);
+                      if (!response.success) {
+                        setCommentMessage(response.error || "Bewertung konnte nicht gelöscht werden.");
+                        return;
+                      }
+
+                      setCommentMessage("Bewertung erfolgreich gelöscht.");
+                      setDetailsReloadToken((prev) => prev + 1);
+                    }}
+                  >
+                    Bewertung löschen
+                  </button>
+
+                  <button
+                    type="button"
+                    className="px-4 py-2 rounded-lg bg-[#5EE287] text-[#0C1910] font-semibold hover:bg-[#75F39B] disabled:opacity-60 disabled:cursor-not-allowed"
+                    disabled={!user || submittingComments[routeSlug] === true}
+                    onClick={async () => {
+                      const response = await submitComment(routeSlug);
+                      if (!response.success) {
+                        setCommentMessage(response.error || "Kommentar konnte nicht gesendet werden.");
+                        return;
+                      }
+
+                      setCommentMessage("Kommentar erfolgreich gespeichert.");
+                      setDetailsReloadToken((prev) => prev + 1);
+                    }}
+                  >
+                    {submittingComments[routeSlug] ? "Sende..." : "Kommentar absenden"}
+                  </button>
+                </div>
               </div>
 
               {commentErrors[routeSlug] && (
@@ -445,4 +469,5 @@ export default function ProductPage() {
     </div>
   );
 }
+
 

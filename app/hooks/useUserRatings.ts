@@ -22,6 +22,14 @@ type SaveRatingResponse = {
   error?: string;
 };
 
+type DeleteRatingResponse = {
+  success: boolean;
+  data?: {
+    product_slug: string;
+  };
+  error?: string;
+};
+
 type ProfileResponse = {
   success: boolean;
   data?: {
@@ -212,6 +220,105 @@ export function useUserRatings() {
     return response;
   }
 
+  async function deleteRating(slug: string) {
+    if (!user) {
+      return {
+        success: false,
+        error: "Bitte zuerst einloggen.",
+      } as DeleteRatingResponse;
+    }
+
+    const previousRating = ratings[slug];
+    const previousComment = comments[slug];
+    const previousDraft = commentDrafts[slug];
+
+    setRatings((prev) => {
+      const next = { ...prev };
+      delete next[slug];
+      return next;
+    });
+
+    setComments((prev) => {
+      const next = { ...prev };
+      delete next[slug];
+      return next;
+    });
+
+    setCommentDrafts((prev) => {
+      const next = { ...prev };
+      delete next[slug];
+      return next;
+    });
+
+    setCommentErrors((prev) => ({ ...prev, [slug]: null }));
+
+    const rollback = () => {
+      setRatings((prev) => {
+        const next = { ...prev };
+        if (previousRating === undefined) {
+          delete next[slug];
+        } else {
+          next[slug] = previousRating;
+        }
+        return next;
+      });
+
+      setComments((prev) => {
+        const next = { ...prev };
+        if (previousComment === undefined) {
+          delete next[slug];
+        } else {
+          next[slug] = previousComment;
+        }
+        return next;
+      });
+
+      setCommentDrafts((prev) => {
+        const next = { ...prev };
+        if (previousDraft === undefined) {
+          delete next[slug];
+        } else {
+          next[slug] = previousDraft;
+        }
+        return next;
+      });
+    };
+
+    try {
+      const response = await fetch(`/api/ratings/${slug}`, {
+        method: "DELETE",
+      });
+
+      const json = (await response.json()) as DeleteRatingResponse;
+
+      if (!response.ok || !json.success) {
+        rollback();
+        const error = json.error || "Bewertung konnte nicht gelöscht werden.";
+        setCommentErrors((prev) => ({ ...prev, [slug]: error }));
+        return {
+          success: false,
+          error,
+        } as DeleteRatingResponse;
+      }
+
+      setSubmittingComments((prev) => ({ ...prev, [slug]: false }));
+      setCommentErrors((prev) => ({ ...prev, [slug]: null }));
+
+      return {
+        success: true,
+        data: json.data,
+      } as DeleteRatingResponse;
+    } catch {
+      rollback();
+      const error = "Bewertung konnte nicht gelöscht werden.";
+      setCommentErrors((prev) => ({ ...prev, [slug]: error }));
+      return {
+        success: false,
+        error,
+      } as DeleteRatingResponse;
+    }
+  }
+
   function updateCommentDraft(slug: string, text: string) {
     const clamped = text.slice(0, MAX_COMMENT_LENGTH);
 
@@ -331,6 +438,7 @@ export function useUserRatings() {
     commentErrors,
     loaded,
     saveRating,
+    deleteRating,
     updateCommentDraft,
     submitComment,
     username,
@@ -344,3 +452,4 @@ export function useUserRatings() {
     },
   };
 }
+

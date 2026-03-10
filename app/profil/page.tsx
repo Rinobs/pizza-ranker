@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -29,7 +29,7 @@ type RatedSortMode =
   | "name-asc"
   | "name-desc";
 
-type FollowedProfile = {
+type FollowProfile = {
   userId: string;
   username: string;
   isFollowing: boolean;
@@ -44,7 +44,7 @@ type ProfileSearchResult = {
 
 type FollowListResponse = {
   success: boolean;
-  data?: FollowedProfile[];
+  data?: FollowProfile[];
   error?: string;
 };
 
@@ -90,8 +90,10 @@ export default function ProfilPage() {
   const [profileSearchError, setProfileSearchError] = useState<string | null>(null);
   const [profileSearchPerformed, setProfileSearchPerformed] = useState(false);
 
-  const [followedProfiles, setFollowedProfiles] = useState<FollowedProfile[]>([]);
+  const [followingProfiles, setFollowingProfiles] = useState<FollowProfile[]>([]);
+  const [followerProfiles, setFollowerProfiles] = useState<FollowProfile[]>([]);
   const [followsLoaded, setFollowsLoaded] = useState(false);
+  const [openFollowList, setOpenFollowList] = useState<"following" | "followers" | null>(null);
   const [followMessage, setFollowMessage] = useState<string | null>(null);
   const [followMutationUserId, setFollowMutationUserId] = useState<string | null>(null);
 
@@ -186,6 +188,8 @@ export default function ProfilPage() {
   }, [ratedProducts, ratedSortMode, selectedRatedCategory]);
 
   const ratedProductsLabel = ratedProducts.length === 1 ? "Produkt" : "Produkte";
+  const followingCount = followingProfiles.length;
+  const followersCount = followerProfiles.length;
 
   const favoriteProducts = useMemo(() => {
     const result: ListProduct[] = favoriteSlugs.map((slug) => {
@@ -217,9 +221,11 @@ export default function ProfilPage() {
     return result;
   }, [productBySlug, wantToTrySlugs]);
 
-  const loadFollowedProfiles = useCallback(async () => {
+  const loadFollowProfiles = useCallback(async () => {
     if (!user) {
-      setFollowedProfiles([]);
+      setFollowingProfiles([]);
+      setFollowerProfiles([]);
+      setOpenFollowList(null);
       setFollowsLoaded(true);
       return;
     }
@@ -227,28 +233,42 @@ export default function ProfilPage() {
     setFollowsLoaded(false);
 
     try {
-      const response = await fetch("/api/follows", {
-        cache: "no-store",
-      });
+      const [followingResponse, followersResponse] = await Promise.all([
+        fetch("/api/follows?type=following", {
+          cache: "no-store",
+        }),
+        fetch("/api/follows?type=followers", {
+          cache: "no-store",
+        }),
+      ]);
 
-      const json = (await response.json()) as FollowListResponse;
+      const [followingJson, followersJson] = (await Promise.all([
+        followingResponse.json(),
+        followersResponse.json(),
+      ])) as [FollowListResponse, FollowListResponse];
 
-      if (!response.ok || !json.success) {
-        setFollowedProfiles([]);
-        return;
+      if (!followingResponse.ok || !followingJson.success) {
+        setFollowingProfiles([]);
+      } else {
+        setFollowingProfiles(Array.isArray(followingJson.data) ? followingJson.data : []);
       }
 
-      setFollowedProfiles(Array.isArray(json.data) ? json.data : []);
+      if (!followersResponse.ok || !followersJson.success) {
+        setFollowerProfiles([]);
+      } else {
+        setFollowerProfiles(Array.isArray(followersJson.data) ? followersJson.data : []);
+      }
     } catch {
-      setFollowedProfiles([]);
+      setFollowingProfiles([]);
+      setFollowerProfiles([]);
     } finally {
       setFollowsLoaded(true);
     }
   }, [user]);
 
   useEffect(() => {
-    void loadFollowedProfiles();
-  }, [loadFollowedProfiles]);
+    void loadFollowProfiles();
+  }, [loadFollowProfiles]);
 
   async function handleSearchProfiles() {
     const query = profileSearchQuery.trim();
@@ -316,17 +336,13 @@ export default function ProfilPage() {
         )
       );
 
-      if (!active) {
-        setFollowedProfiles((prev) => prev.filter((entry) => entry.userId !== targetUserId));
-      }
-
       setFollowMessage(
         active
           ? `Du folgst jetzt ${usernameText}.`
           : `Du folgst ${usernameText} nicht mehr.`
       );
 
-      await loadFollowedProfiles();
+      await loadFollowProfiles();
     } catch {
       setFollowMessage("Folgen-Status konnte nicht geändert werden.");
     } finally {
@@ -510,48 +526,131 @@ export default function ProfilPage() {
 
         <section className="mb-8">
           <h2 className="text-lg sm:text-xl font-semibold text-[#E8F6ED] mb-4">
-            Personen denen ich folge
+            Follower und gefolgte Profile
           </h2>
 
+          <p className="text-xs text-[#8CA1B8] mb-3">
+            Klicke auf eine Zahl, um die jeweilige Liste anzuzeigen.
+          </p>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <button
+              type="button"
+              onClick={() => {
+                setOpenFollowList((prev) => (prev === "following" ? null : "following"));
+              }}
+              className={`text-left rounded-2xl border bg-[#141C27] p-4 transition-colors ${
+                openFollowList === "following"
+                  ? "border-[#5EE287]"
+                  : "border-[#2D3A4B] hover:border-[#5EE287]"
+              }`}
+            >
+              <p className="text-xs uppercase tracking-wide text-[#8CA1B8]">Ich folge</p>
+              <p className="text-2xl font-bold text-white mt-1">
+                {followsLoaded ? followingCount : "..."}
+              </p>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setOpenFollowList((prev) => (prev === "followers" ? null : "followers"));
+              }}
+              className={`text-left rounded-2xl border bg-[#141C27] p-4 transition-colors ${
+                openFollowList === "followers"
+                  ? "border-[#5EE287]"
+                  : "border-[#2D3A4B] hover:border-[#5EE287]"
+              }`}
+            >
+              <p className="text-xs uppercase tracking-wide text-[#8CA1B8]">Follower</p>
+              <p className="text-2xl font-bold text-white mt-1">
+                {followsLoaded ? followersCount : "..."}
+              </p>
+            </button>
+          </div>
+
           {!followsLoaded && (
-            <div className="rounded-2xl border border-[#2D3A4B] bg-[#141C27] p-4 text-[#8CA1B8]">
-              Gefolgte Profile werden geladen...
+            <div className="rounded-2xl border border-[#2D3A4B] bg-[#141C27] p-4 mt-3 text-[#8CA1B8]">
+              Follower-Daten werden geladen...
             </div>
           )}
 
-          {followsLoaded && followedProfiles.length === 0 && (
-            <div className="rounded-2xl border border-[#2D3A4B] bg-[#141C27] p-4 text-[#8CA1B8]">
-              Du folgst aktuell noch keinem Profil.
-            </div>
+          {followsLoaded && openFollowList === "following" && (
+            followingCount === 0 ? (
+              <div className="rounded-2xl border border-[#2D3A4B] bg-[#141C27] p-4 mt-3 text-[#8CA1B8]">
+                Du folgst aktuell noch keinem Profil.
+              </div>
+            ) : (
+              <ul className="grid gap-3 sm:gap-4 mt-3">
+                {followingProfiles.map((entry) => (
+                  <li
+                    key={`following-${entry.userId}`}
+                    className="rounded-2xl border border-[#2D3A4B] bg-[#141C27] p-4 flex items-center justify-between gap-3"
+                  >
+                    <Link
+                      href={`/profil/${entry.userId}`}
+                      className="text-white font-semibold hover:text-[#8AF5AC] transition-colors"
+                    >
+                      {entry.username}
+                    </Link>
+
+                    <button
+                      type="button"
+                      disabled={followMutationUserId === entry.userId}
+                      onClick={() => {
+                        void handleToggleFollow(entry.userId, false, entry.username);
+                      }}
+                      className="px-3 py-2 rounded-lg text-sm font-semibold border transition-colors disabled:opacity-60 disabled:cursor-not-allowed bg-[#141C27] text-white border-[#2D3A4B] hover:border-red-300"
+                    >
+                      {followMutationUserId === entry.userId ? "Speichere..." : "Entfolgen"}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )
           )}
 
-          {followsLoaded && followedProfiles.length > 0 && (
-            <ul className="grid gap-3 sm:gap-4">
-              {followedProfiles.map((entry) => (
-                <li
-                  key={`followed-${entry.userId}`}
-                  className="rounded-2xl border border-[#2D3A4B] bg-[#141C27] p-4 flex items-center justify-between gap-3"
-                >
-                  <Link
-                    href={`/profil/${entry.userId}`}
-                    className="text-white font-semibold hover:text-[#8AF5AC] transition-colors"
+          {followsLoaded && openFollowList === "followers" && (
+            followersCount === 0 ? (
+              <div className="rounded-2xl border border-[#2D3A4B] bg-[#141C27] p-4 mt-3 text-[#8CA1B8]">
+                Du hast aktuell noch keine Follower.
+              </div>
+            ) : (
+              <ul className="grid gap-3 sm:gap-4 mt-3">
+                {followerProfiles.map((entry) => (
+                  <li
+                    key={`follower-${entry.userId}`}
+                    className="rounded-2xl border border-[#2D3A4B] bg-[#141C27] p-4 flex items-center justify-between gap-3"
                   >
-                    {entry.username}
-                  </Link>
+                    <Link
+                      href={`/profil/${entry.userId}`}
+                      className="text-white font-semibold hover:text-[#8AF5AC] transition-colors"
+                    >
+                      {entry.username}
+                    </Link>
 
-                  <button
-                    type="button"
-                    disabled={followMutationUserId === entry.userId}
-                    onClick={() => {
-                      void handleToggleFollow(entry.userId, false, entry.username);
-                    }}
-                    className="px-3 py-2 rounded-lg text-sm font-semibold border transition-colors disabled:opacity-60 disabled:cursor-not-allowed bg-[#141C27] text-white border-[#2D3A4B] hover:border-red-300"
-                  >
-                    {followMutationUserId === entry.userId ? "Speichere..." : "Entfolgen"}
-                  </button>
-                </li>
-              ))}
-            </ul>
+                    <button
+                      type="button"
+                      disabled={followMutationUserId === entry.userId}
+                      onClick={() => {
+                        void handleToggleFollow(entry.userId, !entry.isFollowing, entry.username);
+                      }}
+                      className={`px-3 py-2 rounded-lg text-sm font-semibold border transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
+                        entry.isFollowing
+                          ? "bg-[#141C27] text-white border-[#2D3A4B] hover:border-red-300"
+                          : "bg-[#5EE287] text-[#0C1910] border-[#5EE287] hover:bg-[#75F39B]"
+                      }`}
+                    >
+                      {followMutationUserId === entry.userId
+                        ? "Speichere..."
+                        : entry.isFollowing
+                          ? "Entfolgen"
+                          : "Zurückfolgen"}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )
           )}
         </section>
 
