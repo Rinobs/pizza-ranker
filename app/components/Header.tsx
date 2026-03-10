@@ -60,6 +60,7 @@ export default function Header() {
   const isCategoryRoute = CATEGORY_LINKS.some((category) =>
     Boolean(pathname?.startsWith(category.href))
   );
+  const isProfileRoute = pathname === "/profil";
 
   const closeCategories = () => setIsCategoriesOpen(false);
 
@@ -315,11 +316,15 @@ export default function Header() {
                 <LoginButton />
               )}
 
-              {session && (
-                <span className="hidden sm:flex items-center justify-center w-10 h-10 rounded-xl bg-[#1B222D] border border-[#2D3A4B] text-white">
-                  <FiUser size={18} />
-                </span>
-              )}
+              <Link
+                href="/profil"
+                onClick={closeCategories}
+                aria-label="Profil"
+                className={`${navItemClass(isProfileRoute)} px-3`}
+              >
+                <FiUser size={18} />
+                <span className="hidden md:inline">Profil</span>
+              </Link>
             </div>
           </nav>
         </div>
@@ -329,3 +334,5 @@ export default function Header() {
     </>
   );
 }
+
+
