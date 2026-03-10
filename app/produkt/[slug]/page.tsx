@@ -130,12 +130,6 @@ export default function ProductPage() {
     updateCommentDraft,
     submitComment,
     user,
-    username,
-    saveUsername,
-    profileLoaded,
-    savingUsername,
-    profileError,
-    usernameLimits,
   } = useUserRatings();
 
   const params = useParams<{ slug: string }>();
@@ -149,16 +143,7 @@ export default function ProductPage() {
   const [details, setDetails] = useState<Partial<ProductDetailsPayload> | null>(null);
   const [detailsLoading, setDetailsLoading] = useState(true);
   const [detailsReloadToken, setDetailsReloadToken] = useState(0);
-
-  const [usernameInput, setUsernameInput] = useState("");
-  const [usernameMessage, setUsernameMessage] = useState<string | null>(null);
   const [commentMessage, setCommentMessage] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (profileLoaded) {
-      setUsernameInput(username);
-    }
-  }, [profileLoaded, username]);
 
   useEffect(() => {
     let cancelled = false;
@@ -318,54 +303,8 @@ export default function ProductPage() {
 
               {!user && (
                 <p className="text-sm text-[#8CA1B8] mb-3">
-                  Bitte logge dich ein, um Username und Kommentare zu speichern.
+                  Bitte logge dich ein, um zu bewerten und Kommentare zu schreiben.
                 </p>
-              )}
-
-              {user && (
-                <div className="mb-4 rounded-xl border border-[#2D3A4B] bg-[#141C27] p-3">
-                  <label className="block text-xs font-semibold tracking-wide uppercase text-[#8CA1B8] mb-2">
-                    Dein Username
-                  </label>
-
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <input
-                      type="text"
-                      className="w-full bg-[#0F1621] border border-[#2D3A4B] rounded-lg px-3 py-2 text-white placeholder:text-[#8CA1B8]"
-                      placeholder="Username eingeben"
-                      value={usernameInput}
-                      maxLength={usernameLimits.max}
-                      onChange={(event) => {
-                        setUsernameInput(event.target.value);
-                        setUsernameMessage(null);
-                      }}
-                    />
-                    <button
-                      type="button"
-                      className="px-4 py-2 rounded-lg bg-[#5EE287] text-[#0C1910] font-semibold hover:bg-[#75F39B] disabled:opacity-60 disabled:cursor-not-allowed"
-                      disabled={!profileLoaded || savingUsername}
-                      onClick={async () => {
-                        const response = await saveUsername(usernameInput);
-
-                        if (response.success) {
-                          setUsernameMessage("Username gespeichert.");
-                          setDetailsReloadToken((prev) => prev + 1);
-                        } else {
-                          setUsernameMessage(null);
-                        }
-                      }}
-                    >
-                      {savingUsername ? "Speichere..." : "Username speichern"}
-                    </button>
-                  </div>
-
-                  <p className="text-xs text-[#8CA1B8] mt-2">
-                    Wird bei deinen Kommentaren angezeigt ({usernameLimits.min}-{usernameLimits.max} Zeichen).
-                  </p>
-
-                  {profileError && <p className="text-xs text-red-300 mt-2">{profileError}</p>}
-                  {usernameMessage && <p className="text-xs text-[#8AF5AC] mt-2">{usernameMessage}</p>}
-                </div>
               )}
 
               <div className="flex gap-1 mb-4">
