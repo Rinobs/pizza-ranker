@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -32,10 +32,10 @@ type HomeSectionsResponse = {
 };
 
 const categories = [
-  { name: "Tiefkuehlpizza", icon: "\u{1F355}", slug: "pizza" },
+  { name: "Tiefkühlpizza", icon: "\u{1F355}", slug: "pizza" },
   { name: "Chips", icon: "\u{1F35F}", slug: "chips" },
   { name: "Suessigkeiten", icon: "\u{1F36C}", slug: "suessigkeiten" },
-  { name: "Tiefkuehlgerichte", icon: "\u{1F372}", slug: "tiefkuehlgerichte" },
+  { name: "Tiefkühlgerichte", icon: "\u{1F372}", slug: "tiefkuehlgerichte" },
   { name: "Getraenke", icon: "\u{1F964}", slug: "getraenke" },
   { name: "Eis", icon: "\u{1F366}", slug: "eis" },
   { name: "Proteinpulver", icon: "\u{1F4AA}", slug: "proteinpulver" },
@@ -375,3 +375,4 @@ export default function HomeContent() {
     </main>
   );
 }
+

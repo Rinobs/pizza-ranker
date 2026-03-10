@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 
 export default function NotFound() {
   return (
@@ -11,7 +11,7 @@ export default function NotFound() {
           href="/"
           className="inline-flex px-5 py-2.5 rounded-xl bg-[#1B222D] border border-[#2D3A4B] text-white hover:bg-[#212B38] hover:border-[#5EE287] transition-all duration-300"
         >
-          Zurueck zur Startseite
+          Zurück zur Startseite
         </Link>
       </div>
     </div>

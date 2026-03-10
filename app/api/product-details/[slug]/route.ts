@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import {
   getSupabaseAdminClient,
   RATINGS_TABLE,
@@ -318,7 +318,7 @@ export async function GET(
   const { slug } = await context.params;
 
   if (!/^[a-z0-9-]+$/.test(slug)) {
-    return NextResponse.json({ error: "ungueltiger slug" }, { status: 400 });
+    return NextResponse.json({ error: "ungültiger slug" }, { status: 400 });
   }
 
   const product = ALL_PRODUCTS.find((item) => getProductRouteSlug(item) === slug);
@@ -348,4 +348,5 @@ export async function GET(
     },
   });
 }
+
 

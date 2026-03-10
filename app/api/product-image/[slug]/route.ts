@@ -1,4 +1,4 @@
-import { promises as fs } from "fs";
+﻿import { promises as fs } from "fs";
 import path from "path";
 import { NextResponse } from "next/server";
 import {
@@ -43,7 +43,7 @@ export async function GET(
   const { slug } = await context.params;
 
   if (!/^[a-z0-9-]+$/.test(slug)) {
-    return NextResponse.json({ error: "ungueltiger slug" }, { status: 400 });
+    return NextResponse.json({ error: "ungültiger slug" }, { status: 400 });
   }
 
   const product = ALL_PRODUCTS.find(
@@ -112,3 +112,4 @@ export async function GET(
 
   return imageResponse(imageData, contentType, "MISS");
 }
+

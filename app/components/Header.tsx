@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
@@ -17,7 +17,7 @@ type CategoryLink = {
 
 const CATEGORY_LINKS: CategoryLink[] = [
   {
-    name: "Tiefkuehlpizza",
+    name: "Tiefkühlpizza",
     icon: "\u{1F355}",
     href: "/pizza",
     description: "Pizza-Rankings & Bewertungen",
@@ -334,5 +334,6 @@ export default function Header() {
     </>
   );
 }
+
 
 

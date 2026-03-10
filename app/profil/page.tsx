@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -211,7 +211,7 @@ export default function ProfilPage() {
 
           {listsLoaded && favoriteProducts.length === 0 && (
             <div className="rounded-2xl border border-[#2D3A4B] bg-[#141C27] p-4 text-[#8CA1B8]">
-              Du hast noch keine Favoriten hinzugefuegt.
+              Du hast noch keine Favoriten hinzugefügt.
             </div>
           )}
 
@@ -234,7 +234,7 @@ export default function ProfilPage() {
 
         <section className="mb-8">
           <h2 className="text-lg sm:text-xl font-semibold text-[#E8F6ED] mb-4">
-            Produkte die ich probieren moechte
+            Produkte die ich probieren möchte
           </h2>
 
           {!listsLoaded && (
@@ -315,3 +315,4 @@ export default function ProfilPage() {
     </div>
   );
 }
+
