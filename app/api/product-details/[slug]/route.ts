@@ -1,11 +1,17 @@
 import { NextResponse } from "next/server";
-import { getSupabaseAdminClient, RATINGS_TABLE } from "@/lib/supabase";
+import {
+  getSupabaseAdminClient,
+  RATINGS_TABLE,
+  USER_PROFILES_TABLE,
+} from "@/lib/supabase";
 import { ALL_PRODUCTS, getProductRouteSlug, type Product } from "@/app/data/products";
 
 export const runtime = "nodejs";
 
 const PLACEHOLDER_TEXT = "9999";
 const PLACEHOLDER_NUMBER = 9999;
+
+const FALLBACK_USERNAME = "Anonym";
 
 type OpenFoodFactsProduct = {
   product_name?: string;
@@ -16,8 +22,21 @@ type OpenFoodFactsProduct = {
 };
 
 type RatingRow = {
+  user_id: string;
   rating: number | null;
   comment: string | null;
+  updated_at: string | null;
+};
+
+type ProfileRow = {
+  user_id: string;
+  username: string | null;
+};
+
+type ProductComment = {
+  username: string;
+  text: string;
+  updatedAt: string | null;
 };
 
 type ProductDetails = {
@@ -32,7 +51,7 @@ type ProductDetails = {
     carbs: number | string;
   };
   durchschnittsbewertung: number | string;
-  kommentare: string[];
+  kommentare: ProductComment[];
   quelle: "online" | "placeholder";
 };
 
@@ -71,7 +90,8 @@ function getDefaultDetails(product: Product): ProductDetails {
       carbs: typeof product.carbs === "number" ? product.carbs : PLACEHOLDER_NUMBER,
     },
     durchschnittsbewertung: PLACEHOLDER_NUMBER,
-    kommentare: [PLACEHOLDER_TEXT],
+    kommentare: [],
+
     quelle: "placeholder",
   };
 }
@@ -209,19 +229,20 @@ async function loadRatingSummary(routeSlug: string) {
   if (!supabase) {
     return {
       durchschnittsbewertung: PLACEHOLDER_NUMBER,
-      kommentare: [PLACEHOLDER_TEXT],
+      kommentare: [],
     };
   }
 
   const { data, error } = await supabase
     .from(RATINGS_TABLE)
-    .select("rating, comment")
-    .eq("product_slug", routeSlug);
+    .select("user_id, rating, comment, updated_at")
+    .eq("product_slug", routeSlug)
+    .order("updated_at", { ascending: false });
 
   if (error || !Array.isArray(data)) {
     return {
       durchschnittsbewertung: PLACEHOLDER_NUMBER,
-      kommentare: [PLACEHOLDER_TEXT],
+      kommentare: [],
     };
   }
 
@@ -237,13 +258,56 @@ async function loadRatingSummary(routeSlug: string) {
         )
       : PLACEHOLDER_NUMBER;
 
-  const comments = rows
-    .map((row) => (typeof row.comment === "string" ? row.comment.trim() : ""))
-    .filter((value) => value.length > 0);
+  const commentRows = rows.filter(
+    (row) => typeof row.comment === "string" && row.comment.trim().length > 0
+  );
+
+  if (commentRows.length === 0) {
+    return {
+      durchschnittsbewertung: average,
+      kommentare: [],
+    };
+  }
+
+  const userIds = Array.from(new Set(commentRows.map((row) => row.user_id).filter(Boolean)));
+  const usernameByUserId = new Map<string, string>();
+
+  if (userIds.length > 0) {
+    const { data: profileData, error: profileError } = await supabase
+      .from(USER_PROFILES_TABLE)
+      .select("user_id, username")
+      .in("user_id", userIds);
+
+    if (!profileError && Array.isArray(profileData)) {
+      for (const profile of profileData as ProfileRow[]) {
+        const normalizedUsername =
+          typeof profile.username === "string" ? profile.username.trim() : "";
+
+        if (normalizedUsername) {
+          usernameByUserId.set(profile.user_id, normalizedUsername);
+        }
+      }
+    }
+  }
+
+  const comments: ProductComment[] = commentRows
+    .map((row) => {
+      const text = typeof row.comment === "string" ? row.comment.trim() : "";
+      if (!text) {
+        return null;
+      }
+
+      return {
+        username: usernameByUserId.get(row.user_id) ?? FALLBACK_USERNAME,
+        text,
+        updatedAt: typeof row.updated_at === "string" ? row.updated_at : null,
+      };
+    })
+    .filter((entry): entry is ProductComment => entry !== null);
 
   return {
     durchschnittsbewertung: average,
-    kommentare: comments.length > 0 ? comments : [PLACEHOLDER_TEXT],
+    kommentare: comments,
   };
 }
 
@@ -284,3 +348,4 @@ export async function GET(
     },
   });
 }
+

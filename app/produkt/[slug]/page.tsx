@@ -15,6 +15,13 @@ import { useUserRatings } from "@/app/hooks/useUserRatings";
 
 const PLACEHOLDER_TEXT = "9999";
 const PLACEHOLDER_NUMBER = 9999;
+const COMMENT_FALLBACK_USERNAME = "Anonym";
+
+type ProductComment = {
+  username: string;
+  text: string;
+  updatedAt: string | null;
+};
 
 type ProductDetailsPayload = {
   marke: string;
@@ -28,7 +35,7 @@ type ProductDetailsPayload = {
     carbs: number | string;
   };
   durchschnittsbewertung: number | string;
-  kommentare: string[];
+  kommentare: ProductComment[];
   quelle: "online" | "placeholder";
 };
 
@@ -45,9 +52,53 @@ function createFallbackDetails(product: Product): ProductDetailsPayload {
       carbs: typeof product.carbs === "number" ? product.carbs : PLACEHOLDER_NUMBER,
     },
     durchschnittsbewertung: PLACEHOLDER_NUMBER,
-    kommentare: [PLACEHOLDER_TEXT],
+    kommentare: [],
     quelle: "placeholder",
   };
+}
+
+function normalizeComments(value: unknown): ProductComment[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  const normalized = value
+    .map((entry) => {
+      if (typeof entry === "string") {
+        const text = entry.trim();
+        if (!text) return null;
+
+        return {
+          username: COMMENT_FALLBACK_USERNAME,
+          text,
+          updatedAt: null,
+        } satisfies ProductComment;
+      }
+
+      if (!entry || typeof entry !== "object") {
+        return null;
+      }
+
+      const comment = entry as Partial<ProductComment>;
+      const text = typeof comment.text === "string" ? comment.text.trim() : "";
+      if (!text) {
+        return null;
+      }
+
+      const username =
+        typeof comment.username === "string" && comment.username.trim().length > 0
+          ? comment.username.trim()
+          : COMMENT_FALLBACK_USERNAME;
+
+      return {
+        username,
+        text,
+        updatedAt: typeof comment.updatedAt === "string" ? comment.updatedAt : null,
+      } satisfies ProductComment;
+    })
+    .filter((entry): entry is ProductComment => entry !== null);
+
+  return normalized;
 }
 
 function mergeDetails(
@@ -56,6 +107,8 @@ function mergeDetails(
 ): ProductDetailsPayload {
   if (!incoming) return fallback;
 
+  const incomingComments = normalizeComments(incoming.kommentare);
+
   return {
     ...fallback,
     ...incoming,
@@ -63,15 +116,28 @@ function mergeDetails(
       ...fallback.naehrwerte,
       ...(incoming.naehrwerte || {}),
     },
-    kommentare:
-      Array.isArray(incoming.kommentare) && incoming.kommentare.length > 0
-        ? incoming.kommentare
-        : fallback.kommentare,
+    kommentare: incomingComments.length > 0 ? incomingComments : fallback.kommentare,
   };
 }
 
 export default function ProductPage() {
-  const { ratings, comments, saveRating, saveComment, user } = useUserRatings();
+  const {
+    ratings,
+    commentDrafts,
+    submittingComments,
+    commentErrors,
+    saveRating,
+    updateCommentDraft,
+    submitComment,
+    user,
+    username,
+    saveUsername,
+    profileLoaded,
+    savingUsername,
+    profileError,
+    usernameLimits,
+  } = useUserRatings();
+
   const params = useParams<{ slug: string }>();
   const routeSlug = params?.slug || "";
 
@@ -82,12 +148,28 @@ export default function ProductPage() {
 
   const [details, setDetails] = useState<Partial<ProductDetailsPayload> | null>(null);
   const [detailsLoading, setDetailsLoading] = useState(true);
+  const [detailsReloadToken, setDetailsReloadToken] = useState(0);
+
+  const [usernameInput, setUsernameInput] = useState("");
+  const [usernameMessage, setUsernameMessage] = useState<string | null>(null);
+  const [commentMessage, setCommentMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (profileLoaded) {
+      setUsernameInput(username);
+    }
+  }, [profileLoaded, username]);
 
   useEffect(() => {
     let cancelled = false;
 
     async function loadDetails() {
-      if (!routeSlug || !product) return;
+      if (!routeSlug || !product) {
+        setDetailsLoading(false);
+        return;
+      }
+
+      setDetailsLoading(true);
 
       try {
         const response = await fetch(`/api/product-details/${routeSlug}`, {
@@ -105,12 +187,12 @@ export default function ProductPage() {
       }
     }
 
-    loadDetails();
+    void loadDetails();
 
     return () => {
       cancelled = true;
     };
-  }, [routeSlug, product]);
+  }, [routeSlug, product, detailsReloadToken]);
 
   if (!routeSlug) return null;
 
@@ -204,27 +286,87 @@ export default function ProductPage() {
                   <strong className="text-white">Kohlenhydrate:</strong> {mergedDetails.naehrwerte.carbs}
                 </li>
               </ul>
-              {detailsLoading && (
-                <p className="text-xs text-[#8CA1B8] mt-2">Lade Produktdaten...</p>
-              )}
+              {detailsLoading && <p className="text-xs text-[#8CA1B8] mt-2">Lade Produktdaten...</p>}
             </section>
 
             <section>
               <h2 className="text-xl font-semibold mb-3 text-[#E8F6ED]">Kommentare</h2>
-              <ul className="space-y-2">
-                {mergedDetails.kommentare.map((comment, index) => (
-                  <li
-                    key={`${comment}-${index}`}
-                    className="rounded-lg bg-[#141C27] border border-[#2D3A4B] px-3 py-2 text-[#C4D0DE] text-sm"
-                  >
-                    {comment}
-                  </li>
-                ))}
-              </ul>
+
+              {mergedDetails.kommentare.length > 0 ? (
+                <ul className="space-y-2">
+                  {mergedDetails.kommentare.map((comment, index) => (
+                    <li
+                      key={`${comment.username}-${comment.updatedAt || index}-${comment.text}`}
+                      className="rounded-lg bg-[#141C27] border border-[#2D3A4B] px-3 py-2"
+                    >
+                      <p className="text-xs uppercase tracking-wide text-[#8CA1B8] mb-1">
+                        {comment.username}
+                      </p>
+                      <p className="text-[#C4D0DE] text-sm">{comment.text}</p>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="rounded-lg bg-[#141C27] border border-[#2D3A4B] px-3 py-2 text-sm text-[#8CA1B8]">
+                  Noch keine Kommentare vorhanden.
+                </p>
+              )}
             </section>
 
             <section>
               <h2 className="text-xl font-semibold mb-3 text-[#E8F6ED]">Bewerten</h2>
+
+              {!user && (
+                <p className="text-sm text-[#8CA1B8] mb-3">
+                  Bitte logge dich ein, um Username und Kommentare zu speichern.
+                </p>
+              )}
+
+              {user && (
+                <div className="mb-4 rounded-xl border border-[#2D3A4B] bg-[#141C27] p-3">
+                  <label className="block text-xs font-semibold tracking-wide uppercase text-[#8CA1B8] mb-2">
+                    Dein Username
+                  </label>
+
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <input
+                      type="text"
+                      className="w-full bg-[#0F1621] border border-[#2D3A4B] rounded-lg px-3 py-2 text-white placeholder:text-[#8CA1B8]"
+                      placeholder="Username eingeben"
+                      value={usernameInput}
+                      maxLength={usernameLimits.max}
+                      onChange={(event) => {
+                        setUsernameInput(event.target.value);
+                        setUsernameMessage(null);
+                      }}
+                    />
+                    <button
+                      type="button"
+                      className="px-4 py-2 rounded-lg bg-[#5EE287] text-[#0C1910] font-semibold hover:bg-[#75F39B] disabled:opacity-60 disabled:cursor-not-allowed"
+                      disabled={!profileLoaded || savingUsername}
+                      onClick={async () => {
+                        const response = await saveUsername(usernameInput);
+
+                        if (response.success) {
+                          setUsernameMessage("Username gespeichert.");
+                          setDetailsReloadToken((prev) => prev + 1);
+                        } else {
+                          setUsernameMessage(null);
+                        }
+                      }}
+                    >
+                      {savingUsername ? "Speichere..." : "Username speichern"}
+                    </button>
+                  </div>
+
+                  <p className="text-xs text-[#8CA1B8] mt-2">
+                    Wird bei deinen Kommentaren angezeigt ({usernameLimits.min}-{usernameLimits.max} Zeichen).
+                  </p>
+
+                  {profileError && <p className="text-xs text-red-300 mt-2">{profileError}</p>}
+                  {usernameMessage && <p className="text-xs text-[#8AF5AC] mt-2">{usernameMessage}</p>}
+                </div>
+              )}
 
               <div className="flex gap-1 mb-4">
                 {[1, 2, 3, 4, 5].map((i) => (
@@ -234,7 +376,7 @@ export default function ProductPage() {
                     index={i}
                     onRate={(value) => {
                       if (!user) return alert("Bitte einloggen!");
-                      saveRating(routeSlug, value);
+                      void saveRating(routeSlug, value);
                     }}
                   />
                 ))}
@@ -243,12 +385,46 @@ export default function ProductPage() {
               <textarea
                 className="w-full bg-[#141C27] border border-[#2D3A4B] rounded-xl p-3 text-white placeholder:text-[#8CA1B8] min-h-32"
                 placeholder="Kommentar"
-                value={comments[routeSlug] || ""}
+                value={commentDrafts[routeSlug] || ""}
+                maxLength={1000}
                 onChange={(e) => {
-                  if (!user) return alert("Bitte einloggen!");
-                  saveComment(routeSlug, e.target.value);
+                  if (!user) return;
+                  updateCommentDraft(routeSlug, e.target.value);
+                  setCommentMessage(null);
                 }}
+                disabled={!user}
               />
+
+              <div className="flex items-center justify-between mt-3">
+                <p className="text-xs text-[#8CA1B8]">
+                  {(commentDrafts[routeSlug] || "").length}/1000 Zeichen
+                </p>
+                <button
+                  type="button"
+                  className="px-4 py-2 rounded-lg bg-[#5EE287] text-[#0C1910] font-semibold hover:bg-[#75F39B] disabled:opacity-60 disabled:cursor-not-allowed"
+                  disabled={!user || submittingComments[routeSlug] === true}
+                  onClick={async () => {
+                    const response = await submitComment(routeSlug);
+                    if (!response.success) {
+                      setCommentMessage(response.error || "Kommentar konnte nicht gesendet werden.");
+                      return;
+                    }
+
+                    setCommentMessage("Kommentar erfolgreich gespeichert.");
+                    setDetailsReloadToken((prev) => prev + 1);
+                  }}
+                >
+                  {submittingComments[routeSlug] ? "Sende..." : "Kommentar absenden"}
+                </button>
+              </div>
+
+              {commentErrors[routeSlug] && (
+                <p className="text-xs text-red-300 mt-2">{commentErrors[routeSlug]}</p>
+              )}
+
+              {commentMessage && !commentErrors[routeSlug] && (
+                <p className="text-xs text-[#8AF5AC] mt-2">{commentMessage}</p>
+              )}
             </section>
           </div>
         </div>
@@ -256,3 +432,4 @@ export default function ProductPage() {
     </div>
   );
 }
+

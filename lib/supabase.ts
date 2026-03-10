@@ -4,6 +4,8 @@ let supabaseAdminClient: SupabaseClient | null | undefined;
 
 export const RATINGS_TABLE =
   process.env.SUPABASE_RATINGS_TABLE?.trim() || "ratings";
+export const USER_PROFILES_TABLE =
+  process.env.SUPABASE_USER_PROFILES_TABLE?.trim() || "user_profiles";
 
 function createSupabaseAdminClient() {
   const supabaseUrl = process.env.SUPABASE_URL;
@@ -29,3 +31,4 @@ export function getSupabaseAdminClient() {
   supabaseAdminClient = createSupabaseAdminClient();
   return supabaseAdminClient;
 }
+

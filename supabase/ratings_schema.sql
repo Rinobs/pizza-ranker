@@ -16,3 +16,10 @@ create index if not exists ratings_product_slug_idx
 
 create index if not exists ratings_updated_at_idx
   on public.ratings (updated_at desc);
+
+create table if not exists public.user_profiles (
+  user_id uuid primary key,
+  username text not null,
+  inserted_at timestamptz default now(),
+  updated_at timestamptz default now()
+);

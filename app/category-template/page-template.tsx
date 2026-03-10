@@ -16,7 +16,17 @@ export default function CategoryPage({
   icon: string;
   products: Product[];
 }) {
-  const { user, ratings, comments, saveRating, saveComment, loaded } = useUserRatings();
+  const {
+    user,
+    ratings,
+    commentDrafts,
+    submittingComments,
+    commentErrors,
+    saveRating,
+    updateCommentDraft,
+    submitComment,
+    loaded,
+  } = useUserRatings();
   const [sortMode, setSortMode] = React.useState("rating-desc");
 
   const sortedProducts = [...products].sort((a, b) => {
@@ -111,7 +121,7 @@ export default function CategoryPage({
                       index={i}
                       onRate={(v) => {
                         if (!user) return alert("Bitte zuerst einloggen!");
-                        saveRating(routeSlug, v);
+                        void saveRating(routeSlug, v);
                       }}
                     />
                   ))}
@@ -120,16 +130,49 @@ export default function CategoryPage({
                 <input
                   className="w-full mt-3 bg-[#141C27]/95 border border-[#2D3A4B] text-white text-xs sm:text-sm px-3 py-2 rounded-lg placeholder:text-[#8CA1B8]"
                   placeholder="Kommentar..."
-                  value={comments[routeSlug] || ""}
+                  value={commentDrafts[routeSlug] || ""}
                   onChange={(e) => {
-                    if (!user) return alert("Bitte zuerst einloggen!");
-                    saveComment(routeSlug, e.target.value);
+                    if (!user) return;
+                    updateCommentDraft(routeSlug, e.target.value);
                   }}
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
                   }}
+                  maxLength={1000}
                 />
+
+                <div
+                  className="mt-2"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                >
+                  <button
+                    type="button"
+                    className="w-full rounded-lg bg-[#5EE287] text-[#0C1910] text-xs sm:text-sm font-semibold py-2 hover:bg-[#75F39B] disabled:opacity-60 disabled:cursor-not-allowed"
+                    disabled={!user || submittingComments[routeSlug] === true}
+                    onClick={async () => {
+                      if (!user) return alert("Bitte zuerst einloggen!");
+                      await submitComment(routeSlug);
+                    }}
+                  >
+                    {submittingComments[routeSlug] ? "Sende..." : "Kommentar absenden"}
+                  </button>
+                </div>
+
+                {commentErrors[routeSlug] && (
+                  <p
+                    className="text-[11px] text-red-300 mt-2"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                  >
+                    {commentErrors[routeSlug]}
+                  </p>
+                )}
               </div>
             </Link>
           );
