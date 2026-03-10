@@ -23,3 +23,21 @@ create table if not exists public.user_profiles (
   inserted_at timestamptz default now(),
   updated_at timestamptz default now()
 );
+
+create table if not exists public.user_product_lists (
+  id bigint generated always as identity primary key,
+  user_id uuid not null,
+  product_slug text not null,
+  list_type text not null check (list_type in ('favorites', 'want_to_try')),
+  inserted_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+create unique index if not exists user_product_lists_user_slug_type_unique
+  on public.user_product_lists (user_id, product_slug, list_type);
+
+create index if not exists user_product_lists_user_idx
+  on public.user_product_lists (user_id);
+
+create index if not exists user_product_lists_type_idx
+  on public.user_product_lists (list_type);

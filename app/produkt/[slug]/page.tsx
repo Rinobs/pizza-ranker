@@ -12,6 +12,7 @@ import {
   type Product,
 } from "@/app/data/products";
 import { useUserRatings } from "@/app/hooks/useUserRatings";
+import { useUserProductLists } from "@/app/hooks/useUserProductLists";
 
 const PLACEHOLDER_TEXT = "9999";
 const PLACEHOLDER_NUMBER = 9999;
@@ -132,6 +133,16 @@ export default function ProductPage() {
     user,
   } = useUserRatings();
 
+  const {
+    isFavorite,
+    isWantToTry,
+    toggleFavorite,
+    toggleWantToTry,
+    isUpdating,
+    error: listError,
+    listTypes,
+  } = useUserProductLists();
+
   const params = useParams<{ slug: string }>();
   const routeSlug = params?.slug || "";
 
@@ -144,6 +155,7 @@ export default function ProductPage() {
   const [detailsLoading, setDetailsLoading] = useState(true);
   const [detailsReloadToken, setDetailsReloadToken] = useState(0);
   const [commentMessage, setCommentMessage] = useState<string | null>(null);
+  const [listMessage, setListMessage] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -194,6 +206,9 @@ export default function ProductPage() {
       </div>
     );
   }
+
+  const favoriteActive = isFavorite(routeSlug);
+  const wantToTryActive = isWantToTry(routeSlug);
 
   const originalImageUrl = getProductImageUrl(product);
   const fallback = createFallbackDetails(product);
@@ -303,8 +318,67 @@ export default function ProductPage() {
 
               {!user && (
                 <p className="text-sm text-[#8CA1B8] mb-3">
-                  Bitte logge dich ein, um zu bewerten und Kommentare zu schreiben.
+                  Bitte logge dich ein, um zu bewerten, Favoriten zu setzen und Produkte zu merken.
                 </p>
+              )}
+
+              <div className="flex flex-wrap gap-2 mb-4">
+                <button
+                  type="button"
+                  disabled={!user || isUpdating(listTypes.FAVORITES, routeSlug)}
+                  onClick={async () => {
+                    if (!user) return alert("Bitte einloggen!");
+
+                    const wasFavorite = favoriteActive;
+                    const response = await toggleFavorite(routeSlug);
+
+                    if (!response.success) return;
+
+                    setListMessage(
+                      wasFavorite
+                        ? "Aus Favoriten entfernt."
+                        : "Zu Favoriten hinzugefuegt."
+                    );
+                  }}
+                  className={`px-3 py-2 rounded-lg text-sm font-semibold border transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
+                    favoriteActive
+                      ? "bg-[#5EE287] text-[#0C1910] border-[#5EE287]"
+                      : "bg-[#141C27] text-white border-[#2D3A4B] hover:border-[#5EE287]"
+                  }`}
+                >
+                  {favoriteActive ? "Favorit" : "Zu Favoriten"}
+                </button>
+
+                <button
+                  type="button"
+                  disabled={!user || isUpdating(listTypes.WANT_TO_TRY, routeSlug)}
+                  onClick={async () => {
+                    if (!user) return alert("Bitte einloggen!");
+
+                    const wasWantToTry = wantToTryActive;
+                    const response = await toggleWantToTry(routeSlug);
+
+                    if (!response.success) return;
+
+                    setListMessage(
+                      wasWantToTry
+                        ? "Aus Probieren-Liste entfernt."
+                        : "Zur Probieren-Liste hinzugefuegt."
+                    );
+                  }}
+                  className={`px-3 py-2 rounded-lg text-sm font-semibold border transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
+                    wantToTryActive
+                      ? "bg-[#F7D26B] text-[#251C04] border-[#F7D26B]"
+                      : "bg-[#141C27] text-white border-[#2D3A4B] hover:border-[#F7D26B]"
+                  }`}
+                >
+                  {wantToTryActive ? "Will ich probieren" : "Moechte ich probieren"}
+                </button>
+              </div>
+
+              {listError && <p className="text-xs text-red-300 mb-3">{listError}</p>}
+              {listMessage && !listError && (
+                <p className="text-xs text-[#8AF5AC] mb-3">{listMessage}</p>
               )}
 
               <div className="flex gap-1 mb-4">
@@ -371,4 +445,3 @@ export default function ProductPage() {
     </div>
   );
 }
-
