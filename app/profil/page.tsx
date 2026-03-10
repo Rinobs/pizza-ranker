@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import BackButton from "@/app/components/BackButton";
 import { ALL_PRODUCTS, getProductRouteSlug } from "@/app/data/products";
 import { useUserRatings } from "@/app/hooks/useUserRatings";
@@ -21,6 +21,48 @@ type ListProduct = {
   category: string;
 };
 
+type RatedSortMode =
+  | "rating-desc"
+  | "rating-asc"
+  | "category-asc"
+  | "category-desc"
+  | "name-asc"
+  | "name-desc";
+
+type FollowedProfile = {
+  userId: string;
+  username: string;
+  isFollowing: boolean;
+  followedAt: string | null;
+};
+
+type ProfileSearchResult = {
+  userId: string;
+  username: string;
+  isFollowing: boolean;
+};
+
+type FollowListResponse = {
+  success: boolean;
+  data?: FollowedProfile[];
+  error?: string;
+};
+
+type ProfileSearchResponse = {
+  success: boolean;
+  data?: ProfileSearchResult[];
+  error?: string;
+};
+
+type ToggleFollowResponse = {
+  success: boolean;
+  data?: {
+    targetUserId: string;
+    active: boolean;
+  };
+  error?: string;
+};
+
 export default function ProfilPage() {
   const {
     user,
@@ -35,14 +77,23 @@ export default function ProfilPage() {
     usernameLimits,
   } = useUserRatings();
 
-  const {
-    favoriteSlugs,
-    wantToTrySlugs,
-    loaded: listsLoaded,
-  } = useUserProductLists();
+  const { favoriteSlugs, wantToTrySlugs, loaded: listsLoaded } = useUserProductLists();
 
   const [usernameInput, setUsernameInput] = useState("");
   const [usernameMessage, setUsernameMessage] = useState<string | null>(null);
+  const [selectedRatedCategory, setSelectedRatedCategory] = useState("all");
+  const [ratedSortMode, setRatedSortMode] = useState<RatedSortMode>("rating-desc");
+
+  const [profileSearchQuery, setProfileSearchQuery] = useState("");
+  const [profileSearchResults, setProfileSearchResults] = useState<ProfileSearchResult[]>([]);
+  const [searchingProfiles, setSearchingProfiles] = useState(false);
+  const [profileSearchError, setProfileSearchError] = useState<string | null>(null);
+  const [profileSearchPerformed, setProfileSearchPerformed] = useState(false);
+
+  const [followedProfiles, setFollowedProfiles] = useState<FollowedProfile[]>([]);
+  const [followsLoaded, setFollowsLoaded] = useState(false);
+  const [followMessage, setFollowMessage] = useState<string | null>(null);
+  const [followMutationUserId, setFollowMutationUserId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!profileLoaded) return;
@@ -83,11 +134,58 @@ export default function ProfilPage() {
 
     result.sort((a, b) => {
       if (a.rating !== b.rating) return b.rating - a.rating;
-      return a.name.localeCompare(b.name);
+      return a.name.localeCompare(b.name, "de");
     });
 
     return result;
   }, [comments, productBySlug, ratings]);
+
+  const ratedCategories = useMemo(() => {
+    const categories = Array.from(new Set(ratedProducts.map((product) => product.category)));
+    categories.sort((a, b) => a.localeCompare(b, "de"));
+    return categories;
+  }, [ratedProducts]);
+
+  const visibleRatedProducts = useMemo(() => {
+    const filtered =
+      selectedRatedCategory === "all"
+        ? [...ratedProducts]
+        : ratedProducts.filter((product) => product.category === selectedRatedCategory);
+
+    filtered.sort((a, b) => {
+      if (ratedSortMode === "rating-desc") {
+        if (a.rating !== b.rating) return b.rating - a.rating;
+        return a.name.localeCompare(b.name, "de");
+      }
+
+      if (ratedSortMode === "rating-asc") {
+        if (a.rating !== b.rating) return a.rating - b.rating;
+        return a.name.localeCompare(b.name, "de");
+      }
+
+      if (ratedSortMode === "category-asc") {
+        const byCategory = a.category.localeCompare(b.category, "de");
+        if (byCategory !== 0) return byCategory;
+        return a.name.localeCompare(b.name, "de");
+      }
+
+      if (ratedSortMode === "category-desc") {
+        const byCategory = b.category.localeCompare(a.category, "de");
+        if (byCategory !== 0) return byCategory;
+        return a.name.localeCompare(b.name, "de");
+      }
+
+      if (ratedSortMode === "name-asc") {
+        return a.name.localeCompare(b.name, "de");
+      }
+
+      return b.name.localeCompare(a.name, "de");
+    });
+
+    return filtered;
+  }, [ratedProducts, ratedSortMode, selectedRatedCategory]);
+
+  const ratedProductsLabel = ratedProducts.length === 1 ? "Produkt" : "Produkte";
 
   const favoriteProducts = useMemo(() => {
     const result: ListProduct[] = favoriteSlugs.map((slug) => {
@@ -100,7 +198,7 @@ export default function ProfilPage() {
       };
     });
 
-    result.sort((a, b) => a.name.localeCompare(b.name));
+    result.sort((a, b) => a.name.localeCompare(b.name, "de"));
     return result;
   }, [favoriteSlugs, productBySlug]);
 
@@ -115,9 +213,126 @@ export default function ProfilPage() {
       };
     });
 
-    result.sort((a, b) => a.name.localeCompare(b.name));
+    result.sort((a, b) => a.name.localeCompare(b.name, "de"));
     return result;
   }, [productBySlug, wantToTrySlugs]);
+
+  const loadFollowedProfiles = useCallback(async () => {
+    if (!user) {
+      setFollowedProfiles([]);
+      setFollowsLoaded(true);
+      return;
+    }
+
+    setFollowsLoaded(false);
+
+    try {
+      const response = await fetch("/api/follows", {
+        cache: "no-store",
+      });
+
+      const json = (await response.json()) as FollowListResponse;
+
+      if (!response.ok || !json.success) {
+        setFollowedProfiles([]);
+        return;
+      }
+
+      setFollowedProfiles(Array.isArray(json.data) ? json.data : []);
+    } catch {
+      setFollowedProfiles([]);
+    } finally {
+      setFollowsLoaded(true);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    void loadFollowedProfiles();
+  }, [loadFollowedProfiles]);
+
+  async function handleSearchProfiles() {
+    const query = profileSearchQuery.trim();
+    setProfileSearchPerformed(true);
+    setProfileSearchError(null);
+    setFollowMessage(null);
+
+    if (query.length < 2) {
+      setProfileSearchResults([]);
+      setProfileSearchError("Bitte gib mindestens 2 Zeichen ein.");
+      return;
+    }
+
+    setSearchingProfiles(true);
+
+    try {
+      const response = await fetch(`/api/profiles/search?q=${encodeURIComponent(query)}`, {
+        cache: "no-store",
+      });
+
+      const json = (await response.json()) as ProfileSearchResponse;
+
+      if (!response.ok || !json.success) {
+        setProfileSearchResults([]);
+        setProfileSearchError(json.error || "Profile konnten nicht geladen werden.");
+        return;
+      }
+
+      setProfileSearchResults(Array.isArray(json.data) ? json.data : []);
+    } catch {
+      setProfileSearchResults([]);
+      setProfileSearchError("Profile konnten nicht geladen werden.");
+    } finally {
+      setSearchingProfiles(false);
+    }
+  }
+
+  async function handleToggleFollow(targetUserId: string, active: boolean, usernameText: string) {
+    setFollowMutationUserId(targetUserId);
+    setFollowMessage(null);
+    setProfileSearchError(null);
+
+    try {
+      const response = await fetch("/api/follows", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          targetUserId,
+          active,
+        }),
+      });
+
+      const json = (await response.json()) as ToggleFollowResponse;
+
+      if (!response.ok || !json.success) {
+        setFollowMessage(json.error || "Folgen-Status konnte nicht geändert werden.");
+        return;
+      }
+
+      setProfileSearchResults((prev) =>
+        prev.map((entry) =>
+          entry.userId === targetUserId ? { ...entry, isFollowing: active } : entry
+        )
+      );
+
+      if (!active) {
+        setFollowedProfiles((prev) => prev.filter((entry) => entry.userId !== targetUserId));
+      }
+
+      setFollowMessage(
+        active
+          ? `Du folgst jetzt ${usernameText}.`
+          : `Du folgst ${usernameText} nicht mehr.`
+      );
+
+      await loadFollowedProfiles();
+    } catch {
+      setFollowMessage("Folgen-Status konnte nicht geändert werden.");
+    } finally {
+      setFollowMutationUserId(null);
+    }
+  }
 
   if (!profileLoaded) {
     return (
@@ -201,6 +416,146 @@ export default function ProfilPage() {
         </section>
 
         <section className="mb-8">
+          <h2 className="text-lg sm:text-xl font-semibold text-[#E8F6ED] mb-4">
+            Profile suchen und folgen
+          </h2>
+
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              void handleSearchProfiles();
+            }}
+            className="rounded-2xl border border-[#2D3A4B] bg-[#141C27] p-4"
+          >
+            <div className="flex flex-col sm:flex-row gap-2">
+              <input
+                type="text"
+                value={profileSearchQuery}
+                onChange={(event) => {
+                  setProfileSearchQuery(event.target.value);
+                  setProfileSearchError(null);
+                }}
+                placeholder="Username suchen"
+                className="w-full bg-[#0F1621] border border-[#2D3A4B] rounded-lg px-3 py-2 text-white placeholder:text-[#8CA1B8]"
+              />
+              <button
+                type="submit"
+                disabled={searchingProfiles}
+                className="px-4 py-2 rounded-lg bg-[#5EE287] text-[#0C1910] font-semibold hover:bg-[#75F39B] disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {searchingProfiles ? "Suche..." : "Suchen"}
+              </button>
+            </div>
+
+            <p className="text-xs text-[#8CA1B8] mt-2">
+              Suche nach Usernames und folge Profilen, um deren Bewertungen und Listen zu sehen.
+            </p>
+
+            {profileSearchError && <p className="text-xs text-red-300 mt-2">{profileSearchError}</p>}
+            {followMessage && <p className="text-xs text-[#8AF5AC] mt-2">{followMessage}</p>}
+          </form>
+
+          {searchingProfiles && (
+            <div className="rounded-2xl border border-[#2D3A4B] bg-[#141C27] p-4 mt-3 text-[#8CA1B8]">
+              Suche läuft...
+            </div>
+          )}
+
+          {!searchingProfiles && profileSearchResults.length > 0 && (
+            <ul className="grid gap-3 sm:gap-4 mt-3">
+              {profileSearchResults.map((entry) => (
+                <li
+                  key={`search-profile-${entry.userId}`}
+                  className="rounded-2xl border border-[#2D3A4B] bg-[#141C27] p-4 flex items-center justify-between gap-3"
+                >
+                  <Link
+                    href={`/profil/${entry.userId}`}
+                    className="text-white font-semibold hover:text-[#8AF5AC] transition-colors"
+                  >
+                    {entry.username}
+                  </Link>
+
+                  <button
+                    type="button"
+                    disabled={followMutationUserId === entry.userId}
+                    onClick={() => {
+                      void handleToggleFollow(entry.userId, !entry.isFollowing, entry.username);
+                    }}
+                    className={`px-3 py-2 rounded-lg text-sm font-semibold border transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
+                      entry.isFollowing
+                        ? "bg-[#141C27] text-white border-[#2D3A4B] hover:border-red-300"
+                        : "bg-[#5EE287] text-[#0C1910] border-[#5EE287] hover:bg-[#75F39B]"
+                    }`}
+                  >
+                    {followMutationUserId === entry.userId
+                      ? "Speichere..."
+                      : entry.isFollowing
+                        ? "Entfolgen"
+                        : "Folgen"}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {!searchingProfiles &&
+            profileSearchPerformed &&
+            profileSearchResults.length === 0 &&
+            !profileSearchError && (
+              <div className="rounded-2xl border border-[#2D3A4B] bg-[#141C27] p-4 mt-3 text-[#8CA1B8]">
+                Keine passenden Profile gefunden.
+              </div>
+            )}
+        </section>
+
+        <section className="mb-8">
+          <h2 className="text-lg sm:text-xl font-semibold text-[#E8F6ED] mb-4">
+            Personen denen ich folge
+          </h2>
+
+          {!followsLoaded && (
+            <div className="rounded-2xl border border-[#2D3A4B] bg-[#141C27] p-4 text-[#8CA1B8]">
+              Gefolgte Profile werden geladen...
+            </div>
+          )}
+
+          {followsLoaded && followedProfiles.length === 0 && (
+            <div className="rounded-2xl border border-[#2D3A4B] bg-[#141C27] p-4 text-[#8CA1B8]">
+              Du folgst aktuell noch keinem Profil.
+            </div>
+          )}
+
+          {followsLoaded && followedProfiles.length > 0 && (
+            <ul className="grid gap-3 sm:gap-4">
+              {followedProfiles.map((entry) => (
+                <li
+                  key={`followed-${entry.userId}`}
+                  className="rounded-2xl border border-[#2D3A4B] bg-[#141C27] p-4 flex items-center justify-between gap-3"
+                >
+                  <Link
+                    href={`/profil/${entry.userId}`}
+                    className="text-white font-semibold hover:text-[#8AF5AC] transition-colors"
+                  >
+                    {entry.username}
+                  </Link>
+
+                  <button
+                    type="button"
+                    disabled={followMutationUserId === entry.userId}
+                    onClick={() => {
+                      void handleToggleFollow(entry.userId, false, entry.username);
+                    }}
+                    className="px-3 py-2 rounded-lg text-sm font-semibold border transition-colors disabled:opacity-60 disabled:cursor-not-allowed bg-[#141C27] text-white border-[#2D3A4B] hover:border-red-300"
+                  >
+                    {followMutationUserId === entry.userId ? "Speichere..." : "Entfolgen"}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section className="mb-8">
           <h2 className="text-lg sm:text-xl font-semibold text-[#E8F6ED] mb-4">Meine Favoriten</h2>
 
           {!listsLoaded && (
@@ -218,7 +573,10 @@ export default function ProfilPage() {
           {listsLoaded && favoriteProducts.length > 0 && (
             <ul className="grid gap-3 sm:gap-4">
               {favoriteProducts.map((item) => (
-                <li key={`favorite-${item.slug}`} className="rounded-2xl border border-[#2D3A4B] bg-[#141C27] p-4">
+                <li
+                  key={`favorite-${item.slug}`}
+                  className="rounded-2xl border border-[#2D3A4B] bg-[#141C27] p-4"
+                >
                   <Link
                     href={`/produkt/${item.slug}`}
                     className="text-white font-semibold hover:text-[#8AF5AC] transition-colors"
@@ -252,7 +610,10 @@ export default function ProfilPage() {
           {listsLoaded && wantToTryProducts.length > 0 && (
             <ul className="grid gap-3 sm:gap-4">
               {wantToTryProducts.map((item) => (
-                <li key={`want-to-try-${item.slug}`} className="rounded-2xl border border-[#2D3A4B] bg-[#141C27] p-4">
+                <li
+                  key={`want-to-try-${item.slug}`}
+                  className="rounded-2xl border border-[#2D3A4B] bg-[#141C27] p-4"
+                >
                   <Link
                     href={`/produkt/${item.slug}`}
                     className="text-white font-semibold hover:text-[#8AF5AC] transition-colors"
@@ -270,10 +631,45 @@ export default function ProfilPage() {
           <h2 className="text-lg sm:text-xl font-semibold text-[#E8F6ED] mb-4">
             Bereits bewertete Produkte
           </h2>
+          <p className="text-sm text-[#8CA1B8] mb-4">
+            {ratingsLoaded
+              ? `Du hast bisher ${ratedProducts.length} ${ratedProductsLabel} bewertet.`
+              : "Anzahl deiner Bewertungen wird geladen..."}
+          </p>
 
           {!ratingsLoaded && (
             <div className="rounded-2xl border border-[#2D3A4B] bg-[#141C27] p-4 text-[#8CA1B8]">
               Bewertungen werden geladen...
+            </div>
+          )}
+
+          {ratingsLoaded && ratedProducts.length > 0 && (
+            <div className="grid gap-2 sm:grid-cols-2 mb-4">
+              <select
+                value={selectedRatedCategory}
+                onChange={(event) => setSelectedRatedCategory(event.target.value)}
+                className="w-full border rounded-xl px-3 py-2 bg-[#141C27] text-white border-[#2D3A4B] focus:border-[#5EE287] outline-none transition-colors"
+              >
+                <option value="all">Alle Produktarten</option>
+                {ratedCategories.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                value={ratedSortMode}
+                onChange={(event) => setRatedSortMode(event.target.value as RatedSortMode)}
+                className="w-full border rounded-xl px-3 py-2 bg-[#141C27] text-white border-[#2D3A4B] focus:border-[#5EE287] outline-none transition-colors"
+              >
+                <option value="rating-desc">Bewertung: hoch zu niedrig</option>
+                <option value="rating-asc">Bewertung: niedrig zu hoch</option>
+                <option value="category-asc">Produktart: A-Z</option>
+                <option value="category-desc">Produktart: Z-A</option>
+                <option value="name-asc">Name: A-Z</option>
+                <option value="name-desc">Name: Z-A</option>
+              </select>
             </div>
           )}
 
@@ -283,10 +679,19 @@ export default function ProfilPage() {
             </div>
           )}
 
-          {ratingsLoaded && ratedProducts.length > 0 && (
+          {ratingsLoaded && ratedProducts.length > 0 && visibleRatedProducts.length === 0 && (
+            <div className="rounded-2xl border border-[#2D3A4B] bg-[#141C27] p-4 text-[#8CA1B8]">
+              Für diese Produktart hast du noch keine Produkte bewertet.
+            </div>
+          )}
+
+          {ratingsLoaded && visibleRatedProducts.length > 0 && (
             <ul className="grid gap-3 sm:gap-4">
-              {ratedProducts.map((item) => (
-                <li key={item.slug} className="rounded-2xl border border-[#2D3A4B] bg-[#141C27] p-4">
+              {visibleRatedProducts.map((item) => (
+                <li
+                  key={item.slug}
+                  className="rounded-2xl border border-[#2D3A4B] bg-[#141C27] p-4"
+                >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <Link

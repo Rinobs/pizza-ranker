@@ -1,11 +1,19 @@
-"use client";
+﻿"use client";
 
 import React from "react";
 import Link from "next/link";
 import BackButton from "../components/BackButton";
-import Star from "../components/Star";
-import { useUserRatings } from "../hooks/useUserRatings";
 import { getProductImageUrl, getProductRouteSlug, type Product } from "@/app/data/products";
+
+type RatingStat = {
+  ratingAvg: number | null;
+  ratingCount: number;
+};
+
+type RatingSummaryResponse = {
+  success?: boolean;
+  stats?: Record<string, RatingStat>;
+};
 
 export default function CategoryPage({
   title,
@@ -16,32 +24,64 @@ export default function CategoryPage({
   icon: string;
   products: Product[];
 }) {
-  const {
-    user,
-    ratings,
-    commentDrafts,
-    submittingComments,
-    commentErrors,
-    saveRating,
-    updateCommentDraft,
-    submitComment,
-    loaded,
-  } = useUserRatings();
   const [sortMode, setSortMode] = React.useState("rating-desc");
+  const [ratingStats, setRatingStats] = React.useState<Record<string, RatingStat>>({});
+  const [statsLoaded, setStatsLoaded] = React.useState(false);
 
-  const sortedProducts = [...products].sort((a, b) => {
-    const routeSlugA = getProductRouteSlug(a);
-    const routeSlugB = getProductRouteSlug(b);
-    const ratingA = ratings[routeSlugA] || 0;
-    const ratingB = ratings[routeSlugB] || 0;
+  React.useEffect(() => {
+    let cancelled = false;
 
-    if (sortMode === "rating-desc") return ratingB - ratingA;
-    if (sortMode === "rating-asc") return ratingA - ratingB;
-    if (sortMode === "name-asc") return a.name.localeCompare(b.name);
-    if (sortMode === "name-desc") return b.name.localeCompare(a.name);
+    async function loadRatingStats() {
+      try {
+        const response = await fetch("/api/ratings/summary", {
+          cache: "no-store",
+        });
 
-    return 0;
-  });
+        if (!response.ok) return;
+
+        const json = (await response.json()) as RatingSummaryResponse;
+        if (cancelled) return;
+
+        setRatingStats(json.stats ?? {});
+      } finally {
+        if (!cancelled) setStatsLoaded(true);
+      }
+    }
+
+    void loadRatingStats();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const sortedProducts = React.useMemo(() => {
+    return [...products].sort((a, b) => {
+      const routeSlugA = getProductRouteSlug(a);
+      const routeSlugB = getProductRouteSlug(b);
+      const ratingA = ratingStats[routeSlugA]?.ratingAvg ?? 0;
+      const ratingB = ratingStats[routeSlugB]?.ratingAvg ?? 0;
+      const ratingCountA = ratingStats[routeSlugA]?.ratingCount ?? 0;
+      const ratingCountB = ratingStats[routeSlugB]?.ratingCount ?? 0;
+
+      if (sortMode === "rating-desc") {
+        if (ratingB !== ratingA) return ratingB - ratingA;
+        if (ratingCountB !== ratingCountA) return ratingCountB - ratingCountA;
+        return a.name.localeCompare(b.name, "de");
+      }
+
+      if (sortMode === "rating-asc") {
+        if (ratingA !== ratingB) return ratingA - ratingB;
+        if (ratingCountA !== ratingCountB) return ratingCountA - ratingCountB;
+        return a.name.localeCompare(b.name, "de");
+      }
+
+      if (sortMode === "name-asc") return a.name.localeCompare(b.name, "de");
+      if (sortMode === "name-desc") return b.name.localeCompare(a.name, "de");
+
+      return 0;
+    });
+  }, [products, ratingStats, sortMode]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-12 pb-24 text-white">
@@ -63,12 +103,15 @@ export default function CategoryPage({
         <option value="name-desc">Z-A</option>
       </select>
 
-      {!loaded && <p className="text-[#8CA1B8] text-center mb-8">Lade Bewertungen...</p>}
+      {!statsLoaded && <p className="text-[#8CA1B8] text-center mb-8">Lade Bewertungen...</p>}
 
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5 md:gap-7">
         {sortedProducts.map((item) => {
           const routeSlug = getProductRouteSlug(item);
           const originalImageUrl = getProductImageUrl(item);
+          const stats = ratingStats[routeSlug];
+          const ratingAvg = stats?.ratingAvg ?? null;
+          const ratingCount = stats?.ratingCount ?? 0;
 
           return (
             <Link
@@ -107,72 +150,17 @@ export default function CategoryPage({
               <div className="absolute bottom-0 left-0 w-full p-4">
                 <h3 className="text-white text-sm sm:text-base font-semibold line-clamp-2">{item.name}</h3>
 
-                <div
-                  className="flex items-center mt-2 gap-1"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                  }}
-                >
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <Star
-                      key={i}
-                      rating={ratings[routeSlug] || 0}
-                      index={i}
-                      onRate={(v) => {
-                        if (!user) return alert("Bitte zuerst einloggen!");
-                        void saveRating(routeSlug, v);
-                      }}
-                    />
-                  ))}
-                </div>
-
-                <input
-                  className="w-full mt-3 bg-[#141C27]/95 border border-[#2D3A4B] text-white text-xs sm:text-sm px-3 py-2 rounded-lg placeholder:text-[#8CA1B8]"
-                  placeholder="Kommentar..."
-                  value={commentDrafts[routeSlug] || ""}
-                  onChange={(e) => {
-                    if (!user) return;
-                    updateCommentDraft(routeSlug, e.target.value);
-                  }}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                  }}
-                  maxLength={1000}
-                />
-
-                <div
-                  className="mt-2"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                  }}
-                >
-                  <button
-                    type="button"
-                    className="w-full rounded-lg bg-[#5EE287] text-[#0C1910] text-xs sm:text-sm font-semibold py-2 hover:bg-[#75F39B] disabled:opacity-60 disabled:cursor-not-allowed"
-                    disabled={!user || submittingComments[routeSlug] === true}
-                    onClick={async () => {
-                      if (!user) return alert("Bitte zuerst einloggen!");
-                      await submitComment(routeSlug);
-                    }}
-                  >
-                    {submittingComments[routeSlug] ? "Sende..." : "Kommentar absenden"}
-                  </button>
-                </div>
-
-                {commentErrors[routeSlug] && (
-                  <p
-                    className="text-[11px] text-red-300 mt-2"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                    }}
-                  >
-                    {commentErrors[routeSlug]}
+                {ratingAvg !== null && ratingCount > 0 ? (
+                  <p className="text-xs sm:text-sm text-yellow-300 mt-1.5">
+                    {"\u2B50"} {ratingAvg.toFixed(1)} ({ratingCount})
                   </p>
+                ) : (
+                  <p className="text-xs sm:text-sm text-[#8CA1B8] mt-1.5">Noch keine Bewertungen</p>
                 )}
+
+                <p className="text-[11px] text-[#BFD0E2] mt-2">
+                  Tippe auf das Produkt, um zu bewerten und zu kommentieren.
+                </p>
               </div>
             </Link>
           );
@@ -181,3 +169,4 @@ export default function CategoryPage({
     </div>
   );
 }
+

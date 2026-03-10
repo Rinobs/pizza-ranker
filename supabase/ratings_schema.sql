@@ -1,4 +1,4 @@
-create table if not exists public.ratings (
+﻿create table if not exists public.ratings (
   id bigint generated always as identity primary key,
   user_id uuid not null,
   product_slug text not null,
@@ -41,3 +41,25 @@ create index if not exists user_product_lists_user_idx
 
 create index if not exists user_product_lists_type_idx
   on public.user_product_lists (list_type);
+
+create index if not exists user_profiles_username_lower_idx
+  on public.user_profiles (lower(username));
+
+create table if not exists public.user_follows (
+  id bigint generated always as identity primary key,
+  follower_user_id uuid not null,
+  following_user_id uuid not null,
+  inserted_at timestamptz default now(),
+  updated_at timestamptz default now(),
+  constraint user_follows_not_self check (follower_user_id <> following_user_id)
+);
+
+create unique index if not exists user_follows_unique
+  on public.user_follows (follower_user_id, following_user_id);
+
+create index if not exists user_follows_follower_idx
+  on public.user_follows (follower_user_id);
+
+create index if not exists user_follows_following_idx
+  on public.user_follows (following_user_id);
+
