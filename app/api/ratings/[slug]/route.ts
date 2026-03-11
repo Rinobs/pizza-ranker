@@ -7,6 +7,11 @@ import { getStableUserId } from "@/lib/user-id";
 const PRODUCT_SLUG_PATTERN = /^[a-z0-9-]+$/;
 const MAX_COMMENT_LENGTH = 1000;
 
+type RatingRecord = {
+  rating: number | null;
+  comment: string | null;
+};
+
 function normalizeRating(value: unknown) {
   let parsed: number | null = null;
 
@@ -47,6 +52,14 @@ function normalizeComment(value: unknown) {
   }
 
   return trimmed.slice(0, MAX_COMMENT_LENGTH);
+}
+
+function normalizeDeleteTarget(value: string | null) {
+  if (value === "comment" || value === "rating") {
+    return value;
+  }
+
+  return "all";
 }
 
 export async function POST(
@@ -136,7 +149,7 @@ export async function POST(
 }
 
 export async function DELETE(
-  _req: NextRequest,
+  req: NextRequest,
   context: { params: Promise<{ slug: string }> }
 ) {
   const { slug } = await context.params;
@@ -167,18 +180,123 @@ export async function DELETE(
   }
 
   const userId = getStableUserId(userEmail);
+  const deleteTarget = normalizeDeleteTarget(req.nextUrl.searchParams.get("target"));
 
-  const { error } = await supabase
+  if (deleteTarget === "all") {
+    const { error } = await supabase
+      .from(RATINGS_TABLE)
+      .delete()
+      .eq("user_id", userId)
+      .eq("product_slug", slug);
+
+    if (error) {
+      return NextResponse.json(
+        { success: false, error: error.message },
+        { status: 400 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        product_slug: slug,
+      },
+    });
+  }
+
+  const { data: existingData, error: existingError } = await supabase
     .from(RATINGS_TABLE)
-    .delete()
+    .select("rating, comment")
     .eq("user_id", userId)
-    .eq("product_slug", slug);
+    .eq("product_slug", slug)
+    .maybeSingle();
 
-  if (error) {
+  if (existingError) {
     return NextResponse.json(
-      { success: false, error: error.message },
+      { success: false, error: existingError.message },
       { status: 400 }
     );
+  }
+
+  const existing = (existingData as RatingRecord | null) ?? null;
+
+  if (!existing) {
+    return NextResponse.json({
+      success: true,
+      data: {
+        product_slug: slug,
+      },
+    });
+  }
+
+  const hasRating = typeof existing.rating === "number" && existing.rating > 0;
+  const hasComment = typeof existing.comment === "string" && existing.comment.trim().length > 0;
+  const now = new Date().toISOString();
+
+  if (deleteTarget === "rating") {
+    if (!hasComment) {
+      const { error } = await supabase
+        .from(RATINGS_TABLE)
+        .delete()
+        .eq("user_id", userId)
+        .eq("product_slug", slug);
+
+      if (error) {
+        return NextResponse.json(
+          { success: false, error: error.message },
+          { status: 400 }
+        );
+      }
+    } else if (hasRating) {
+      const { error } = await supabase
+        .from(RATINGS_TABLE)
+        .update({
+          rating: 0,
+          updated_at: now,
+        })
+        .eq("user_id", userId)
+        .eq("product_slug", slug);
+
+      if (error) {
+        return NextResponse.json(
+          { success: false, error: error.message },
+          { status: 400 }
+        );
+      }
+    }
+  }
+
+  if (deleteTarget === "comment") {
+    if (!hasRating) {
+      const { error } = await supabase
+        .from(RATINGS_TABLE)
+        .delete()
+        .eq("user_id", userId)
+        .eq("product_slug", slug);
+
+      if (error) {
+        return NextResponse.json(
+          { success: false, error: error.message },
+          { status: 400 }
+        );
+      }
+    } else if (hasComment) {
+      const { error } = await supabase
+        .from(RATINGS_TABLE)
+        .update({
+          comment: null,
+          updated_at: now,
+        })
+        .eq("user_id", userId)
+        .eq("product_slug", slug);
+
+      if (error) {
+        return NextResponse.json(
+          { success: false, error: error.message },
+          { status: 400 }
+        );
+      }
+    }
   }
 
   return NextResponse.json({

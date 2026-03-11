@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
+import { MAX_USERNAME_LENGTH, MIN_USERNAME_LENGTH } from "@/lib/username";
 
 type RatingRow = {
   product_slug: string;
   rating: number;
   comment: string | null;
+  updated_at: string | null;
 };
 
 type RatingsResponse = {
@@ -34,6 +36,8 @@ type ProfileResponse = {
   success: boolean;
   data?: {
     username: string | null;
+    hasUsername: boolean;
+    canSetUsername: boolean;
   };
   error?: string;
 };
@@ -42,12 +46,12 @@ type SaveProfileResponse = {
   success: boolean;
   data?: {
     username: string | null;
+    hasUsername: boolean;
+    canSetUsername: boolean;
   };
   error?: string;
 };
 
-const MIN_USERNAME_LENGTH = 2;
-const MAX_USERNAME_LENGTH = 40;
 const MAX_COMMENT_LENGTH = 1000;
 
 function normalizeHalfStepRating(value: number) {
@@ -72,6 +76,7 @@ export function useUserRatings() {
   const [loaded, setLoaded] = useState(false);
 
   const [username, setUsername] = useState("");
+  const [hasUsername, setHasUsername] = useState(false);
   const [profileLoaded, setProfileLoaded] = useState(false);
   const [savingUsername, setSavingUsername] = useState(false);
   const [profileError, setProfileError] = useState<string | null>(null);
@@ -88,6 +93,7 @@ export function useUserRatings() {
       setLoaded(true);
 
       setUsername("");
+      setHasUsername(false);
       setProfileLoaded(true);
       setSavingUsername(false);
       setProfileError(null);
@@ -136,7 +142,9 @@ export function useUserRatings() {
         }
 
         if (!cancelled && profileResponse.ok && profileJson.success) {
-          setUsername(profileJson.data?.username ?? "");
+          const nextUsername = profileJson.data?.username ?? "";
+          setUsername(nextUsername);
+          setHasUsername(profileJson.data?.hasUsername ?? nextUsername.trim().length > 0);
         }
       } catch {
         if (!cancelled) {
@@ -194,6 +202,40 @@ export function useUserRatings() {
     }
   }
 
+  async function deleteSavedEntry(slug: string, target: "rating" | "comment") {
+    try {
+      const response = await fetch(`/api/ratings/${slug}?target=${target}`, {
+        method: "DELETE",
+      });
+
+      const json = (await response.json()) as DeleteRatingResponse;
+
+      if (!response.ok || !json.success) {
+        return {
+          success: false,
+          error:
+            json.error ||
+            (target === "comment"
+              ? "Kommentar konnte nicht geloescht werden."
+              : "Bewertung konnte nicht geloescht werden."),
+        } as DeleteRatingResponse;
+      }
+
+      return {
+        success: true,
+        data: json.data,
+      } as DeleteRatingResponse;
+    } catch {
+      return {
+        success: false,
+        error:
+          target === "comment"
+            ? "Kommentar konnte nicht geloescht werden."
+            : "Bewertung konnte nicht geloescht werden.",
+      } as DeleteRatingResponse;
+    }
+  }
+
   async function saveRating(slug: string, value: number) {
     if (!user) {
       return {
@@ -229,27 +271,13 @@ export function useUserRatings() {
     }
 
     const previousRating = ratings[slug];
-    const previousComment = comments[slug];
-    const previousDraft = commentDrafts[slug];
 
+    setSubmittingComments((prev) => ({ ...prev, [slug]: true }));
     setRatings((prev) => {
       const next = { ...prev };
       delete next[slug];
       return next;
     });
-
-    setComments((prev) => {
-      const next = { ...prev };
-      delete next[slug];
-      return next;
-    });
-
-    setCommentDrafts((prev) => {
-      const next = { ...prev };
-      delete next[slug];
-      return next;
-    });
-
     setCommentErrors((prev) => ({ ...prev, [slug]: null }));
 
     const rollback = () => {
@@ -262,7 +290,50 @@ export function useUserRatings() {
         }
         return next;
       });
+    };
 
+    try {
+      const response = await deleteSavedEntry(slug, "rating");
+
+      if (!response.success) {
+        rollback();
+        setCommentErrors((prev) => ({
+          ...prev,
+          [slug]: response.error || "Bewertung konnte nicht geloescht werden.",
+        }));
+      }
+
+      return response;
+    } finally {
+      setSubmittingComments((prev) => ({ ...prev, [slug]: false }));
+    }
+  }
+
+  async function deleteComment(slug: string) {
+    if (!user) {
+      return {
+        success: false,
+        error: "Bitte zuerst einloggen.",
+      } as DeleteRatingResponse;
+    }
+
+    const previousComment = comments[slug];
+    const previousDraft = commentDrafts[slug];
+
+    setSubmittingComments((prev) => ({ ...prev, [slug]: true }));
+    setComments((prev) => {
+      const next = { ...prev };
+      delete next[slug];
+      return next;
+    });
+    setCommentDrafts((prev) => {
+      const next = { ...prev };
+      delete next[slug];
+      return next;
+    });
+    setCommentErrors((prev) => ({ ...prev, [slug]: null }));
+
+    const rollback = () => {
       setComments((prev) => {
         const next = { ...prev };
         if (previousComment === undefined) {
@@ -285,37 +356,19 @@ export function useUserRatings() {
     };
 
     try {
-      const response = await fetch(`/api/ratings/${slug}`, {
-        method: "DELETE",
-      });
+      const response = await deleteSavedEntry(slug, "comment");
 
-      const json = (await response.json()) as DeleteRatingResponse;
-
-      if (!response.ok || !json.success) {
+      if (!response.success) {
         rollback();
-        const error = json.error || "Bewertung konnte nicht gelöscht werden.";
-        setCommentErrors((prev) => ({ ...prev, [slug]: error }));
-        return {
-          success: false,
-          error,
-        } as DeleteRatingResponse;
+        setCommentErrors((prev) => ({
+          ...prev,
+          [slug]: response.error || "Kommentar konnte nicht geloescht werden.",
+        }));
       }
 
+      return response;
+    } finally {
       setSubmittingComments((prev) => ({ ...prev, [slug]: false }));
-      setCommentErrors((prev) => ({ ...prev, [slug]: null }));
-
-      return {
-        success: true,
-        data: json.data,
-      } as DeleteRatingResponse;
-    } catch {
-      rollback();
-      const error = "Bewertung konnte nicht gelöscht werden.";
-      setCommentErrors((prev) => ({ ...prev, [slug]: error }));
-      return {
-        success: false,
-        error,
-      } as DeleteRatingResponse;
     }
   }
 
@@ -410,11 +463,14 @@ export function useUserRatings() {
 
       const savedUsername = json.data?.username?.trim() || nextValue;
       setUsername(savedUsername);
+      setHasUsername(json.data?.hasUsername ?? savedUsername.length > 0);
 
       return {
         success: true,
         data: {
           username: savedUsername,
+          hasUsername: json.data?.hasUsername ?? true,
+          canSetUsername: json.data?.canSetUsername ?? false,
         },
       } as SaveProfileResponse;
     } catch {
@@ -439,9 +495,11 @@ export function useUserRatings() {
     loaded,
     saveRating,
     deleteRating,
+    deleteComment,
     updateCommentDraft,
     submitComment,
     username,
+    hasUsername,
     saveUsername,
     profileLoaded,
     savingUsername,
@@ -452,4 +510,3 @@ export function useUserRatings() {
     },
   };
 }
-

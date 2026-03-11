@@ -70,6 +70,7 @@ export default function ProfilPage() {
     comments,
     loaded: ratingsLoaded,
     username,
+    hasUsername,
     saveUsername,
     profileLoaded,
     savingUsername,
@@ -393,39 +394,54 @@ export default function ProfilPage() {
         <section className="rounded-2xl border border-[#2D3A4B] bg-[#141C27] p-4 sm:p-5 mb-8">
           <h2 className="text-lg sm:text-xl font-semibold text-[#E8F6ED] mb-3">Username</h2>
 
-          <div className="flex flex-col sm:flex-row gap-2">
-            <input
-              type="text"
-              value={usernameInput}
-              maxLength={usernameLimits.max}
-              onChange={(event) => {
-                setUsernameInput(event.target.value);
-                setUsernameMessage(null);
-              }}
-              placeholder="Username eingeben"
-              className="w-full bg-[#0F1621] border border-[#2D3A4B] rounded-lg px-3 py-2 text-white placeholder:text-[#8CA1B8]"
-            />
-            <button
-              type="button"
-              disabled={savingUsername}
-              onClick={async () => {
-                const response = await saveUsername(usernameInput);
+          {hasUsername ? (
+            <>
+              <div className="rounded-xl border border-[#35503D] bg-[linear-gradient(135deg,rgba(94,226,135,0.12),rgba(15,22,33,0.95))] px-4 py-3">
+                <p className="text-xs uppercase tracking-[0.18em] text-[#8AF5AC]">Fest vergeben</p>
+                <p className="mt-2 text-xl font-semibold text-white">{username}</p>
+              </div>
 
-                if (response.success) {
-                  setUsernameMessage("Username gespeichert.");
-                } else {
-                  setUsernameMessage(null);
-                }
-              }}
-              className="px-4 py-2 rounded-lg bg-[#5EE287] text-[#0C1910] font-semibold hover:bg-[#75F39B] disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              {savingUsername ? "Speichere..." : "Speichern"}
-            </button>
-          </div>
+              <p className="text-xs text-[#8CA1B8] mt-2">
+                Dein Username ist eindeutig gespeichert und kann nicht mehr geaendert werden.
+              </p>
+            </>
+          ) : (
+            <>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <input
+                  type="text"
+                  value={usernameInput}
+                  maxLength={usernameLimits.max}
+                  onChange={(event) => {
+                    setUsernameInput(event.target.value);
+                    setUsernameMessage(null);
+                  }}
+                  placeholder="Eindeutigen Username eingeben"
+                  className="w-full bg-[#0F1621] border border-[#2D3A4B] rounded-lg px-3 py-2 text-white placeholder:text-[#8CA1B8]"
+                />
+                <button
+                  type="button"
+                  disabled={savingUsername}
+                  onClick={async () => {
+                    const response = await saveUsername(usernameInput);
 
-          <p className="text-xs text-[#8CA1B8] mt-2">
-            Der Username wird bei deinen Kommentaren angezeigt ({usernameLimits.min}-{usernameLimits.max} Zeichen).
-          </p>
+                    if (response.success) {
+                      setUsernameMessage("Username erfolgreich gespeichert.");
+                    } else {
+                      setUsernameMessage(null);
+                    }
+                  }}
+                  className="px-4 py-2 rounded-lg bg-[#5EE287] text-[#0C1910] font-semibold hover:bg-[#75F39B] disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {savingUsername ? "Speichere..." : "Username festlegen"}
+                </button>
+              </div>
+
+              <p className="text-xs text-[#8CA1B8] mt-2">
+                Waehle einen eindeutigen Username fuer dein Profil ({usernameLimits.min}-{usernameLimits.max} Zeichen). Danach kann er nicht mehr geaendert werden.
+              </p>
+            </>
+          )}
 
           {profileError && <p className="text-xs text-red-300 mt-2">{profileError}</p>}
           {usernameMessage && <p className="text-xs text-[#8AF5AC] mt-2">{usernameMessage}</p>}

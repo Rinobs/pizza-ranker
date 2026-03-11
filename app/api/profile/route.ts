@@ -3,25 +3,26 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { getSupabaseAdminClient, USER_PROFILES_TABLE } from "@/lib/supabase";
 import { getStableUserId } from "@/lib/user-id";
-
-const MAX_USERNAME_LENGTH = 40;
-const MIN_USERNAME_LENGTH = 2;
+import {
+  MAX_USERNAME_LENGTH,
+  MIN_USERNAME_LENGTH,
+  hasStoredUsername,
+  normalizeUsername,
+} from "@/lib/username";
 
 type ProfileRow = {
+  user_id?: string;
   username: string | null;
 };
 
-function normalizeUsername(value: unknown) {
-  if (typeof value !== "string") {
-    return null;
-  }
+function buildProfilePayload(row: ProfileRow | null) {
+  const username = hasStoredUsername(row?.username) ? row?.username?.trim() ?? null : null;
 
-  const trimmed = value.trim();
-  if (trimmed.length < MIN_USERNAME_LENGTH || trimmed.length > MAX_USERNAME_LENGTH) {
-    return null;
-  }
-
-  return trimmed;
+  return {
+    username,
+    hasUsername: username !== null,
+    canSetUsername: username === null,
+  };
 }
 
 export async function GET() {
@@ -47,7 +48,7 @@ export async function GET() {
 
   const { data, error } = await supabase
     .from(USER_PROFILES_TABLE)
-    .select("username")
+    .select("user_id, username")
     .eq("user_id", userId)
     .maybeSingle();
 
@@ -58,13 +59,9 @@ export async function GET() {
     );
   }
 
-  const row = data as ProfileRow | null;
-
   return NextResponse.json({
     success: true,
-    data: {
-      username: row?.username ?? null,
-    },
+    data: buildProfilePayload((data as ProfileRow | null) ?? null),
   });
 }
 
@@ -102,7 +99,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: `Username must be between ${MIN_USERNAME_LENGTH} and ${MAX_USERNAME_LENGTH} characters`,
+        error: `Username muss zwischen ${MIN_USERNAME_LENGTH} und ${MAX_USERNAME_LENGTH} Zeichen lang sein.`,
       },
       { status: 400 }
     );
@@ -110,6 +107,59 @@ export async function POST(req: NextRequest) {
 
   const userId = getStableUserId(userEmail);
   const now = new Date().toISOString();
+
+  const { data: existingProfileData, error: existingProfileError } = await supabase
+    .from(USER_PROFILES_TABLE)
+    .select("user_id, username")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (existingProfileError) {
+    return NextResponse.json(
+      { success: false, error: existingProfileError.message },
+      { status: 400 }
+    );
+  }
+
+  const existingProfile = (existingProfileData as ProfileRow | null) ?? null;
+
+  if (hasStoredUsername(existingProfile?.username)) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Dein Username wurde bereits festgelegt und kann nicht mehr geaendert werden.",
+      },
+      { status: 409 }
+    );
+  }
+
+  const { data: duplicateData, error: duplicateError } = await supabase
+    .from(USER_PROFILES_TABLE)
+    .select("user_id, username")
+    .ilike("username", username)
+    .neq("user_id", userId)
+    .limit(1);
+
+  if (duplicateError) {
+    return NextResponse.json(
+      { success: false, error: duplicateError.message },
+      { status: 400 }
+    );
+  }
+
+  const duplicateProfile = Array.isArray(duplicateData)
+    ? (duplicateData as ProfileRow[]).find((row) => hasStoredUsername(row.username))
+    : null;
+
+  if (duplicateProfile) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Dieser Username ist bereits vergeben. Bitte waehle einen anderen.",
+      },
+      { status: 409 }
+    );
+  }
 
   const { data, error } = await supabase
     .from(USER_PROFILES_TABLE)
@@ -121,7 +171,7 @@ export async function POST(req: NextRequest) {
       },
       { onConflict: "user_id" }
     )
-    .select("username")
+    .select("user_id, username")
     .single();
 
   if (error) {
@@ -131,12 +181,8 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const row = data as ProfileRow;
-
   return NextResponse.json({
     success: true,
-    data: {
-      username: row.username,
-    },
+    data: buildProfilePayload(data as ProfileRow),
   });
 }

@@ -22,6 +22,7 @@ type ProductComment = {
   username: string;
   text: string;
   updatedAt: string | null;
+  isOwnComment: boolean;
 };
 
 type ProductDetailsPayload = {
@@ -73,6 +74,7 @@ function normalizeComments(value: unknown): ProductComment[] {
           username: COMMENT_FALLBACK_USERNAME,
           text,
           updatedAt: null,
+          isOwnComment: false,
         } satisfies ProductComment;
       }
 
@@ -95,6 +97,7 @@ function normalizeComments(value: unknown): ProductComment[] {
         username,
         text,
         updatedAt: typeof comment.updatedAt === "string" ? comment.updatedAt : null,
+        isOwnComment: comment.isOwnComment === true,
       } satisfies ProductComment;
     })
     .filter((entry): entry is ProductComment => entry !== null);
@@ -129,6 +132,7 @@ export default function ProductPage() {
     commentErrors,
     saveRating,
     deleteRating,
+    deleteComment,
     updateCommentDraft,
     submitComment,
     user,
@@ -201,7 +205,7 @@ export default function ProductPage() {
         <div className="rounded-2xl border border-[#2D3A4B] bg-[#1B222D] p-8 text-center shadow-[0_10px_28px_rgba(0,0,0,0.26)]">
           <h1 className="text-3xl font-bold mb-4">Produkt nicht gefunden</h1>
           <Link href="/" className="text-[#8AF5AC] hover:text-[#CFFFE0] underline">
-            Zurück zur Startseite
+            Zurueck zur Startseite
           </Link>
         </div>
       </div>
@@ -214,8 +218,7 @@ export default function ProductPage() {
   const originalImageUrl = getProductImageUrl(product);
   const fallback = createFallbackDetails(product);
   const mergedDetails = mergeDetails(fallback, details);
-  const hasOwnRatingOrComment =
-    (ratings[routeSlug] || 0) > 0 || (commentDrafts[routeSlug] || "").trim().length > 0;
+  const hasOwnRating = (ratings[routeSlug] || 0) > 0;
 
   const keyFacts: Array<[string, string | number]> = [
     ["Kategorie", product.category],
@@ -274,7 +277,7 @@ export default function ProductPage() {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold mb-3 text-[#E8F6ED]">Nährwerte</h2>
+              <h2 className="text-xl font-semibold mb-3 text-[#E8F6ED]">Naehrwerte</h2>
               <ul className="grid sm:grid-cols-2 gap-2 text-[#C4D0DE]">
                 <li className="rounded-lg bg-[#141C27] border border-[#2D3A4B] px-3 py-2">
                   <strong className="text-white">Kalorien:</strong> {mergedDetails.naehrwerte.kcal}
@@ -296,16 +299,61 @@ export default function ProductPage() {
               <h2 className="text-xl font-semibold mb-3 text-[#E8F6ED]">Kommentare</h2>
 
               {mergedDetails.kommentare.length > 0 ? (
-                <ul className="space-y-2">
+                <ul className="space-y-3">
                   {mergedDetails.kommentare.map((comment, index) => (
                     <li
                       key={`${comment.username}-${comment.updatedAt || index}-${comment.text}`}
-                      className="rounded-lg bg-[#141C27] border border-[#2D3A4B] px-3 py-2"
+                      className={`group rounded-xl border px-3 py-3 transition-colors ${
+                        comment.isOwnComment
+                          ? "border-[#5EE287] bg-[linear-gradient(135deg,rgba(94,226,135,0.15),rgba(20,28,39,0.96))] shadow-[0_12px_30px_rgba(34,197,94,0.12)]"
+                          : "border-[#2D3A4B] bg-[#141C27]"
+                      }`}
                     >
-                      <p className="text-xs uppercase tracking-wide text-[#8CA1B8] mb-1">
-                        {comment.username}
-                      </p>
-                      <p className="text-[#C4D0DE] text-sm">{comment.text}</p>
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0 flex-1">
+                          <div className="mb-1 flex flex-wrap items-center gap-2">
+                            <p
+                              className={`text-xs uppercase tracking-[0.22em] ${
+                                comment.isOwnComment ? "text-[#D9FFE6]" : "text-[#8CA1B8]"
+                              }`}
+                            >
+                              {comment.username}
+                            </p>
+                            {comment.isOwnComment && (
+                              <span className="rounded-full border border-[#5EE287]/40 bg-[#5EE287]/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#8AF5AC]">
+                                Dein Kommentar
+                              </span>
+                            )}
+                          </div>
+                          <p
+                            className={`text-sm leading-relaxed ${
+                              comment.isOwnComment ? "text-[#F3FFF6]" : "text-[#C4D0DE]"
+                            }`}
+                          >
+                            {comment.text}
+                          </p>
+                        </div>
+
+                        {comment.isOwnComment && user && (
+                          <button
+                            type="button"
+                            className="shrink-0 rounded-lg border border-red-400/30 bg-[#2A1111]/80 px-3 py-1.5 text-xs font-semibold text-red-200 transition-opacity hover:bg-[#3A1717] disabled:cursor-not-allowed disabled:opacity-60 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100"
+                            disabled={submittingComments[routeSlug] === true}
+                            onClick={async () => {
+                              const response = await deleteComment(routeSlug);
+                              if (!response.success) {
+                                setCommentMessage(response.error || "Kommentar konnte nicht geloescht werden.");
+                                return;
+                              }
+
+                              setCommentMessage("Kommentar erfolgreich geloescht.");
+                              setDetailsReloadToken((prev) => prev + 1);
+                            }}
+                          >
+                            {submittingComments[routeSlug] ? "Loesche..." : "Loeschen"}
+                          </button>
+                        )}
+                      </div>
                     </li>
                   ))}
                 </ul>
@@ -338,9 +386,7 @@ export default function ProductPage() {
                     if (!response.success) return;
 
                     setListMessage(
-                      wasFavorite
-                        ? "Aus Favoriten entfernt."
-                        : "Zu Favoriten hinzugefügt."
+                      wasFavorite ? "Aus Favoriten entfernt." : "Zu Favoriten hinzugefuegt."
                     );
                   }}
                   className={`px-3 py-2 rounded-lg text-sm font-semibold border transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
@@ -366,7 +412,7 @@ export default function ProductPage() {
                     setListMessage(
                       wasWantToTry
                         ? "Aus Probieren-Liste entfernt."
-                        : "Zur Probieren-Liste hinzugefügt."
+                        : "Zur Probieren-Liste hinzugefuegt."
                     );
                   }}
                   className={`px-3 py-2 rounded-lg text-sm font-semibold border transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
@@ -375,7 +421,7 @@ export default function ProductPage() {
                       : "bg-[#141C27] text-white border-[#2D3A4B] hover:border-[#F7D26B]"
                   }`}
                 >
-                  {wantToTryActive ? "Will ich probieren" : "Möchte ich probieren"}
+                  {wantToTryActive ? "Will ich probieren" : "Moechte ich probieren"}
                 </button>
               </div>
 
@@ -392,6 +438,7 @@ export default function ProductPage() {
                     index={i}
                     onRate={(value) => {
                       if (!user) return alert("Bitte einloggen!");
+                      setCommentMessage(null);
                       void saveRating(routeSlug, value);
                     }}
                   />
@@ -420,19 +467,19 @@ export default function ProductPage() {
                   <button
                     type="button"
                     className="px-4 py-2 rounded-lg bg-[#2A1111] border border-[#5A2A2A] text-red-200 font-semibold hover:bg-[#3A1717] disabled:opacity-60 disabled:cursor-not-allowed"
-                    disabled={!user || submittingComments[routeSlug] === true || !hasOwnRatingOrComment}
+                    disabled={!user || submittingComments[routeSlug] === true || !hasOwnRating}
                     onClick={async () => {
                       const response = await deleteRating(routeSlug);
                       if (!response.success) {
-                        setCommentMessage(response.error || "Bewertung konnte nicht gelöscht werden.");
+                        setCommentMessage(response.error || "Bewertung konnte nicht geloescht werden.");
                         return;
                       }
 
-                      setCommentMessage("Bewertung erfolgreich gelöscht.");
+                      setCommentMessage("Bewertung erfolgreich geloescht.");
                       setDetailsReloadToken((prev) => prev + 1);
                     }}
                   >
-                    Bewertung löschen
+                    Bewertung loeschen
                   </button>
 
                   <button
@@ -469,5 +516,3 @@ export default function ProductPage() {
     </div>
   );
 }
-
-

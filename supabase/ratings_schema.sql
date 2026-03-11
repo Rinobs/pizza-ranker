@@ -1,4 +1,4 @@
-﻿create table if not exists public.ratings (
+create table if not exists public.ratings (
   id bigint generated always as identity primary key,
   user_id uuid not null,
   product_slug text not null,
@@ -43,6 +43,9 @@ create index if not exists user_product_lists_type_idx
   on public.user_product_lists (list_type);
 
 create index if not exists user_profiles_username_lower_idx
+  on public.user_profiles (lower(username));
+
+create unique index if not exists user_profiles_username_lower_unique
   on public.user_profiles (lower(username));
 
 create table if not exists public.user_follows (

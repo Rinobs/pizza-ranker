@@ -1,12 +1,16 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import {
   getSupabaseAdminClient,
   RATINGS_TABLE,
   USER_PROFILES_TABLE,
 } from "@/lib/supabase";
 import { ALL_PRODUCTS, getProductRouteSlug, type Product } from "@/app/data/products";
+import { getStableUserId } from "@/lib/user-id";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 const PLACEHOLDER_TEXT = "9999";
 const PLACEHOLDER_NUMBER = 9999;
@@ -37,6 +41,7 @@ type ProductComment = {
   username: string;
   text: string;
   updatedAt: string | null;
+  isOwnComment: boolean;
 };
 
 type ProductDetails = {
@@ -91,7 +96,6 @@ function getDefaultDetails(product: Product): ProductDetails {
     },
     durchschnittsbewertung: PLACEHOLDER_NUMBER,
     kommentare: [],
-
     quelle: "placeholder",
   };
 }
@@ -223,7 +227,7 @@ function mergeOnlineDetails(base: ProductDetails, online: OpenFoodFactsProduct):
   };
 }
 
-async function loadRatingSummary(routeSlug: string) {
+async function loadRatingSummary(routeSlug: string, currentUserId: string | null) {
   const supabase = getSupabaseAdminClient();
 
   if (!supabase) {
@@ -301,9 +305,12 @@ async function loadRatingSummary(routeSlug: string) {
         username: usernameByUserId.get(row.user_id) ?? FALLBACK_USERNAME,
         text,
         updatedAt: typeof row.updated_at === "string" ? row.updated_at : null,
+        isOwnComment: currentUserId !== null && row.user_id === currentUserId,
       };
     })
     .filter((entry): entry is ProductComment => entry !== null);
+
+  comments.sort((left, right) => Number(right.isOwnComment) - Number(left.isOwnComment));
 
   return {
     durchschnittsbewertung: average,
@@ -316,9 +323,11 @@ export async function GET(
   context: { params: Promise<{ slug: string }> }
 ) {
   const { slug } = await context.params;
+  const session = await getServerSession(authOptions);
+  const currentUserId = session?.user?.email ? getStableUserId(session.user.email) : null;
 
   if (!/^[a-z0-9-]+$/.test(slug)) {
-    return NextResponse.json({ error: "ungültiger slug" }, { status: 400 });
+    return NextResponse.json({ error: "ungueltiger slug" }, { status: 400 });
   }
 
   const product = ALL_PRODUCTS.find((item) => getProductRouteSlug(item) === slug);
@@ -331,7 +340,7 @@ export async function GET(
 
   const [onlineMatch, ratingSummary] = await Promise.all([
     findOpenFoodFactsMatch(product),
-    loadRatingSummary(slug),
+    loadRatingSummary(slug, currentUserId),
   ]);
 
   const merged = onlineMatch ? mergeOnlineDetails(base, onlineMatch) : base;
@@ -344,9 +353,7 @@ export async function GET(
 
   return NextResponse.json(payload, {
     headers: {
-      "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400",
+      "Cache-Control": "no-store",
     },
   });
 }
-
-
