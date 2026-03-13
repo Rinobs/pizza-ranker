@@ -1,4 +1,4 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import {
@@ -14,9 +14,14 @@ import { ALL_PRODUCTS, getProductRouteSlug } from "@/app/data/products";
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
+const BASIC_PROFILE_SELECT = "user_id, username";
+const EXTENDED_PROFILE_SELECT = "user_id, username, bio, avatar_url";
+
 type ProfileRow = {
   user_id: string;
   username: string | null;
+  bio?: string | null;
+  avatar_url?: string | null;
 };
 
 type RatingRow = {
@@ -34,6 +39,47 @@ type ProductListRow = {
 
 function isUuid(value: string) {
   return UUID_PATTERN.test(value);
+}
+
+function isMissingProfileFieldError(message: string) {
+  const normalized = message.toLowerCase();
+  return normalized.includes("column") && (normalized.includes("bio") || normalized.includes("avatar_url"));
+}
+
+async function loadPublicProfileRow(
+  supabase: NonNullable<ReturnType<typeof getSupabaseAdminClient>>,
+  userId: string
+) {
+  const extendedResult = await supabase
+    .from(USER_PROFILES_TABLE)
+    .select(EXTENDED_PROFILE_SELECT)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (!extendedResult.error) {
+    return {
+      row: (extendedResult.data as ProfileRow | null) ?? null,
+      error: null,
+    };
+  }
+
+  if (!isMissingProfileFieldError(extendedResult.error.message)) {
+    return {
+      row: null,
+      error: extendedResult.error,
+    };
+  }
+
+  const basicResult = await supabase
+    .from(USER_PROFILES_TABLE)
+    .select(BASIC_PROFILE_SELECT)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  return {
+    row: (basicResult.data as ProfileRow | null) ?? null,
+    error: basicResult.error,
+  };
 }
 
 const productBySlug = new Map(
@@ -58,7 +104,7 @@ export async function GET(
 
   if (!isUuid(userId)) {
     return NextResponse.json(
-      { success: false, error: "Ungültige User-ID" },
+      { success: false, error: "Ungueltige User-ID" },
       { status: 400 }
     );
   }
@@ -76,11 +122,7 @@ export async function GET(
     ? getStableUserId(session.user.email)
     : null;
 
-  const { data: profileData, error: profileError } = await supabase
-    .from(USER_PROFILES_TABLE)
-    .select("user_id, username")
-    .eq("user_id", userId)
-    .maybeSingle();
+  const { row: profile, error: profileError } = await loadPublicProfileRow(supabase, userId);
 
   if (profileError) {
     return NextResponse.json(
@@ -89,7 +131,6 @@ export async function GET(
     );
   }
 
-  const profile = profileData as ProfileRow | null;
   const username = typeof profile?.username === "string" ? profile.username.trim() : "";
 
   if (!profile || username.length === 0) {
@@ -98,6 +139,12 @@ export async function GET(
       { status: 404 }
     );
   }
+
+  const bio = typeof profile.bio === "string" ? profile.bio.trim() || null : null;
+  const avatarUrl =
+    typeof profile.avatar_url === "string" && profile.avatar_url.trim().length > 0
+      ? profile.avatar_url.trim()
+      : null;
 
   const [ratingsResult, listsResult, followersResult, followingResult] = await Promise.all([
     supabase
@@ -219,6 +266,8 @@ export async function GET(
       profile: {
         userId,
         username,
+        bio,
+        avatarUrl,
         followersCount,
         followingCount,
         isFollowing,
@@ -230,4 +279,3 @@ export async function GET(
     },
   });
 }
-

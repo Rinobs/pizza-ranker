@@ -24,6 +24,12 @@ create table if not exists public.user_profiles (
   updated_at timestamptz default now()
 );
 
+alter table if exists public.user_profiles
+  add column if not exists bio text;
+
+alter table if exists public.user_profiles
+  add column if not exists avatar_url text;
+
 create table if not exists public.user_product_lists (
   id bigint generated always as identity primary key,
   user_id uuid not null,
@@ -65,4 +71,3 @@ create index if not exists user_follows_follower_idx
 
 create index if not exists user_follows_following_idx
   on public.user_follows (following_user_id);
-

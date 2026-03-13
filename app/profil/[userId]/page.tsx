@@ -1,15 +1,22 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { FiAward, FiBookmark, FiHeart, FiMessageCircle, FiStar, FiTrendingUp, FiUsers } from "react-icons/fi";
 import BackButton from "@/app/components/BackButton";
+import ProfileAvatar from "@/app/components/ProfileAvatar";
+import { buildProfileBadges, buildProfileCompletion } from "@/lib/profile-features";
+import { calculateProfilePoints, getProfileLevelInfo } from "@/lib/profile-gamification";
+import { BadgeCard, EmptyPanel, MetricCard, SectionShell } from "@/app/profil/profile-ui";
 
 type PublicProfileData = {
   profile: {
     userId: string;
     username: string;
+    bio: string | null;
+    avatarUrl: string | null;
     followersCount: number;
     followingCount: number;
     isFollowing: boolean;
@@ -68,7 +75,7 @@ export default function PublicProfilePage() {
 
     async function loadProfile() {
       if (!routeUserId) {
-        setError("Ungültige Profil-URL.");
+        setError("Ungueltige Profil-URL.");
         setLoading(false);
         return;
       }
@@ -78,10 +85,7 @@ export default function PublicProfilePage() {
       setFollowMessage(null);
 
       try {
-        const response = await fetch(`/api/profiles/${routeUserId}`, {
-          cache: "no-store",
-        });
-
+        const response = await fetch(`/api/profiles/${routeUserId}`, { cache: "no-store" });
         const json = (await response.json()) as PublicProfileResponse;
 
         if (cancelled) return;
@@ -99,9 +103,7 @@ export default function PublicProfilePage() {
           setError("Profil konnte nicht geladen werden.");
         }
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        if (!cancelled) setLoading(false);
       }
     }
 
@@ -121,239 +123,152 @@ export default function PublicProfilePage() {
     try {
       const response = await fetch("/api/follows", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          targetUserId: profileData.profile.userId,
-          active,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ targetUserId: profileData.profile.userId, active }),
       });
-
       const json = (await response.json()) as ToggleFollowResponse;
 
       if (!response.ok || !json.success) {
-        setFollowMessage(json.error || "Folgen-Status konnte nicht geändert werden.");
+        setFollowMessage(json.error || "Folgen-Status konnte nicht geaendert werden.");
         return;
       }
 
       setProfileData((prev) => {
         if (!prev) return prev;
-
-        const nextFollowers = active
-          ? prev.profile.followersCount + 1
-          : Math.max(0, prev.profile.followersCount - 1);
-
         return {
           ...prev,
           profile: {
             ...prev.profile,
             isFollowing: active,
-            followersCount: nextFollowers,
+            followersCount: active ? prev.profile.followersCount + 1 : Math.max(0, prev.profile.followersCount - 1),
           },
         };
       });
-
       setFollowMessage(active ? "Du folgst diesem Profil." : "Du folgst diesem Profil nicht mehr.");
     } catch {
-      setFollowMessage("Folgen-Status konnte nicht geändert werden.");
+      setFollowMessage("Folgen-Status konnte nicht geaendert werden.");
     } finally {
       setFollowLoading(false);
     }
   }
 
+  const summary = useMemo(() => {
+    if (!profileData) return null;
+
+    const ratingCount = profileData.ratings.filter((item) => item.rating > 0).length;
+    const commentCount = profileData.ratings.filter((item) => item.comment.trim().length > 0).length;
+    const averageRating = ratingCount > 0 ? profileData.ratings.filter((item) => item.rating > 0).reduce((sum, item) => sum + item.rating, 0) / ratingCount : null;
+    const points = calculateProfilePoints({ ratingCount, commentCount, favoriteCount: profileData.favorites.length, followerCount: profileData.profile.followersCount });
+    const levelInfo = getProfileLevelInfo(points);
+    const completion = buildProfileCompletion({
+      hasUsername: true,
+      bio: profileData.profile.bio,
+      avatarUrl: profileData.profile.avatarUrl,
+      ratingCount,
+      commentCount,
+      favoriteCount: profileData.favorites.length,
+      followingCount: profileData.profile.followingCount,
+    });
+    const badges = buildProfileBadges({
+      points,
+      ratingCount,
+      commentCount,
+      favoriteCount: profileData.favorites.length,
+      wantToTryCount: profileData.wantToTry.length,
+      followerCount: profileData.profile.followersCount,
+      followingCount: profileData.profile.followingCount,
+      completionPercent: completion.percent,
+      averageRating,
+      isLeagueLeader: false,
+    });
+
+    return { ratingCount, commentCount, averageRating, points, levelInfo, completion, badges };
+  }, [profileData]);
+
   if (loading) {
+    return <div className="mx-auto max-w-6xl px-4 pb-24 text-white sm:px-8 lg:px-12"><BackButton /><div className="rounded-[30px] border border-[#2A394B] bg-[#141C27] p-5">Profil wird geladen...</div></div>;
+  }
+
+  if (error || !profileData || !summary) {
     return (
-      <div className="max-w-6xl mx-auto px-4 sm:px-8 lg:px-12 pb-24 text-white">
+      <div className="mx-auto max-w-6xl px-4 pb-24 text-white sm:px-8 lg:px-12">
         <BackButton />
-        <div className="rounded-2xl border border-[#2D3A4B] bg-[#1B222D] p-6 text-[#C4D0DE]">
-          Profil wird geladen...
+        <div className="rounded-[30px] border border-[#2A394B] bg-[#141C27] p-6">
+          <p className="text-red-200">{error || "Profil konnte nicht geladen werden."}</p>
+          <Link href="/profil" className="mt-4 inline-flex items-center rounded-2xl bg-[#5EE287] px-4 py-2 font-semibold text-[#0C1910] hover:bg-[#75F39B]">Zu meinem Profil</Link>
         </div>
       </div>
     );
   }
-
-  if (error || !profileData) {
-    return (
-      <div className="max-w-6xl mx-auto px-4 sm:px-8 lg:px-12 pb-24 text-white">
-        <BackButton />
-        <div className="rounded-2xl border border-[#2D3A4B] bg-[#1B222D] p-6">
-          <p className="text-red-300">{error || "Profil konnte nicht geladen werden."}</p>
-          <Link
-            href="/profil"
-            className="inline-flex mt-4 items-center rounded-lg bg-[#5EE287] px-4 py-2 font-semibold text-[#0C1910] hover:bg-[#75F39B]"
-          >
-            Zu meinem Profil
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  const ratedCount = profileData.ratings.length;
-  const ratedLabel = ratedCount === 1 ? "Produkt" : "Produkte";
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-8 lg:px-12 pb-24 text-white">
+    <div className="mx-auto max-w-7xl px-4 pb-24 text-white sm:px-8 lg:px-12">
       <BackButton />
 
-      <div className="rounded-3xl border border-[#2D3A4B] bg-[#1B222D]/95 p-5 sm:p-8 shadow-[0_14px_34px_rgba(0,0,0,0.28)]">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between mb-6">
-          <div>
-            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#E8F6ED]">
-              {profileData.profile.username}
-            </h1>
-            <p className="text-sm text-[#8CA1B8] mt-2">
-              {ratedCount} {ratedLabel} bewertet
-            </p>
+      <section className="overflow-hidden rounded-[36px] border border-[#2E4154] bg-[radial-gradient(circle_at_top_left,rgba(94,226,135,0.18),rgba(16,24,36,0.98)_40%),radial-gradient(circle_at_bottom_right,rgba(104,180,255,0.14),transparent_42%),linear-gradient(145deg,rgba(21,31,44,0.99),rgba(14,20,31,0.96))] p-6 shadow-[0_24px_64px_rgba(0,0,0,0.34)] sm:p-8 lg:p-10">
+        <div className="flex flex-col gap-8 xl:flex-row xl:items-end xl:justify-between">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-center">
+            <ProfileAvatar src={profileData.profile.avatarUrl} name={profileData.profile.username} size="xl" />
+            <div className="max-w-3xl">
+              <p className="text-xs uppercase tracking-[0.22em] text-[#9CC9AE]">Food Profil</p>
+              <h1 className="mt-3 text-4xl font-black tracking-tight text-[#F3FFF6] sm:text-5xl">{profileData.profile.username}</h1>
+              <p className="mt-4 max-w-2xl text-base leading-relaxed text-[#C9D8E7] sm:text-lg">{profileData.profile.bio || "Noch keine Bio vorhanden. Dieses Profil sammelt aber schon Geschmackspunkte und Aktivitaet."}</p>
+              <div className="mt-5 flex flex-wrap gap-2.5">
+                <span className="inline-flex items-center gap-2 rounded-full border border-[#34503B] bg-[#173023] px-4 py-2 text-sm font-semibold text-[#D9FFE6]"><FiAward size={15} />{summary.levelInfo.currentLevelName}</span>
+                <span className="inline-flex items-center gap-2 rounded-full border border-[#2D3A4B] bg-[#111925]/90 px-4 py-2 text-sm font-semibold text-[#D6E2EF]"><FiTrendingUp size={15} />{summary.points} Punkte</span>
+                <span className="inline-flex items-center gap-2 rounded-full border border-[#2D3A4B] bg-[#111925]/90 px-4 py-2 text-sm font-semibold text-[#D6E2EF]"><FiUsers size={15} />{profileData.profile.followersCount} Follower</span>
+              </div>
+            </div>
           </div>
 
-          <div className="flex flex-col items-start sm:items-end gap-2">
+          <div className="flex flex-col items-start gap-3 xl:items-end">
             {profileData.profile.isOwnProfile ? (
-              <Link
-                href="/profil"
-                className="inline-flex items-center rounded-lg bg-[#5EE287] px-4 py-2 font-semibold text-[#0C1910] hover:bg-[#75F39B]"
-              >
-                Mein Profil bearbeiten
-              </Link>
+              <Link href="/profil" className="inline-flex items-center rounded-2xl bg-[#5EE287] px-5 py-3 font-semibold text-[#0C1910] hover:bg-[#79F29C]">Mein Profil bearbeiten</Link>
             ) : session?.user ? (
-              <button
-                type="button"
-                disabled={followLoading}
-                onClick={() => {
-                  void handleToggleFollow(!profileData.profile.isFollowing);
-                }}
-                className={`px-4 py-2 rounded-lg font-semibold border transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
-                  profileData.profile.isFollowing
-                    ? "bg-[#141C27] text-white border-[#2D3A4B] hover:border-red-300"
-                    : "bg-[#5EE287] text-[#0C1910] border-[#5EE287] hover:bg-[#75F39B]"
-                }`}
-              >
-                {followLoading
-                  ? "Speichere..."
-                  : profileData.profile.isFollowing
-                    ? "Entfolgen"
-                    : "Folgen"}
-              </button>
+              <button type="button" disabled={followLoading} onClick={() => { void handleToggleFollow(!profileData.profile.isFollowing); }} className={`rounded-2xl border px-5 py-3 font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${profileData.profile.isFollowing ? "border-[#2D3A4B] bg-[#141C27] text-white hover:border-red-300" : "border-[#5EE287] bg-[#5EE287] text-[#0C1910] hover:bg-[#79F29C]"}`}>{followLoading ? "Speichere..." : profileData.profile.isFollowing ? "Entfolgen" : "Folgen"}</button>
             ) : (
-              <p className="text-xs text-[#8CA1B8]">Logge dich ein, um zu folgen.</p>
+              <p className="text-sm text-[#AFC1D3]">Logge dich ein, um diesem Profil zu folgen.</p>
             )}
-
-            {followMessage && <p className="text-xs text-[#8AF5AC]">{followMessage}</p>}
+            {followMessage && <p className="text-sm text-[#8AF5AC]">{followMessage}</p>}
           </div>
         </div>
+      </section>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-8">
-          <div className="rounded-xl border border-[#2D3A4B] bg-[#141C27] p-3">
-            <p className="text-xs text-[#8CA1B8] uppercase tracking-wide">Follower</p>
-            <p className="text-xl font-bold text-white">{profileData.profile.followersCount}</p>
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <MetricCard icon={FiUsers} label="Follower" value={String(profileData.profile.followersCount)} hint="Menschen, die diesem Profil folgen" />
+        <MetricCard icon={FiUsers} label="Folgt" value={String(profileData.profile.followingCount)} hint="Profile, denen dieser User folgt" />
+        <MetricCard icon={FiStar} label="Bewertungen" value={String(summary.ratingCount)} hint={summary.averageRating !== null ? `Durchschnitt ${summary.averageRating.toFixed(1)}` : "Noch keine Sterne vergeben"} />
+        <MetricCard icon={FiMessageCircle} label="Kommentare" value={String(summary.commentCount)} hint={`${summary.completion.percent}% Profil-Completion`} />
+      </div>
+
+      <div className="mt-8 grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
+        <SectionShell eyebrow="Badges" title="Profil Vibes" description="Auch oeffentliche Profile bekommen jetzt kleine Gamification-Signale fuer Aktivitaet und Profilpflege.">
+          <div className="grid gap-4 md:grid-cols-2">
+            {summary.badges.slice(0, 4).map((badge) => <BadgeCard key={badge.id} badge={badge} />)}
           </div>
-          <div className="rounded-xl border border-[#2D3A4B] bg-[#141C27] p-3">
-            <p className="text-xs text-[#8CA1B8] uppercase tracking-wide">Folgt</p>
-            <p className="text-xl font-bold text-white">{profileData.profile.followingCount}</p>
+        </SectionShell>
+
+        <SectionShell eyebrow="Snapshot" title="Schneller Eindruck" description="Ein kompakter Blick auf Level, Aktivitaet und Sammler-Stil.">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <MetricCard icon={FiAward} label="Level" value={summary.levelInfo.currentLevelName} hint={summary.levelInfo.nextLevelName ? `${summary.levelInfo.pointsToNextLevel} Punkte bis ${summary.levelInfo.nextLevelName}` : "Top-Level erreicht"} />
+            <MetricCard icon={FiHeart} label="Favoriten" value={String(profileData.favorites.length)} hint={profileData.wantToTry.length > 0 ? `${profileData.wantToTry.length} Produkte auf der Watchlist` : "Noch keine Watchlist sichtbar"} />
           </div>
-          <div className="rounded-xl border border-[#2D3A4B] bg-[#141C27] p-3 col-span-2 sm:col-span-1">
-            <p className="text-xs text-[#8CA1B8] uppercase tracking-wide">Bewertungen</p>
-            <p className="text-xl font-bold text-white">{ratedCount}</p>
-          </div>
-        </div>
+        </SectionShell>
+      </div>
 
-        <section className="mb-8">
-          <h2 className="text-lg sm:text-xl font-semibold text-[#E8F6ED] mb-4">Bewertete Produkte</h2>
+      <div className="mt-8 grid gap-6 xl:grid-cols-3">
+        <SectionShell eyebrow="Bewertungen" title="Letzte Produkt-Meinungen">
+          {profileData.ratings.length === 0 ? <EmptyPanel icon={FiStar} title="Noch keine Bewertungen" description="Dieses Profil hat bisher noch keine Produkte bewertet." /> : <ul className="grid gap-3">{profileData.ratings.slice(0, 6).map((item) => <li key={`rating-${item.productSlug}`} className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><Link href={`/produkt/${item.productSlug}`} className="font-semibold text-white transition-colors hover:text-[#8AF5AC]">{item.name}</Link><p className="mt-1 text-sm text-[#8CA1B8]">{item.category}</p></div><span className="shrink-0 rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-sm font-semibold text-[#FFD86C]">{item.rating > 0 ? `Rating ${item.rating.toFixed(1)}/5` : "Nur Kommentar"}</span></div><p className="mt-4 text-sm text-[#D3DFEB]">{item.comment || "Kein Kommentar hinterlegt."}</p></li>)}</ul>}
+        </SectionShell>
 
-          {profileData.ratings.length === 0 ? (
-            <div className="rounded-2xl border border-[#2D3A4B] bg-[#141C27] p-4 text-[#8CA1B8]">
-              Noch keine Bewertungen vorhanden.
-            </div>
-          ) : (
-            <ul className="grid gap-3 sm:gap-4">
-              {profileData.ratings.map((item) => (
-                <li
-                  key={`rating-${item.productSlug}`}
-                  className="rounded-2xl border border-[#2D3A4B] bg-[#141C27] p-4"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <Link
-                        href={`/produkt/${item.productSlug}`}
-                        className="text-white font-semibold hover:text-[#8AF5AC] transition-colors"
-                      >
-                        {item.name}
-                      </Link>
-                      <p className="text-xs text-[#8CA1B8] mt-1">{item.category}</p>
-                    </div>
+        <SectionShell eyebrow="Favoriten" title="Aktuelle Highlights">
+          {profileData.favorites.length === 0 ? <EmptyPanel icon={FiHeart} title="Keine Favoriten" description="Bisher wurden noch keine Lieblingsprodukte gespeichert." /> : <ul className="grid gap-3">{profileData.favorites.slice(0, 6).map((item) => <li key={`favorite-${item.productSlug}`} className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4"><Link href={`/produkt/${item.productSlug}`} className="font-semibold text-white transition-colors hover:text-[#8AF5AC]">{item.name}</Link><p className="mt-1 text-sm text-[#8CA1B8]">{item.category}</p></li>)}</ul>}
+        </SectionShell>
 
-                    <span className="shrink-0 rounded-lg bg-[#1E2A3A] border border-[#2D3A4B] px-2.5 py-1 text-sm text-yellow-300">
-                      {item.rating > 0 ? `Rating ${item.rating.toFixed(1)}/5` : "Keine Sterne"}
-                    </span>
-                  </div>
-
-                  <p className="text-sm text-[#C4D0DE] mt-3">
-                    {item.comment || "Kein Kommentar hinterlegt."}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-
-        <section className="mb-8">
-          <h2 className="text-lg sm:text-xl font-semibold text-[#E8F6ED] mb-4">Favoriten</h2>
-
-          {profileData.favorites.length === 0 ? (
-            <div className="rounded-2xl border border-[#2D3A4B] bg-[#141C27] p-4 text-[#8CA1B8]">
-              Keine Favoriten vorhanden.
-            </div>
-          ) : (
-            <ul className="grid gap-3 sm:gap-4">
-              {profileData.favorites.map((item) => (
-                <li
-                  key={`favorite-${item.productSlug}`}
-                  className="rounded-2xl border border-[#2D3A4B] bg-[#141C27] p-4"
-                >
-                  <Link
-                    href={`/produkt/${item.productSlug}`}
-                    className="text-white font-semibold hover:text-[#8AF5AC] transition-colors"
-                  >
-                    {item.name}
-                  </Link>
-                  <p className="text-xs text-[#8CA1B8] mt-1">{item.category}</p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-
-        <section>
-          <h2 className="text-lg sm:text-xl font-semibold text-[#E8F6ED] mb-4">
-            Produkte die probiert werden möchten
-          </h2>
-
-          {profileData.wantToTry.length === 0 ? (
-            <div className="rounded-2xl border border-[#2D3A4B] bg-[#141C27] p-4 text-[#8CA1B8]">
-              Keine Produkte auf der Probieren-Liste.
-            </div>
-          ) : (
-            <ul className="grid gap-3 sm:gap-4">
-              {profileData.wantToTry.map((item) => (
-                <li
-                  key={`want-${item.productSlug}`}
-                  className="rounded-2xl border border-[#2D3A4B] bg-[#141C27] p-4"
-                >
-                  <Link
-                    href={`/produkt/${item.productSlug}`}
-                    className="text-white font-semibold hover:text-[#8AF5AC] transition-colors"
-                  >
-                    {item.name}
-                  </Link>
-                  <p className="text-xs text-[#8CA1B8] mt-1">{item.category}</p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+        <SectionShell eyebrow="Watchlist" title="Was noch getestet werden soll">
+          {profileData.wantToTry.length === 0 ? <EmptyPanel icon={FiBookmark} title="Watchlist ist leer" description="Aktuell wurden noch keine Produkte fuer spaeter gespeichert." /> : <ul className="grid gap-3">{profileData.wantToTry.slice(0, 6).map((item) => <li key={`want-${item.productSlug}`} className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4"><Link href={`/produkt/${item.productSlug}`} className="font-semibold text-white transition-colors hover:text-[#8AF5AC]">{item.name}</Link><p className="mt-1 text-sm text-[#8CA1B8]">{item.category}</p></li>)}</ul>}
+        </SectionShell>
       </div>
     </div>
   );
 }
-

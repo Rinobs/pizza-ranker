@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
+import { PROFILE_BIO_MAX_LENGTH } from "@/lib/profile-features";
 import { MAX_USERNAME_LENGTH, MIN_USERNAME_LENGTH } from "@/lib/username";
 
 type RatingRow = {
@@ -32,23 +33,24 @@ type DeleteRatingResponse = {
   error?: string;
 };
 
+type ProfilePayload = {
+  username: string | null;
+  hasUsername: boolean;
+  canSetUsername: boolean;
+  bio: string | null;
+  avatarUrl: string | null;
+  supportsProfileDetails: boolean;
+};
+
 type ProfileResponse = {
   success: boolean;
-  data?: {
-    username: string | null;
-    hasUsername: boolean;
-    canSetUsername: boolean;
-  };
+  data?: ProfilePayload;
   error?: string;
 };
 
 type SaveProfileResponse = {
   success: boolean;
-  data?: {
-    username: string | null;
-    hasUsername: boolean;
-    canSetUsername: boolean;
-  };
+  data?: ProfilePayload;
   error?: string;
 };
 
@@ -77,8 +79,12 @@ export function useUserRatings() {
 
   const [username, setUsername] = useState("");
   const [hasUsername, setHasUsername] = useState(false);
+  const [bio, setBio] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [supportsProfileDetails, setSupportsProfileDetails] = useState(true);
   const [profileLoaded, setProfileLoaded] = useState(false);
   const [savingUsername, setSavingUsername] = useState(false);
+  const [savingProfileDetails, setSavingProfileDetails] = useState(false);
   const [profileError, setProfileError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -94,8 +100,12 @@ export function useUserRatings() {
 
       setUsername("");
       setHasUsername(false);
+      setBio("");
+      setAvatarUrl(null);
+      setSupportsProfileDetails(true);
       setProfileLoaded(true);
       setSavingUsername(false);
+      setSavingProfileDetails(false);
       setProfileError(null);
 
       return () => {
@@ -142,9 +152,13 @@ export function useUserRatings() {
         }
 
         if (!cancelled && profileResponse.ok && profileJson.success) {
-          const nextUsername = profileJson.data?.username ?? "";
+          const nextProfile = profileJson.data;
+          const nextUsername = nextProfile?.username ?? "";
           setUsername(nextUsername);
-          setHasUsername(profileJson.data?.hasUsername ?? nextUsername.trim().length > 0);
+          setHasUsername(nextProfile?.hasUsername ?? nextUsername.trim().length > 0);
+          setBio(nextProfile?.bio ?? "");
+          setAvatarUrl(nextProfile?.avatarUrl ?? null);
+          setSupportsProfileDetails(nextProfile?.supportsProfileDetails ?? true);
         }
       } catch {
         if (!cancelled) {
@@ -464,6 +478,9 @@ export function useUserRatings() {
       const savedUsername = json.data?.username?.trim() || nextValue;
       setUsername(savedUsername);
       setHasUsername(json.data?.hasUsername ?? savedUsername.length > 0);
+      setBio(json.data?.bio ?? bio);
+      setAvatarUrl(json.data?.avatarUrl ?? avatarUrl);
+      setSupportsProfileDetails(json.data?.supportsProfileDetails ?? supportsProfileDetails);
 
       return {
         success: true,
@@ -471,6 +488,9 @@ export function useUserRatings() {
           username: savedUsername,
           hasUsername: json.data?.hasUsername ?? true,
           canSetUsername: json.data?.canSetUsername ?? false,
+          bio: json.data?.bio ?? bio,
+          avatarUrl: json.data?.avatarUrl ?? avatarUrl,
+          supportsProfileDetails: json.data?.supportsProfileDetails ?? supportsProfileDetails,
         },
       } as SaveProfileResponse;
     } catch {
@@ -482,6 +502,60 @@ export function useUserRatings() {
       } as SaveProfileResponse;
     } finally {
       setSavingUsername(false);
+    }
+  }
+
+  async function saveProfileDetails(updates: { bio?: string | null; avatarUrl?: string | null }) {
+    if (!user) {
+      return {
+        success: false,
+        error: "Bitte zuerst einloggen.",
+      } as SaveProfileResponse;
+    }
+
+    setSavingProfileDetails(true);
+    setProfileError(null);
+
+    try {
+      const response = await fetch("/api/profile", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updates),
+      });
+
+      const json = (await response.json()) as SaveProfileResponse;
+
+      if (!response.ok || !json.success || !json.data) {
+        const error = json.error || "Profil konnte nicht gespeichert werden.";
+        setProfileError(error);
+        return {
+          success: false,
+          error,
+        } as SaveProfileResponse;
+      }
+
+      const savedUsername = json.data.username?.trim() ?? username;
+      setUsername(savedUsername);
+      setHasUsername(json.data.hasUsername);
+      setBio(json.data.bio ?? "");
+      setAvatarUrl(json.data.avatarUrl ?? null);
+      setSupportsProfileDetails(json.data.supportsProfileDetails);
+
+      return {
+        success: true,
+        data: json.data,
+      } as SaveProfileResponse;
+    } catch {
+      const error = "Profil konnte nicht gespeichert werden.";
+      setProfileError(error);
+      return {
+        success: false,
+        error,
+      } as SaveProfileResponse;
+    } finally {
+      setSavingProfileDetails(false);
     }
   }
 
@@ -500,13 +574,21 @@ export function useUserRatings() {
     submitComment,
     username,
     hasUsername,
+    bio,
+    avatarUrl,
+    supportsProfileDetails,
     saveUsername,
+    saveProfileDetails,
     profileLoaded,
     savingUsername,
+    savingProfileDetails,
     profileError,
     usernameLimits: {
       min: MIN_USERNAME_LENGTH,
       max: MAX_USERNAME_LENGTH,
+    },
+    profileLimits: {
+      bioMax: PROFILE_BIO_MAX_LENGTH,
     },
   };
 }
