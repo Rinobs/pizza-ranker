@@ -127,6 +127,7 @@ function mergeDetails(
 export default function ProductPage() {
   const {
     ratings,
+    comments,
     commentDrafts,
     submittingComments,
     commentErrors,
@@ -161,6 +162,7 @@ export default function ProductPage() {
   const [detailsReloadToken, setDetailsReloadToken] = useState(0);
   const [commentMessage, setCommentMessage] = useState<string | null>(null);
   const [listMessage, setListMessage] = useState<string | null>(null);
+  const [isEditingOwnComment, setIsEditingOwnComment] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -195,6 +197,20 @@ export default function ProductPage() {
       cancelled = true;
     };
   }, [routeSlug, product, detailsReloadToken]);
+
+  const savedComment = (comments[routeSlug] || "").trim();
+  const hasSavedComment = savedComment.length > 0;
+  const showCommentEditor = !user || !hasSavedComment || isEditingOwnComment;
+
+  useEffect(() => {
+    setIsEditingOwnComment(false);
+  }, [routeSlug]);
+
+  useEffect(() => {
+    if (!hasSavedComment) {
+      setIsEditingOwnComment(false);
+    }
+  }, [hasSavedComment]);
 
   if (!routeSlug) return null;
 
@@ -335,23 +351,39 @@ export default function ProductPage() {
                         </div>
 
                         {comment.isOwnComment && user && (
-                          <button
-                            type="button"
-                            className="shrink-0 rounded-lg border border-red-400/30 bg-[#2A1111]/80 px-3 py-1.5 text-xs font-semibold text-red-200 transition-opacity hover:bg-[#3A1717] disabled:cursor-not-allowed disabled:opacity-60 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100"
-                            disabled={submittingComments[routeSlug] === true}
-                            onClick={async () => {
-                              const response = await deleteComment(routeSlug);
-                              if (!response.success) {
-                                setCommentMessage(response.error || "Kommentar konnte nicht geloescht werden.");
-                                return;
-                              }
+                          <div className="flex shrink-0 items-center gap-2 opacity-100 transition-opacity sm:pointer-events-none sm:opacity-0 sm:group-hover:pointer-events-auto sm:group-hover:opacity-100 sm:group-focus-within:pointer-events-auto sm:group-focus-within:opacity-100">
+                            <button
+                              type="button"
+                              className="rounded-lg border border-[#5EE287]/35 bg-[#102116]/80 px-3 py-1.5 text-xs font-semibold text-[#CFFFE0] transition-colors hover:bg-[#16301F] disabled:cursor-not-allowed disabled:opacity-60"
+                              disabled={submittingComments[routeSlug] === true}
+                              onClick={() => {
+                                updateCommentDraft(routeSlug, savedComment);
+                                setIsEditingOwnComment(true);
+                                setCommentMessage(null);
+                              }}
+                            >
+                              Bearbeiten
+                            </button>
 
-                              setCommentMessage("Kommentar erfolgreich geloescht.");
-                              setDetailsReloadToken((prev) => prev + 1);
-                            }}
-                          >
-                            {submittingComments[routeSlug] ? "Loesche..." : "Loeschen"}
-                          </button>
+                            <button
+                              type="button"
+                              className="rounded-lg border border-red-400/30 bg-[#2A1111]/80 px-3 py-1.5 text-xs font-semibold text-red-200 transition-colors hover:bg-[#3A1717] disabled:cursor-not-allowed disabled:opacity-60"
+                              disabled={submittingComments[routeSlug] === true}
+                              onClick={async () => {
+                                const response = await deleteComment(routeSlug);
+                                if (!response.success) {
+                                  setCommentMessage(response.error || "Kommentar konnte nicht geloescht werden.");
+                                  return;
+                                }
+
+                                setIsEditingOwnComment(false);
+                                setCommentMessage("Kommentar erfolgreich geloescht.");
+                                setDetailsReloadToken((prev) => prev + 1);
+                              }}
+                            >
+                              {submittingComments[routeSlug] ? "Loesche..." : "Loeschen"}
+                            </button>
+                          </div>
                         )}
                       </div>
                     </li>
@@ -445,61 +477,92 @@ export default function ProductPage() {
                 ))}
               </div>
 
-              <textarea
-                className="w-full bg-[#141C27] border border-[#2D3A4B] rounded-xl p-3 text-white placeholder:text-[#8CA1B8] min-h-32"
-                placeholder="Kommentar"
-                value={commentDrafts[routeSlug] || ""}
-                maxLength={1000}
-                onChange={(e) => {
-                  if (!user) return;
-                  updateCommentDraft(routeSlug, e.target.value);
-                  setCommentMessage(null);
-                }}
-                disabled={!user}
-              />
+              {showCommentEditor ? (
+                <>
+                  <textarea
+                    className="w-full bg-[#141C27] border border-[#2D3A4B] rounded-xl p-3 text-white placeholder:text-[#8CA1B8] min-h-32"
+                    placeholder="Kommentar"
+                    value={commentDrafts[routeSlug] || ""}
+                    maxLength={1000}
+                    onChange={(e) => {
+                      if (!user) return;
+                      updateCommentDraft(routeSlug, e.target.value);
+                      setCommentMessage(null);
+                    }}
+                    disabled={!user}
+                  />
 
-              <div className="flex items-center justify-between mt-3 gap-3">
-                <p className="text-xs text-[#8CA1B8]">
-                  {(commentDrafts[routeSlug] || "").length}/1000 Zeichen
+                  <div className="flex items-center justify-between mt-3 gap-3">
+                    <p className="text-xs text-[#8CA1B8]">
+                      {(commentDrafts[routeSlug] || "").length}/1000 Zeichen
+                    </p>
+
+                    <div className="flex items-center gap-2">
+                      {isEditingOwnComment && hasSavedComment && (
+                        <button
+                          type="button"
+                          className="px-4 py-2 rounded-lg border border-[#2D3A4B] bg-[#141C27] text-white font-semibold hover:border-[#5EE287] disabled:opacity-60 disabled:cursor-not-allowed"
+                          disabled={submittingComments[routeSlug] === true}
+                          onClick={() => {
+                            updateCommentDraft(routeSlug, savedComment);
+                            setIsEditingOwnComment(false);
+                            setCommentMessage(null);
+                          }}
+                        >
+                          Abbrechen
+                        </button>
+                      )}
+
+                      <button
+                        type="button"
+                        className="px-4 py-2 rounded-lg bg-[#5EE287] text-[#0C1910] font-semibold hover:bg-[#75F39B] disabled:opacity-60 disabled:cursor-not-allowed"
+                        disabled={!user || submittingComments[routeSlug] === true}
+                        onClick={async () => {
+                          const response = await submitComment(routeSlug);
+                          if (!response.success) {
+                            setCommentMessage(response.error || "Kommentar konnte nicht gesendet werden.");
+                            return;
+                          }
+
+                          setIsEditingOwnComment(false);
+                          setCommentMessage("Kommentar erfolgreich gespeichert.");
+                          setDetailsReloadToken((prev) => prev + 1);
+                        }}
+                      >
+                        {submittingComments[routeSlug]
+                          ? "Sende..."
+                          : isEditingOwnComment
+                            ? "Kommentar speichern"
+                            : "Kommentar absenden"}
+                      </button>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <p className="rounded-lg bg-[#141C27] border border-[#2D3A4B] px-3 py-2 text-sm text-[#8CA1B8]">
+                  Dein Kommentar ist gespeichert. Bearbeiten oder loeschen kannst du ihn direkt an
+                  deinem Kommentar.
                 </p>
+              )}
 
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    className="px-4 py-2 rounded-lg bg-[#2A1111] border border-[#5A2A2A] text-red-200 font-semibold hover:bg-[#3A1717] disabled:opacity-60 disabled:cursor-not-allowed"
-                    disabled={!user || submittingComments[routeSlug] === true || !hasOwnRating}
-                    onClick={async () => {
-                      const response = await deleteRating(routeSlug);
-                      if (!response.success) {
-                        setCommentMessage(response.error || "Bewertung konnte nicht geloescht werden.");
-                        return;
-                      }
+              <div className="mt-3 flex items-center justify-end">
+                <button
+                  type="button"
+                  className="px-4 py-2 rounded-lg bg-[#2A1111] border border-[#5A2A2A] text-red-200 font-semibold hover:bg-[#3A1717] disabled:opacity-60 disabled:cursor-not-allowed"
+                  disabled={!user || submittingComments[routeSlug] === true || !hasOwnRating}
+                  onClick={async () => {
+                    const response = await deleteRating(routeSlug);
+                    if (!response.success) {
+                      setCommentMessage(response.error || "Bewertung konnte nicht geloescht werden.");
+                      return;
+                    }
 
-                      setCommentMessage("Bewertung erfolgreich geloescht.");
-                      setDetailsReloadToken((prev) => prev + 1);
-                    }}
-                  >
-                    Bewertung loeschen
-                  </button>
-
-                  <button
-                    type="button"
-                    className="px-4 py-2 rounded-lg bg-[#5EE287] text-[#0C1910] font-semibold hover:bg-[#75F39B] disabled:opacity-60 disabled:cursor-not-allowed"
-                    disabled={!user || submittingComments[routeSlug] === true}
-                    onClick={async () => {
-                      const response = await submitComment(routeSlug);
-                      if (!response.success) {
-                        setCommentMessage(response.error || "Kommentar konnte nicht gesendet werden.");
-                        return;
-                      }
-
-                      setCommentMessage("Kommentar erfolgreich gespeichert.");
-                      setDetailsReloadToken((prev) => prev + 1);
-                    }}
-                  >
-                    {submittingComments[routeSlug] ? "Sende..." : "Kommentar absenden"}
-                  </button>
-                </div>
+                    setCommentMessage("Bewertung erfolgreich geloescht.");
+                    setDetailsReloadToken((prev) => prev + 1);
+                  }}
+                >
+                  Bewertung loeschen
+                </button>
               </div>
 
               {commentErrors[routeSlug] && (
