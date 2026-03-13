@@ -1,68 +1,29 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { FiHome, FiGrid, FiUser, FiSearch, FiChevronDown } from "react-icons/fi";
-import { useState, FormEvent, useEffect, useRef } from "react";
+import { useState, type FormEvent, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useSession, signOut } from "next-auth/react";
 import LoginButton from "./LoginButton";
-
-type CategoryLink = {
-  name: string;
-  icon: string;
-  href: string;
-  description: string;
-};
-
-const CATEGORY_LINKS: CategoryLink[] = [
-  {
-    name: "Tiefkühlpizza",
-    icon: "\u{1F355}",
-    href: "/pizza",
-    description: "Pizza-Rankings & Bewertungen",
-  },
-  {
-    name: "Chips",
-    icon: "\u{1F35F}",
-    href: "/chips",
-    description: "Crunchy Favoriten vergleichen",
-  },
-  {
-    name: "Eis",
-    icon: "\u{1F366}",
-    href: "/eis",
-    description: "Sorten entdecken und bewerten",
-  },
-  {
-    name: "Proteinpulver",
-    icon: "\u{1F4AA}",
-    href: "/proteinpulver",
-    description: "Makros, Geschmack, Preis",
-  },
-  {
-    name: "Proteinriegel",
-    icon: "\u{1F36B}",
-    href: "/proteinriegel",
-    description: "Snacks mit Score",
-  },
-];
+import { CATEGORY_NAV_ITEMS } from "@/lib/product-navigation";
 
 export default function Header() {
   const router = useRouter();
   const pathname = usePathname();
-  const [query, setQuery] = useState("");
+  const searchParams = useSearchParams();
+  const urlQuery = (searchParams.get("q") || "").trim();
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(false);
   const categoriesWrapperRef = useRef<HTMLDivElement | null>(null);
   const mobileSheetRef = useRef<HTMLDivElement | null>(null);
   const { data: session } = useSession();
 
-  const isCategoryRoute = CATEGORY_LINKS.some((category) =>
-    Boolean(pathname?.startsWith(category.href))
-  );
+  const isCategoryRoute = CATEGORY_NAV_ITEMS.some((category) => Boolean(pathname?.startsWith(category.href)));
   const isProfileRoute = pathname === "/profil";
 
   const closeCategories = () => setIsCategoriesOpen(false);
+
 
   useEffect(() => {
     function handlePointerDown(event: PointerEvent) {
@@ -100,15 +61,18 @@ export default function Header() {
     };
   }, [isCategoriesOpen]);
 
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
 
-    if (query.trim().length === 0) {
+    const formData = new FormData(event.currentTarget);
+    const nextQuery = String(formData.get("q") ?? "").trim();
+
+    if (nextQuery.length === 0) {
       router.push("/");
       return;
     }
 
-    router.push(`/?q=${encodeURIComponent(query.trim())}`);
+    router.push(`/?q=${encodeURIComponent(nextQuery)}`);
   };
 
   const navItemClass = (active: boolean) =>
@@ -160,7 +124,7 @@ export default function Header() {
         </div>
 
         <div className="space-y-2.5 max-h-[62vh] overflow-y-auto pr-1">
-          {CATEGORY_LINKS.map((category) => {
+          {CATEGORY_NAV_ITEMS.map((category) => {
             const isActive = Boolean(pathname?.startsWith(category.href));
 
             return (
@@ -208,10 +172,11 @@ export default function Header() {
             >
               <FiSearch className="text-[#8CA1B8]" />
               <input
+                key={urlQuery}
                 type="text"
+                name="q"
                 placeholder="Produkte und Kategorien suchen..."
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                defaultValue={urlQuery}
                 className="bg-transparent outline-none border-none text-sm text-white w-full placeholder:text-[#6E8198]"
               />
             </form>
@@ -225,7 +190,7 @@ export default function Header() {
               <div ref={categoriesWrapperRef} className="relative">
                 <button
                   type="button"
-                  onClick={() => setIsCategoriesOpen((prev) => !prev)}
+                  onClick={() => setIsCategoriesOpen((previous) => !previous)}
                   aria-expanded={isCategoriesOpen}
                   aria-controls="categories-flyout"
                   className={navItemClass(isCategoryRoute || isCategoriesOpen)}
@@ -266,7 +231,7 @@ export default function Header() {
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                      {CATEGORY_LINKS.map((category) => {
+                      {CATEGORY_NAV_ITEMS.map((category) => {
                         const isActive = Boolean(pathname?.startsWith(category.href));
 
                         return (
@@ -334,6 +299,3 @@ export default function Header() {
     </>
   );
 }
-
-
-

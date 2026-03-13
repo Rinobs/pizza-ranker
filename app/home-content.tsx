@@ -1,8 +1,8 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { type FormEvent, useEffect, useMemo, useState } from "react";
 import {
   ALL_PRODUCTS,
   PIZZA_PRODUCTS,
@@ -10,6 +10,16 @@ import {
   getProductRouteSlug,
   type Product,
 } from "./data/products";
+import {
+  CATEGORY_NAV_ITEMS,
+  DEFAULT_DISCOVER_SORT,
+  compareByDiscoverSort,
+  getCategoryNavigationItem,
+  getProductSearchScore,
+  isCategoryFilter,
+  isDiscoverSortMode,
+  type DiscoverSortMode,
+} from "@/lib/product-navigation";
 
 type RankedProduct = {
   name: string;
@@ -22,6 +32,11 @@ type RankedProduct = {
   weekRatingCount: number;
 };
 
+type BrowseProduct = RankedProduct & {
+  newIndex: number;
+  searchScore: number;
+};
+
 type HomeSectionsResponse = {
   topPizza: RankedProduct[];
   newlyAdded: RankedProduct[];
@@ -31,16 +46,36 @@ type HomeSectionsResponse = {
   generatedAt: string;
 };
 
-const categories = [
-  { name: "Tiefkühlpizza", icon: "\u{1F355}", slug: "pizza" },
-  { name: "Chips", icon: "\u{1F35F}", slug: "chips" },
-  { name: "Suessigkeiten", icon: "\u{1F36C}", slug: "suessigkeiten" },
-  { name: "Tiefkühlgerichte", icon: "\u{1F372}", slug: "tiefkuehlgerichte" },
-  { name: "Getraenke", icon: "\u{1F964}", slug: "getraenke" },
-  { name: "Eis", icon: "\u{1F366}", slug: "eis" },
-  { name: "Proteinpulver", icon: "\u{1F4AA}", slug: "proteinpulver" },
-  { name: "Proteinriegel", icon: "\u{1F36B}", slug: "proteinriegel" },
+type RatingSummaryResponse = {
+  success?: boolean;
+  stats?: Record<
+    string,
+    {
+      ratingAvg: number | null;
+      ratingCount: number;
+    }
+  >;
+};
+
+const SORT_OPTIONS: Array<{ value: DiscoverSortMode; label: string; hint: string }> = [
+  {
+    value: "popular",
+    label: "Beliebt",
+    hint: "Meiste Bewertungen zuerst",
+  },
+  {
+    value: "best",
+    label: "Beste",
+    hint: "Hoechste Bewertung zuerst",
+  },
+  {
+    value: "new",
+    label: "Neu",
+    hint: "Zuletzt hinzugefuegt zuerst",
+  },
 ];
+
+const QUICK_SEARCH_TAGS = ["Salami", "Vanille", "Schokolade", "Margherita", "Protein"];
 
 function toRankedProduct(product: Product): RankedProduct {
   return {
@@ -71,32 +106,6 @@ function fallbackSections(): HomeSectionsResponse {
   };
 }
 
-function normalizeSearchText(value: string) {
-  return value
-    .toLowerCase()
-    .normalize("NFKD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, " ")
-    .trim();
-}
-
-function getSearchScore(product: Product, normalizedQuery: string) {
-  const name = normalizeSearchText(product.name);
-  const category = normalizeSearchText(product.category);
-  const routeSlug = normalizeSearchText(getProductRouteSlug(product));
-
-  let score = 0;
-
-  if (name === normalizedQuery) score = Math.max(score, 320);
-  if (name.startsWith(normalizedQuery)) score = Math.max(score, 260);
-  if (name.includes(normalizedQuery)) score = Math.max(score, 220);
-  if (category === normalizedQuery) score = Math.max(score, 180);
-  if (category.includes(normalizedQuery)) score = Math.max(score, 150);
-  if (routeSlug.includes(normalizedQuery)) score = Math.max(score, 120);
-
-  return score;
-}
-
 function ProductCard({ product }: { product: RankedProduct }) {
   return (
     <Link
@@ -118,8 +127,8 @@ function ProductCard({ product }: { product: RankedProduct }) {
         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         loading="lazy"
         decoding="async"
-        onError={(e) => {
-          const image = e.currentTarget;
+        onError={(event) => {
+          const image = event.currentTarget;
           if (image.dataset.fallbackApplied === "1") {
             image.src = "/images/placeholders/product-default.svg";
             return;
@@ -136,10 +145,12 @@ function ProductCard({ product }: { product: RankedProduct }) {
           {product.name}
         </h3>
         <p className="text-xs sm:text-sm text-gray-200">{product.category}</p>
-        {product.ratingAvg !== null && (
+        {product.ratingAvg !== null ? (
           <p className="text-xs sm:text-sm text-yellow-300 mt-1.5">
             {"\u2B50"} {product.ratingAvg.toFixed(1)} ({product.ratingCount})
           </p>
+        ) : (
+          <p className="text-xs sm:text-sm text-[#BFD0E2] mt-1.5">Noch keine Bewertungen</p>
         )}
       </div>
     </Link>
@@ -169,27 +180,47 @@ function ProductSection({
   );
 }
 
+function getChipClass(active: boolean) {
+  return `rounded-full border px-4 py-2 text-sm font-semibold transition-all duration-200 ${
+    active
+      ? "border-[#5EE287] bg-[#173023] text-[#D9FFE6] shadow-[0_10px_24px_rgba(34,197,94,0.16)]"
+      : "border-[#2D3A4B] bg-[#141C27] text-[#B7C4D3] hover:border-[#5EE287] hover:text-white"
+  }`;
+}
+
 export default function HomeContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const searchQuery = (searchParams.get("q") || "").trim();
-  const normalizedSearchQuery = useMemo(
-    () => normalizeSearchText(searchQuery),
-    [searchQuery]
-  );
+  const rawCategory = searchParams.get("category");
+  const rawSort = searchParams.get("sort");
+  const selectedCategory = isCategoryFilter(rawCategory) ? rawCategory : "all";
+  const sortMode: DiscoverSortMode = isDiscoverSortMode(rawSort)
+    ? rawSort
+    : DEFAULT_DISCOVER_SORT;
 
   const fallback = useMemo(() => fallbackSections(), []);
   const [sections, setSections] = useState<HomeSectionsResponse>(fallback);
   const [isLoading, setIsLoading] = useState(true);
+  const [ratingStats, setRatingStats] = useState<
+    Record<string, { ratingAvg: number | null; ratingCount: number }>
+  >({});
+  const [statsLoaded, setStatsLoaded] = useState(false);
+  const [toolbarQuery, setToolbarQuery] = useState(searchQuery);
+
+  useEffect(() => {
+    setToolbarQuery(searchQuery);
+  }, [searchQuery]);
 
   useEffect(() => {
     let cancelled = false;
 
     async function loadSections() {
       try {
-        const res = await fetch("/api/home/sections", { cache: "no-store" });
-        if (!res.ok) return;
+        const response = await fetch("/api/home/sections", { cache: "no-store" });
+        if (!response.ok) return;
 
-        const json = (await res.json()) as Partial<HomeSectionsResponse>;
+        const json = (await response.json()) as Partial<HomeSectionsResponse>;
         if (cancelled) return;
 
         setSections({
@@ -202,83 +233,125 @@ export default function HomeContent() {
               ? json.hasLiveRatings
               : fallback.hasLiveRatings,
           generatedAt:
-            typeof json.generatedAt === "string"
-              ? json.generatedAt
-              : fallback.generatedAt,
+            typeof json.generatedAt === "string" ? json.generatedAt : fallback.generatedAt,
         });
       } finally {
         if (!cancelled) setIsLoading(false);
       }
     }
 
-    loadSections();
+    void loadSections();
 
     return () => {
       cancelled = true;
     };
   }, [fallback]);
 
-  const rankedLookup = useMemo(() => {
-    const lookup = new Map<string, RankedProduct>();
+  useEffect(() => {
+    let cancelled = false;
 
-    for (const group of [
-      sections.topPizza,
-      sections.newlyAdded,
-      sections.trending,
-      sections.bestThisWeek,
-    ]) {
-      for (const product of group) {
-        lookup.set(product.routeSlug, product);
+    async function loadRatingStats() {
+      try {
+        const response = await fetch("/api/ratings/summary", { cache: "no-store" });
+        if (!response.ok) return;
+
+        const json = (await response.json()) as RatingSummaryResponse;
+        if (cancelled) return;
+
+        setRatingStats(json.stats ?? {});
+      } finally {
+        if (!cancelled) setStatsLoaded(true);
       }
     }
 
-    return lookup;
-  }, [sections]);
+    void loadRatingStats();
 
-  const searchResults = useMemo(() => {
-    if (!normalizedSearchQuery) {
-      return [] as RankedProduct[];
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  function updateHomeFilters(updates: {
+    q?: string | null;
+    category?: string | null;
+    sort?: DiscoverSortMode | null;
+  }) {
+    const nextParams = new URLSearchParams(searchParams.toString());
+
+    if (updates.q !== undefined) {
+      const nextQuery = updates.q?.trim();
+      if (nextQuery) {
+        nextParams.set("q", nextQuery);
+      } else {
+        nextParams.delete("q");
+      }
     }
 
-    const scored: Array<{ product: RankedProduct; score: number }> = [];
+    if (updates.category !== undefined) {
+      if (updates.category && updates.category !== "all") {
+        nextParams.set("category", updates.category);
+      } else {
+        nextParams.delete("category");
+      }
+    }
 
-    for (const product of ALL_PRODUCTS) {
-      const score = getSearchScore(product, normalizedSearchQuery);
-      if (score <= 0) continue;
+    if (updates.sort !== undefined) {
+      if (updates.sort && updates.sort !== DEFAULT_DISCOVER_SORT) {
+        nextParams.set("sort", updates.sort);
+      } else {
+        nextParams.delete("sort");
+      }
+    }
 
+    const queryString = nextParams.toString();
+    router.replace(queryString ? `/?${queryString}` : "/", { scroll: false });
+  }
+
+  function handleSearchSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    updateHomeFilters({ q: toolbarQuery || null });
+  }
+
+  const browseProducts = useMemo(() => {
+    const items: BrowseProduct[] = [];
+
+    for (const [index, product] of ALL_PRODUCTS.entries()) {
+      if (selectedCategory !== "all" && product.slug !== selectedCategory) {
+        continue;
+      }
+
+      const routeSlug = getProductRouteSlug(product);
       const base = toRankedProduct(product);
-      const stats = rankedLookup.get(base.routeSlug);
+      const stats = ratingStats[routeSlug];
+      const searchScore = searchQuery ? getProductSearchScore(product, searchQuery) : 0;
 
-      scored.push({
-        score,
-        product: stats
-          ? {
-              ...base,
-              ratingAvg: stats.ratingAvg,
-              ratingCount: stats.ratingCount,
-              weekRatingAvg: stats.weekRatingAvg,
-              weekRatingCount: stats.weekRatingCount,
-            }
-          : base,
+      if (searchQuery && searchScore <= 0) {
+        continue;
+      }
+
+      items.push({
+        ...base,
+        ratingAvg: stats?.ratingAvg ?? null,
+        ratingCount: stats?.ratingCount ?? 0,
+        newIndex: index,
+        searchScore,
       });
     }
 
-    scored.sort((a, b) => {
-      if (a.score !== b.score) return b.score - a.score;
-
-      const aAvg = a.product.ratingAvg ?? -1;
-      const bAvg = b.product.ratingAvg ?? -1;
-      if (aAvg !== bAvg) return bAvg - aAvg;
-
-      if (a.product.ratingCount !== b.product.ratingCount) {
-        return b.product.ratingCount - a.product.ratingCount;
+    items.sort((left, right) => {
+      if (searchQuery && left.searchScore !== right.searchScore) {
+        return right.searchScore - left.searchScore;
       }
 
-      return a.product.name.localeCompare(b.product.name);
+      return compareByDiscoverSort(left, right, sortMode);
     });
 
-    return scored.map((entry) => entry.product);
-  }, [normalizedSearchQuery, rankedLookup]);
+    return items;
+  }, [ratingStats, searchQuery, selectedCategory, sortMode]);
+
+  const sortLabel = SORT_OPTIONS.find((option) => option.value === sortMode)?.label ?? "Beliebt";
+  const activeCategory = selectedCategory === "all" ? null : getCategoryNavigationItem(selectedCategory);
+  const showHighlights = !searchQuery && selectedCategory === "all";
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-[#0F141A] via-[#121A24] to-[#0F141A] text-white px-4 sm:px-8 lg:px-12 pb-24 pt-28">
@@ -287,37 +360,185 @@ export default function HomeContent() {
           FoodRanker
         </h1>
         <p className="text-[#B7C4D3] mt-3 text-base sm:text-lg">
-          Finde und bewerte deine Lieblingsprodukte.
+          Finde schneller Produkte, filtere nach Kategorien und sortiere direkt nach Neu,
+          Beliebt oder Beste.
         </p>
       </div>
 
       <div className="max-w-7xl mx-auto">
-        {searchQuery ? (
-          <section className="mb-16">
-            <h2 className="text-2xl sm:text-3xl font-bold mb-6 tracking-tight text-[#E8F6ED]">
-              {"\u{1F50E}"} Suchergebnisse: {searchQuery}
-            </h2>
+        <section className="mb-14 rounded-[28px] border border-[#2D3A4B] bg-[radial-gradient(circle_at_top_left,rgba(94,226,135,0.14),rgba(20,28,39,0.96)_38%),linear-gradient(135deg,rgba(19,28,40,0.95),rgba(14,20,30,0.98))] p-5 sm:p-7 shadow-[0_20px_50px_rgba(0,0,0,0.28)]">
+          <div className="grid gap-6 lg:grid-cols-[1.2fr_0.9fr]">
+            <div>
+              <p className="text-xs uppercase tracking-[0.22em] text-[#8CA1B8]">
+                Navigator
+              </p>
+              <h2 className="mt-2 text-2xl sm:text-3xl font-bold tracking-tight text-[#F3FFF6]">
+                Suche, Filter und Sortierung an einem Ort
+              </h2>
+              <p className="mt-3 max-w-2xl text-sm sm:text-base text-[#C4D0DE] leading-relaxed">
+                Suche nach Produkten, Marken oder Geschmacksrichtungen und kombiniere das direkt
+                mit klickbaren Filtern fuer Kategorien und Rankings.
+              </p>
 
-            {searchResults.length > 0 ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5 md:gap-7">
-                {searchResults.map((product) => (
-                  <ProductCard key={`search-${product.routeSlug}`} product={product} />
+              <form onSubmit={handleSearchSubmit} className="mt-5 flex flex-col gap-3 sm:flex-row">
+                <input
+                  type="text"
+                  value={toolbarQuery}
+                  onChange={(event) => setToolbarQuery(event.target.value)}
+                  placeholder="Zum Beispiel: Salami, Vanille, Pizza oder Protein"
+                  className="min-h-12 flex-1 rounded-2xl border border-[#2D3A4B] bg-[#101822]/90 px-4 text-white outline-none transition-colors placeholder:text-[#70839A] focus:border-[#5EE287]"
+                />
+                <div className="flex gap-3">
+                  <button
+                    type="submit"
+                    className="min-h-12 rounded-2xl bg-[#5EE287] px-5 font-semibold text-[#0C1910] transition-colors hover:bg-[#79F29C]"
+                  >
+                    Suchen
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setToolbarQuery("");
+                      updateHomeFilters({ q: null, category: null, sort: DEFAULT_DISCOVER_SORT });
+                    }}
+                    className="min-h-12 rounded-2xl border border-[#2D3A4B] bg-[#141C27] px-5 font-semibold text-white transition-colors hover:border-[#5EE287]"
+                  >
+                    Reset
+                  </button>
+                </div>
+              </form>
+
+              <div className="mt-4 flex flex-wrap gap-2">
+                {QUICK_SEARCH_TAGS.map((tag) => (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => {
+                      setToolbarQuery(tag);
+                      updateHomeFilters({ q: tag });
+                    }}
+                    className="rounded-full border border-[#2D3A4B] bg-[#141C27]/90 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-[#BFD0E2] transition-colors hover:border-[#5EE287] hover:text-white"
+                  >
+                    {tag}
+                  </button>
                 ))}
               </div>
-            ) : (
-              <div className="rounded-2xl border border-[#2D3A4B] bg-[#1B222D] p-6 text-[#C4D0DE]">
-                Keine Treffer gefunden. Versuche z. B. pizza, eis oder einen Markennamen.
+            </div>
+
+            <div className="rounded-3xl border border-[#2D3A4B] bg-[#111925]/90 p-5">
+              <div>
+                <p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">
+                  Kategorien
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => updateHomeFilters({ category: null })}
+                    className={getChipClass(selectedCategory === "all")}
+                  >
+                    Alle
+                  </button>
+                  {CATEGORY_NAV_ITEMS.map((category) => (
+                    <button
+                      key={category.slug}
+                      type="button"
+                      onClick={() =>
+                        updateHomeFilters({
+                          category: selectedCategory === category.slug ? null : category.slug,
+                        })
+                      }
+                      className={getChipClass(selectedCategory === category.slug)}
+                    >
+                      <span className="mr-2">{category.icon}</span>
+                      {category.shortName}
+                    </button>
+                  ))}
+                </div>
               </div>
-            )}
-          </section>
-        ) : (
+
+              <div className="mt-6">
+                <p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">
+                  Sortieren nach
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {SORT_OPTIONS.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => updateHomeFilters({ sort: option.value })}
+                      className={getChipClass(sortMode === option.value)}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+                <p className="mt-3 text-sm text-[#8CA1B8]">
+                  Aktuell sortiert nach <span className="text-[#E8F6ED]">{sortLabel}</span>.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="mb-16">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-6">
+            <div>
+              <p className="text-xs uppercase tracking-[0.22em] text-[#8CA1B8]">
+                Ergebnisse
+              </p>
+              <h2 className="mt-2 text-2xl sm:text-3xl font-bold tracking-tight text-[#E8F6ED]">
+                {searchQuery ? `Treffer fuer \"${searchQuery}\"` : "Produkte entdecken"}
+              </h2>
+              <p className="mt-2 text-sm sm:text-base text-[#B7C4D3]">
+                {activeCategory
+                  ? `${activeCategory.name} gefiltert, sortiert nach ${sortLabel}.`
+                  : `Alle Produkte, sortiert nach ${sortLabel}.`}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-[0.14em]">
+              <span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1.5 text-[#BFD0E2]">
+                {browseProducts.length} Treffer
+              </span>
+              {activeCategory && (
+                <span className="rounded-full border border-[#5EE287]/35 bg-[#173023] px-3 py-1.5 text-[#CFFFE0]">
+                  {activeCategory.shortName}
+                </span>
+              )}
+              {searchQuery && (
+                <span className="rounded-full border border-[#3F5C7A] bg-[#122233] px-3 py-1.5 text-[#D9ECFF]">
+                  Suche aktiv
+                </span>
+              )}
+            </div>
+          </div>
+
+          {!statsLoaded && (
+            <p className="mb-4 text-sm text-[#8CA1B8]">Bewertungen fuer Sortierung werden geladen...</p>
+          )}
+
+          {browseProducts.length > 0 ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5 md:gap-7">
+              {browseProducts.map((product) => (
+                <ProductCard key={`browse-${product.routeSlug}`} product={product} />
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-[#2D3A4B] bg-[#1B222D] p-6 text-[#C4D0DE]">
+              Keine Treffer gefunden. Versuche andere Begriffe wie Pizza, Salami, Vanille oder
+              waehle eine andere Kategorie.
+            </div>
+          )}
+        </section>
+
+        {showHighlights && (
           <>
             <ProductSection
-              title={"\u{1F525} Top 10 Tiefk\u00FChlpizzen"}
+              title={"\u{1F525} Top 10 Tiefkuehlpizzen"}
               products={sections.topPizza}
             />
             <ProductSection
-              title={"\u{1F195} Neu hinzugef\u00FCgt"}
+              title={"\u{1F195} Neu hinzugefuegt"}
               products={sections.newlyAdded}
             />
             <ProductSection
@@ -333,11 +554,11 @@ export default function HomeContent() {
               <h2 className="text-2xl sm:text-3xl font-bold mb-6 tracking-tight text-[#E8F6ED]">
                 Kategorien entdecken
               </h2>
-              <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-7">
-                {categories.map((cat) => (
+              <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-7">
+                {CATEGORY_NAV_ITEMS.map((category) => (
                   <Link
-                    key={cat.slug}
-                    href={`/${cat.slug}`}
+                    key={category.slug}
+                    href={category.href}
                     className="
                       group relative p-7 rounded-2xl
                       bg-[#1B222D] border border-[#2D3A4B]
@@ -348,11 +569,12 @@ export default function HomeContent() {
                     "
                   >
                     <div className="text-5xl mb-5 transition-transform duration-300 group-hover:scale-110">
-                      {cat.icon}
+                      {category.icon}
                     </div>
                     <h3 className="text-xl font-semibold tracking-wide text-white group-hover:text-[#8AF5AC] transition-colors duration-300">
-                      {cat.name}
+                      {category.shortName}
                     </h3>
+                    <p className="mt-2 text-sm text-[#8CA1B8]">{category.description}</p>
                   </Link>
                 ))}
               </div>
@@ -361,10 +583,8 @@ export default function HomeContent() {
         )}
 
         <p className="text-xs text-[#8CA1B8] mt-10 text-center">
-          {searchQuery
-            ? searchResults.length > 0
-              ? `${searchResults.length} Treffer gefunden.`
-              : "Keine Treffer gefunden."
+          {searchQuery || selectedCategory !== "all"
+            ? `${browseProducts.length} Produkte passen aktuell zu deinen Filtern.`
             : isLoading
               ? "Lade Highlights..."
               : sections.hasLiveRatings
@@ -375,4 +595,3 @@ export default function HomeContent() {
     </main>
   );
 }
-

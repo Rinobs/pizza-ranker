@@ -1,0 +1,235 @@
+import { getProductRouteSlug, type Product } from "@/app/data/products";
+
+export type DiscoverSortMode = "popular" | "best" | "new";
+
+export type CategoryNavigationItem = {
+  slug: string;
+  name: string;
+  shortName: string;
+  category: string;
+  icon: string;
+  href: string;
+  description: string;
+  aliases: string[];
+};
+
+export const CATEGORY_NAV_ITEMS: CategoryNavigationItem[] = [
+  {
+    slug: "pizza",
+    name: "Tiefkuehlpizza",
+    shortName: "Pizza",
+    category: "Pizza",
+    icon: "\u{1F355}",
+    href: "/pizza",
+    description: "Pizza-Rankings & Bewertungen",
+    aliases: ["pizza", "tiefkuehlpizza", "tk pizza", "salami", "margherita"],
+  },
+  {
+    slug: "chips",
+    name: "Chips",
+    shortName: "Chips",
+    category: "Chips",
+    icon: "\u{1F35F}",
+    href: "/chips",
+    description: "Crunchy Favoriten vergleichen",
+    aliases: ["chips", "crisps", "snack", "paprika", "salz"],
+  },
+  {
+    slug: "eis",
+    name: "Eis",
+    shortName: "Eis",
+    category: "Eis",
+    icon: "\u{1F366}",
+    href: "/eis",
+    description: "Sorten entdecken und bewerten",
+    aliases: ["eis", "ice cream", "vanille", "schoko", "erdbeer"],
+  },
+  {
+    slug: "proteinpulver",
+    name: "Proteinpulver",
+    shortName: "Proteinpulver",
+    category: "Proteinpulver",
+    icon: "\u{1F4AA}",
+    href: "/proteinpulver",
+    description: "Makros, Geschmack, Preis",
+    aliases: ["proteinpulver", "protein", "whey", "eiweiss", "vanilla"],
+  },
+  {
+    slug: "proteinriegel",
+    name: "Proteinriegel",
+    shortName: "Proteinriegel",
+    category: "Proteinriegel",
+    icon: "\u{1F36B}",
+    href: "/proteinriegel",
+    description: "Snacks mit Score",
+    aliases: ["proteinriegel", "riegel", "bar", "schokolade", "caramel"],
+  },
+];
+
+export const DEFAULT_DISCOVER_SORT: DiscoverSortMode = "popular";
+
+export function isDiscoverSortMode(value: string | null): value is DiscoverSortMode {
+  return value === "popular" || value === "best" || value === "new";
+}
+
+export function isCategoryFilter(value: string | null): value is CategoryNavigationItem["slug"] {
+  return CATEGORY_NAV_ITEMS.some((item) => item.slug === value);
+}
+
+export function getCategoryNavigationItem(slug: string | null | undefined) {
+  return CATEGORY_NAV_ITEMS.find((item) => item.slug === slug) ?? null;
+}
+
+export function normalizeSearchText(value: string) {
+  return value
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function getTokens(value: string) {
+  return normalizeSearchText(value)
+    .split(/\s+/)
+    .filter(Boolean);
+}
+
+export function getProductSearchScore(
+  product: Pick<Product, "name" | "category" | "slug">,
+  query: string
+) {
+  const normalizedQuery = normalizeSearchText(query);
+  if (!normalizedQuery) {
+    return 0;
+  }
+
+  const queryTokens = getTokens(normalizedQuery);
+  if (queryTokens.length === 0) {
+    return 0;
+  }
+
+  const name = normalizeSearchText(product.name);
+  const category = normalizeSearchText(product.category);
+  const routeSlug = normalizeSearchText(getProductRouteSlug(product));
+  const categoryItem = getCategoryNavigationItem(product.slug);
+  const aliasText = normalizeSearchText(
+    [
+      product.slug,
+      categoryItem?.name ?? "",
+      categoryItem?.shortName ?? "",
+      ...(categoryItem?.aliases ?? []),
+    ].join(" ")
+  );
+
+  const nameTokens = getTokens(name);
+  const categoryTokens = getTokens(`${category} ${aliasText}`);
+  const combinedSearchText = `${name} ${category} ${aliasText} ${routeSlug}`.trim();
+
+  let score = 0;
+
+  if (name === normalizedQuery) score += 500;
+  if (name.startsWith(normalizedQuery)) score += 220;
+  if (name.includes(normalizedQuery)) score += 140;
+  if (category === normalizedQuery || aliasText === normalizedQuery) score += 180;
+  if (category.includes(normalizedQuery) || aliasText.includes(normalizedQuery)) score += 110;
+  if (routeSlug.includes(normalizedQuery)) score += 70;
+
+  for (const token of queryTokens) {
+    let tokenScore = 0;
+
+    if (nameTokens.some((candidate) => candidate === token)) tokenScore = Math.max(tokenScore, 120);
+    if (nameTokens.some((candidate) => candidate.startsWith(token))) {
+      tokenScore = Math.max(tokenScore, 100);
+    }
+    if (name.includes(token)) tokenScore = Math.max(tokenScore, 80);
+
+    if (categoryTokens.some((candidate) => candidate === token)) {
+      tokenScore = Math.max(tokenScore, 75);
+    }
+    if (categoryTokens.some((candidate) => candidate.startsWith(token))) {
+      tokenScore = Math.max(tokenScore, 60);
+    }
+
+    if (routeSlug.includes(token)) tokenScore = Math.max(tokenScore, 45);
+
+    if (tokenScore === 0) {
+      return 0;
+    }
+
+    score += tokenScore;
+  }
+
+  if (queryTokens.length > 1) {
+    const matchesAllInName = queryTokens.every((token) => name.includes(token));
+    const matchesAllAnywhere = queryTokens.every((token) => combinedSearchText.includes(token));
+
+    if (matchesAllInName) {
+      score += 120;
+    } else if (matchesAllAnywhere) {
+      score += 70;
+    }
+  }
+
+  return score;
+}
+
+export type DiscoverSortable = {
+  name: string;
+  ratingAvg: number | null;
+  ratingCount: number;
+  newIndex: number;
+};
+
+export function compareByDiscoverSort(
+  left: DiscoverSortable,
+  right: DiscoverSortable,
+  sortMode: DiscoverSortMode
+) {
+  const leftAvg = left.ratingAvg ?? 0;
+  const rightAvg = right.ratingAvg ?? 0;
+
+  if (sortMode === "new") {
+    if (left.newIndex !== right.newIndex) {
+      return right.newIndex - left.newIndex;
+    }
+    if (left.ratingCount !== right.ratingCount) {
+      return right.ratingCount - left.ratingCount;
+    }
+    if (leftAvg !== rightAvg) {
+      return rightAvg - leftAvg;
+    }
+    return left.name.localeCompare(right.name, "de");
+  }
+
+  if (sortMode === "popular") {
+    if (left.ratingCount !== right.ratingCount) {
+      return right.ratingCount - left.ratingCount;
+    }
+    if (leftAvg !== rightAvg) {
+      return rightAvg - leftAvg;
+    }
+    if (left.newIndex !== right.newIndex) {
+      return right.newIndex - left.newIndex;
+    }
+    return left.name.localeCompare(right.name, "de");
+  }
+
+  const leftRated = left.ratingCount > 0 && left.ratingAvg !== null ? 1 : 0;
+  const rightRated = right.ratingCount > 0 && right.ratingAvg !== null ? 1 : 0;
+
+  if (leftRated !== rightRated) {
+    return rightRated - leftRated;
+  }
+  if (leftAvg !== rightAvg) {
+    return rightAvg - leftAvg;
+  }
+  if (left.ratingCount !== right.ratingCount) {
+    return right.ratingCount - left.ratingCount;
+  }
+  if (left.newIndex !== right.newIndex) {
+    return right.newIndex - left.newIndex;
+  }
+
+  return left.name.localeCompare(right.name, "de");
+}
