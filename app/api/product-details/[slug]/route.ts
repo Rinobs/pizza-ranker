@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import {
@@ -48,12 +48,15 @@ type ProductDetails = {
   marke: string;
   gewicht: string;
   preis: string;
+  kategorie?: string | null;
   zutaten: string;
   naehrwerte: {
     kcal: number | string;
     protein: number | string;
     fat: number | string;
     carbs: number | string;
+    ballaststoffe?: number | string;
+    salz?: number | string;
   };
   durchschnittsbewertung: number | string;
   kommentare: ProductComment[];
@@ -87,12 +90,15 @@ function getDefaultDetails(product: Product): ProductDetails {
     marke: PLACEHOLDER_TEXT,
     gewicht: PLACEHOLDER_TEXT,
     preis: product.price?.trim() || PLACEHOLDER_TEXT,
+    kategorie: null,
     zutaten: PLACEHOLDER_TEXT,
     naehrwerte: {
       kcal: typeof product.kcal === "number" ? product.kcal : PLACEHOLDER_NUMBER,
       protein: typeof product.protein === "number" ? product.protein : PLACEHOLDER_NUMBER,
       fat: typeof product.fat === "number" ? product.fat : PLACEHOLDER_NUMBER,
       carbs: typeof product.carbs === "number" ? product.carbs : PLACEHOLDER_NUMBER,
+      ballaststoffe: PLACEHOLDER_NUMBER,
+      salz: PLACEHOLDER_NUMBER,
     },
     durchschnittsbewertung: PLACEHOLDER_NUMBER,
     kommentare: [],
@@ -211,6 +217,8 @@ function mergeOnlineDetails(base: ProductDetails, online: OpenFoodFactsProduct):
   const fat = asNumber(nutriments["fat_100g"]) ?? asNumber(nutriments["fat"]);
   const carbs =
     asNumber(nutriments["carbohydrates_100g"]) ?? asNumber(nutriments["carbohydrates"]);
+  const ballaststoffe = asNumber(nutriments["fiber_100g"]) ?? asNumber(nutriments["fiber"]);
+  const salz = asNumber(nutriments["salt_100g"]) ?? asNumber(nutriments["salt"]);
 
   return {
     ...base,
@@ -222,8 +230,45 @@ function mergeOnlineDetails(base: ProductDetails, online: OpenFoodFactsProduct):
       protein: protein ?? base.naehrwerte.protein,
       fat: fat ?? base.naehrwerte.fat,
       carbs: carbs ?? base.naehrwerte.carbs,
+      ballaststoffe: ballaststoffe ?? base.naehrwerte.ballaststoffe,
+      salz: salz ?? base.naehrwerte.salz,
     },
     quelle: "online",
+  };
+}
+
+function mergeDetails(base: ProductDetails, override: Partial<ProductDetails>): ProductDetails {
+  return {
+    ...base,
+    ...override,
+    naehrwerte: {
+      ...base.naehrwerte,
+      ...(override.naehrwerte || {}),
+    },
+  };
+}
+
+function getManualDetails(product: Product): Partial<ProductDetails> | null {
+  if (product.name !== "Gustavo Gusto New York Style") {
+    return null;
+  }
+
+  return {
+    marke: "Gustavo Gusto",
+    gewicht: "465 g pro Pizza",
+    preis: "ca. 4,69 € - 5,69 €",
+    kategorie: "Tiefkühlpizza (Steinofen-Style)",
+    zutaten:
+      "Teig (ca. 47 %): Weizenmehl, Wasser, natives Olivenöl extra, Salz, Frischhefe. Tomatensoße (ca. 23 %): gehackte Tomaten, Tomatenpüree, Wasser, Salz, Olivenöl, Gewürze. Mozzarella (ca. 18 %): laktosefreier schnittfester Mozzarella aus Kuhmilch. Peperoni-Salami (ca. 9 %): Schweinefleisch, Schweinespeck, Gewürze, Nitritpökelsalz. Roter Cheddar (ca. 3 %). Kann Spuren von Ei, Fisch, Soja, Sellerie, Lupine und Senf enthalten.",
+    naehrwerte: {
+      kcal: "ca. 1074-1097 kcal",
+      protein: "ca. 47-51 g",
+      fat: "ca. 41-51 g",
+      carbs: "ca. 112-121 g",
+      ballaststoffe: "ca. 8,8 g",
+      salz: "ca. 7 g",
+    },
+    quelle: "placeholder",
   };
 }
 
@@ -337,13 +382,17 @@ export async function GET(
   }
 
   const base = getDefaultDetails(product);
+  const manualDetails = getManualDetails(product);
 
   const [onlineMatch, ratingSummary] = await Promise.all([
-    findOpenFoodFactsMatch(product),
+    manualDetails ? Promise.resolve(null) : findOpenFoodFactsMatch(product),
     loadRatingSummary(slug, currentUserId),
   ]);
 
-  const merged = onlineMatch ? mergeOnlineDetails(base, onlineMatch) : base;
+  let merged = onlineMatch ? mergeOnlineDetails(base, onlineMatch) : base;
+  if (manualDetails) {
+    merged = mergeDetails(merged, manualDetails);
+  }
 
   const payload = {
     ...merged,
@@ -357,3 +406,4 @@ export async function GET(
     },
   });
 }
+

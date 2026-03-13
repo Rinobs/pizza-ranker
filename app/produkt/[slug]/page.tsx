@@ -29,12 +29,15 @@ type ProductDetailsPayload = {
   marke: string;
   gewicht: string;
   preis: string;
+  kategorie?: string | null;
   zutaten: string;
   naehrwerte: {
     kcal: number | string;
     protein: number | string;
     fat: number | string;
     carbs: number | string;
+    ballaststoffe?: number | string;
+    salz?: number | string;
   };
   durchschnittsbewertung: number | string;
   kommentare: ProductComment[];
@@ -46,17 +49,24 @@ function createFallbackDetails(product: Product): ProductDetailsPayload {
     marke: PLACEHOLDER_TEXT,
     gewicht: PLACEHOLDER_TEXT,
     preis: product.price?.trim() || PLACEHOLDER_TEXT,
+    kategorie: null,
     zutaten: PLACEHOLDER_TEXT,
     naehrwerte: {
       kcal: typeof product.kcal === "number" ? product.kcal : PLACEHOLDER_NUMBER,
       protein: typeof product.protein === "number" ? product.protein : PLACEHOLDER_NUMBER,
       fat: typeof product.fat === "number" ? product.fat : PLACEHOLDER_NUMBER,
       carbs: typeof product.carbs === "number" ? product.carbs : PLACEHOLDER_NUMBER,
+      ballaststoffe: PLACEHOLDER_NUMBER,
+      salz: PLACEHOLDER_NUMBER,
     },
     durchschnittsbewertung: PLACEHOLDER_NUMBER,
     kommentare: [],
     quelle: "placeholder",
   };
+}
+
+function isPlaceholderValue(value: string | number | null | undefined) {
+  return value === undefined || value === null || value === PLACEHOLDER_NUMBER || value === PLACEHOLDER_TEXT;
 }
 
 function normalizeComments(value: unknown): ProductComment[] {
@@ -236,13 +246,30 @@ export default function ProductPage() {
   const mergedDetails = mergeDetails(fallback, details);
   const hasOwnRating = (ratings[routeSlug] || 0) > 0;
 
+  const displayCategory = !isPlaceholderValue(mergedDetails.kategorie) ? mergedDetails.kategorie : product.category;
+
   const keyFacts: Array<[string, string | number]> = [
-    ["Kategorie", product.category],
+    ["Kategorie", displayCategory || product.category],
     ["Marke", mergedDetails.marke],
     ["Gewicht", mergedDetails.gewicht],
     ["Preis", mergedDetails.preis],
     ["Durchschnittsbewertung", mergedDetails.durchschnittsbewertung],
   ];
+
+  const nutritionFacts: Array<[string, string | number]> = [
+    ["Kalorien", mergedDetails.naehrwerte.kcal],
+    ["Protein", mergedDetails.naehrwerte.protein],
+    ["Fett", mergedDetails.naehrwerte.fat],
+    ["Kohlenhydrate", mergedDetails.naehrwerte.carbs],
+  ];
+
+  if (!isPlaceholderValue(mergedDetails.naehrwerte.ballaststoffe)) {
+    nutritionFacts.push(["Ballaststoffe", mergedDetails.naehrwerte.ballaststoffe as string | number]);
+  }
+
+  if (!isPlaceholderValue(mergedDetails.naehrwerte.salz)) {
+    nutritionFacts.push(["Salz", mergedDetails.naehrwerte.salz as string | number]);
+  }
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-8 lg:px-12 pb-24 text-white">
@@ -296,18 +323,11 @@ export default function ProductPage() {
             <section>
               <h2 className="text-xl font-semibold mb-3 text-[#E8F6ED]">Nährwerte</h2>
               <ul className="grid sm:grid-cols-2 gap-2 text-[#C4D0DE]">
-                <li className="rounded-lg bg-[#141C27] border border-[#2D3A4B] px-3 py-2">
-                  <strong className="text-white">Kalorien:</strong> {mergedDetails.naehrwerte.kcal}
-                </li>
-                <li className="rounded-lg bg-[#141C27] border border-[#2D3A4B] px-3 py-2">
-                  <strong className="text-white">Protein:</strong> {mergedDetails.naehrwerte.protein}
-                </li>
-                <li className="rounded-lg bg-[#141C27] border border-[#2D3A4B] px-3 py-2">
-                  <strong className="text-white">Fett:</strong> {mergedDetails.naehrwerte.fat}
-                </li>
-                <li className="rounded-lg bg-[#141C27] border border-[#2D3A4B] px-3 py-2">
-                  <strong className="text-white">Kohlenhydrate:</strong> {mergedDetails.naehrwerte.carbs}
-                </li>
+                {nutritionFacts.map(([label, value]) => (
+                  <li key={label} className="rounded-lg bg-[#141C27] border border-[#2D3A4B] px-3 py-2">
+                    <strong className="text-white">{label}:</strong> {value}
+                  </li>
+                ))}
               </ul>
               {detailsLoading && <p className="text-xs text-[#8CA1B8] mt-2">Lade Produktdaten...</p>}
             </section>
@@ -580,6 +600,7 @@ export default function ProductPage() {
     </div>
   );
 }
+
 
 
 

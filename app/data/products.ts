@@ -345,6 +345,11 @@ export const PIZZA_PRODUCTS: Product[] = [
     imageUrl: "https://gustavo-gusto.de/wp-content/uploads/2025/02/New-York-Style-Pizza-Karton-Gustavo-Gusto-700x700.jpg",
     category: "Pizza",
     slug: "pizza",
+    price: "4,69 € - 5,69 €",
+    kcal: 1086,
+    protein: 49,
+    fat: 46,
+    carbs: 117,
   },
 
   // --- Lidl Trattoria Alfredo ---
@@ -888,4 +893,5 @@ export const ALL_PRODUCTS: Product[] = [
   ...Eis_PRODUCTS,
   ...CHIPS_PRODUCTS,
 ];
+
 
