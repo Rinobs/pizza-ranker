@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { type FormEvent, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 import {
   ALL_PRODUCTS,
   PIZZA_PRODUCTS,
@@ -13,6 +13,7 @@ import {
 import {
   CATEGORY_NAV_ITEMS,
   DEFAULT_DISCOVER_SORT,
+  DISCOVER_SORT_OPTIONS,
   compareByDiscoverSort,
   getCategoryNavigationItem,
   getProductSearchScore,
@@ -56,26 +57,6 @@ type RatingSummaryResponse = {
     }
   >;
 };
-
-const SORT_OPTIONS: Array<{ value: DiscoverSortMode; label: string; hint: string }> = [
-  {
-    value: "popular",
-    label: "Beliebt",
-    hint: "Meiste Bewertungen zuerst",
-  },
-  {
-    value: "best",
-    label: "Beste",
-    hint: "Hoechste Bewertung zuerst",
-  },
-  {
-    value: "new",
-    label: "Neu",
-    hint: "Zuletzt hinzugefuegt zuerst",
-  },
-];
-
-const QUICK_SEARCH_TAGS = ["Salami", "Vanille", "Schokolade", "Margherita", "Protein"];
 
 function toRankedProduct(product: Product): RankedProduct {
   return {
@@ -180,16 +161,7 @@ function ProductSection({
   );
 }
 
-function getChipClass(active: boolean) {
-  return `rounded-full border px-4 py-2 text-sm font-semibold transition-all duration-200 ${
-    active
-      ? "border-[#5EE287] bg-[#173023] text-[#D9FFE6] shadow-[0_10px_24px_rgba(34,197,94,0.16)]"
-      : "border-[#2D3A4B] bg-[#141C27] text-[#B7C4D3] hover:border-[#5EE287] hover:text-white"
-  }`;
-}
-
 export default function HomeContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const searchQuery = (searchParams.get("q") || "").trim();
   const rawCategory = searchParams.get("category");
@@ -200,7 +172,7 @@ export default function HomeContent() {
     : DEFAULT_DISCOVER_SORT;
   const hasActiveFilters =
     selectedCategory !== "all" || sortMode !== DEFAULT_DISCOVER_SORT;
-  const isSearchMode = searchQuery.length > 0 || hasActiveFilters;
+  const isDiscoverMode = searchQuery.length > 0 || hasActiveFilters;
 
   const fallback = useMemo(() => fallbackSections(), []);
   const [sections, setSections] = useState<HomeSectionsResponse>(fallback);
@@ -209,25 +181,6 @@ export default function HomeContent() {
     Record<string, { ratingAvg: number | null; ratingCount: number }>
   >({});
   const [statsLoaded, setStatsLoaded] = useState(false);
-  const [toolbarQuery, setToolbarQuery] = useState(searchQuery);
-  const [searchUIOpen, setSearchUIOpen] = useState(isSearchMode);
-  const [showFilters, setShowFilters] = useState(hasActiveFilters);
-
-  useEffect(() => {
-    setToolbarQuery(searchQuery);
-  }, [searchQuery]);
-
-  useEffect(() => {
-    if (isSearchMode) {
-      setSearchUIOpen(true);
-    }
-  }, [isSearchMode]);
-
-  useEffect(() => {
-    if (hasActiveFilters) {
-      setShowFilters(true);
-    }
-  }, [hasActiveFilters]);
 
   useEffect(() => {
     let cancelled = false;
@@ -288,58 +241,6 @@ export default function HomeContent() {
     };
   }, []);
 
-  function updateHomeFilters(updates: {
-    q?: string | null;
-    category?: string | null;
-    sort?: DiscoverSortMode | null;
-  }) {
-    const nextParams = new URLSearchParams(searchParams.toString());
-
-    if (updates.q !== undefined) {
-      const nextQuery = updates.q?.trim();
-      if (nextQuery) {
-        nextParams.set("q", nextQuery);
-      } else {
-        nextParams.delete("q");
-      }
-    }
-
-    if (updates.category !== undefined) {
-      if (updates.category && updates.category !== "all") {
-        nextParams.set("category", updates.category);
-      } else {
-        nextParams.delete("category");
-      }
-    }
-
-    if (updates.sort !== undefined) {
-      if (updates.sort && updates.sort !== DEFAULT_DISCOVER_SORT) {
-        nextParams.set("sort", updates.sort);
-      } else {
-        nextParams.delete("sort");
-      }
-    }
-
-    const queryString = nextParams.toString();
-    router.replace(queryString ? `/?${queryString}` : "/", { scroll: false });
-  }
-
-  function handleSearchSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    updateHomeFilters({ q: toolbarQuery || null });
-  }
-
-  function closeSearchMode() {
-    setToolbarQuery("");
-    setShowFilters(false);
-    setSearchUIOpen(false);
-    updateHomeFilters({
-      q: null,
-      category: null,
-      sort: DEFAULT_DISCOVER_SORT,
-    });
-  }
-
   const browseProducts = useMemo(() => {
     const items: BrowseProduct[] = [];
 
@@ -377,10 +278,10 @@ export default function HomeContent() {
     return items;
   }, [ratingStats, searchQuery, selectedCategory, sortMode]);
 
-  const sortLabel = SORT_OPTIONS.find((option) => option.value === sortMode)?.label ?? "Beliebt";
+  const sortLabel =
+    DISCOVER_SORT_OPTIONS.find((option) => option.value === sortMode)?.label ?? "Beliebt";
   const activeCategory =
     selectedCategory === "all" ? null : getCategoryNavigationItem(selectedCategory);
-  const filtersVisible = searchUIOpen && (showFilters || hasActiveFilters);
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-[#0F141A] via-[#121A24] to-[#0F141A] text-white px-4 sm:px-8 lg:px-12 pb-24 pt-28">
@@ -391,155 +292,15 @@ export default function HomeContent() {
         <p className="text-[#B7C4D3] mt-3 text-base sm:text-lg">
           Finde und bewerte deine Lieblingsprodukte.
         </p>
-
-        {!searchUIOpen && (
-          <div className="mt-6 flex justify-center">
-            <button
-              type="button"
-              onClick={() => setSearchUIOpen(true)}
-              className="rounded-full border border-[#5EE287] bg-[#173023] px-5 py-3 text-sm font-semibold text-[#D9FFE6] transition-colors hover:bg-[#21402E]"
-            >
-              Suchen
-            </button>
-          </div>
+        {isDiscoverMode && (
+          <p className="mt-6 inline-flex rounded-full border border-[#2D3A4B] bg-[#141C27]/90 px-4 py-2 text-sm text-[#D6E2EF]">
+            Suche und Filter steuerst du jetzt direkt oben im Header.
+          </p>
         )}
       </div>
 
       <div className="max-w-7xl mx-auto">
-        {searchUIOpen && (
-          <section className="mb-14 rounded-[28px] border border-[#2D3A4B] bg-[radial-gradient(circle_at_top_left,rgba(94,226,135,0.14),rgba(20,28,39,0.96)_38%),linear-gradient(135deg,rgba(19,28,40,0.95),rgba(14,20,30,0.98))] p-5 sm:p-7 shadow-[0_20px_50px_rgba(0,0,0,0.28)]">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-              <div>
-                <p className="text-xs uppercase tracking-[0.22em] text-[#8CA1B8]">
-                  Suche
-                </p>
-                <h2 className="mt-2 text-2xl sm:text-3xl font-bold tracking-tight text-[#F3FFF6]">
-                  Produkte gezielt finden
-                </h2>
-                <p className="mt-3 max-w-2xl text-sm sm:text-base text-[#C4D0DE] leading-relaxed">
-                  Starte eine Suche und oeffne bei Bedarf die Filter fuer Kategorien und Sortierung.
-                </p>
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowFilters((previous) => !previous)}
-                  className={getChipClass(filtersVisible)}
-                >
-                  {filtersVisible ? "Filter ausblenden" : "Filter"}
-                </button>
-                <button
-                  type="button"
-                  onClick={closeSearchMode}
-                  className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-4 py-2 text-sm font-semibold text-white transition-colors hover:border-[#5EE287]"
-                >
-                  Schliessen
-                </button>
-              </div>
-            </div>
-
-            <form onSubmit={handleSearchSubmit} className="mt-5 flex flex-col gap-3 sm:flex-row">
-              <input
-                type="text"
-                value={toolbarQuery}
-                onChange={(event) => setToolbarQuery(event.target.value)}
-                placeholder="Zum Beispiel: Salami, Vanille, Pizza oder Protein"
-                className="min-h-12 flex-1 rounded-2xl border border-[#2D3A4B] bg-[#101822]/90 px-4 text-white outline-none transition-colors placeholder:text-[#70839A] focus:border-[#5EE287]"
-              />
-              <div className="flex gap-3">
-                <button
-                  type="submit"
-                  className="min-h-12 rounded-2xl bg-[#5EE287] px-5 font-semibold text-[#0C1910] transition-colors hover:bg-[#79F29C]"
-                >
-                  Suchen
-                </button>
-                {(isSearchMode || toolbarQuery.length > 0) && (
-                  <button
-                    type="button"
-                    onClick={closeSearchMode}
-                    className="min-h-12 rounded-2xl border border-[#2D3A4B] bg-[#141C27] px-5 font-semibold text-white transition-colors hover:border-[#5EE287]"
-                  >
-                    Zur Startseite
-                  </button>
-                )}
-              </div>
-            </form>
-
-            <div className="mt-4 flex flex-wrap gap-2">
-              {QUICK_SEARCH_TAGS.map((tag) => (
-                <button
-                  key={tag}
-                  type="button"
-                  onClick={() => {
-                    setToolbarQuery(tag);
-                    updateHomeFilters({ q: tag });
-                  }}
-                  className="rounded-full border border-[#2D3A4B] bg-[#141C27]/90 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-[#BFD0E2] transition-colors hover:border-[#5EE287] hover:text-white"
-                >
-                  {tag}
-                </button>
-              ))}
-            </div>
-
-            {filtersVisible && (
-              <div className="mt-6 rounded-3xl border border-[#2D3A4B] bg-[#111925]/90 p-5">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">
-                    Kategorien
-                  </p>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={() => updateHomeFilters({ category: null })}
-                      className={getChipClass(selectedCategory === "all")}
-                    >
-                      Alle
-                    </button>
-                    {CATEGORY_NAV_ITEMS.map((category) => (
-                      <button
-                        key={category.slug}
-                        type="button"
-                        onClick={() =>
-                          updateHomeFilters({
-                            category: selectedCategory === category.slug ? null : category.slug,
-                          })
-                        }
-                        className={getChipClass(selectedCategory === category.slug)}
-                      >
-                        <span className="mr-2">{category.icon}</span>
-                        {category.shortName}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="mt-6">
-                  <p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">
-                    Sortieren nach
-                  </p>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {SORT_OPTIONS.map((option) => (
-                      <button
-                        key={option.value}
-                        type="button"
-                        onClick={() => updateHomeFilters({ sort: option.value })}
-                        className={getChipClass(sortMode === option.value)}
-                      >
-                        {option.label}
-                      </button>
-                    ))}
-                  </div>
-                  <p className="mt-3 text-sm text-[#8CA1B8]">
-                    Aktuell sortiert nach <span className="text-[#E8F6ED]">{sortLabel}</span>.
-                  </p>
-                </div>
-              </div>
-            )}
-          </section>
-        )}
-
-        {isSearchMode ? (
+        {isDiscoverMode ? (
           <section className="mb-16">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-6">
               <div>
@@ -642,7 +403,7 @@ export default function HomeContent() {
         )}
 
         <p className="text-xs text-[#8CA1B8] mt-10 text-center">
-          {isSearchMode
+          {isDiscoverMode
             ? `${browseProducts.length} Produkte passen aktuell zu deiner Suche oder deinen Filtern.`
             : isLoading
               ? "Lade Highlights..."

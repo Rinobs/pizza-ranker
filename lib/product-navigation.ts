@@ -2,6 +2,12 @@ import { getProductRouteSlug, type Product } from "@/app/data/products";
 
 export type DiscoverSortMode = "popular" | "best" | "new";
 
+export type DiscoverSortOption = {
+  value: DiscoverSortMode;
+  label: string;
+  hint: string;
+};
+
 export type CategoryNavigationItem = {
   slug: string;
   name: string;
@@ -67,6 +73,32 @@ export const CATEGORY_NAV_ITEMS: CategoryNavigationItem[] = [
 ];
 
 export const DEFAULT_DISCOVER_SORT: DiscoverSortMode = "popular";
+
+export const DISCOVER_SORT_OPTIONS: DiscoverSortOption[] = [
+  {
+    value: "popular",
+    label: "Beliebt",
+    hint: "Meiste Bewertungen zuerst",
+  },
+  {
+    value: "best",
+    label: "Beste",
+    hint: "Hoechste Bewertung zuerst",
+  },
+  {
+    value: "new",
+    label: "Neu",
+    hint: "Zuletzt hinzugefuegt zuerst",
+  },
+];
+
+export const DISCOVER_QUICK_SEARCH_TAGS = [
+  "Salami",
+  "Vanille",
+  "Schokolade",
+  "Margherita",
+  "Protein",
+];
 
 export function isDiscoverSortMode(value: string | null): value is DiscoverSortMode {
   return value === "popular" || value === "best" || value === "new";
