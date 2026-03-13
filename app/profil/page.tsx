@@ -63,6 +63,66 @@ type ToggleFollowResponse = {
   error?: string;
 };
 
+type FriendGameStanding = {
+  userId: string;
+  username: string;
+  points: number;
+  currentLevelName: string;
+  ratingCount: number;
+  commentCount: number;
+  favoriteCount: number;
+  followerCount: number;
+  rank: number;
+  isViewer: boolean;
+};
+
+type FriendGameData = {
+  network: {
+    followingCount: number;
+    mutualFriendsCount: number;
+    comparedAsFriends: boolean;
+  };
+  viewer: {
+    username: string;
+    points: number;
+    currentLevelName: string;
+    nextLevelName: string | null;
+    pointsToNextLevel: number;
+    ratingCount: number;
+    commentCount: number;
+    favoriteCount: number;
+    followerCount: number;
+    rank: number;
+    totalPlayers: number;
+  };
+  standings: FriendGameStanding[];
+  tasteMatch: {
+    userId: string;
+    username: string;
+    matchScore: number;
+    overlapCount: number;
+    averageDifference: number;
+  } | null;
+  closestRival: {
+    userId: string;
+    username: string;
+    points: number;
+    currentLevelName: string;
+    ratingCount: number;
+    commentCount: number;
+    favoriteCount: number;
+    followerCount: number;
+    rank: number;
+    isViewer: boolean;
+  } | null;
+};
+
+type FriendGameResponse = {
+  success: boolean;
+  data?: FriendGameData;
+  error?: string;
+};
+
 export default function ProfilPage() {
   const {
     user,
@@ -97,6 +157,9 @@ export default function ProfilPage() {
   const [openFollowList, setOpenFollowList] = useState<"following" | "followers" | null>(null);
   const [followMessage, setFollowMessage] = useState<string | null>(null);
   const [followMutationUserId, setFollowMutationUserId] = useState<string | null>(null);
+  const [friendGameData, setFriendGameData] = useState<FriendGameData | null>(null);
+  const [friendGameLoaded, setFriendGameLoaded] = useState(false);
+  const [friendGameError, setFriendGameError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!profileLoaded) return;
@@ -191,6 +254,8 @@ export default function ProfilPage() {
   const ratedProductsLabel = ratedProducts.length === 1 ? "Produkt" : "Produkte";
   const followingCount = followingProfiles.length;
   const followersCount = followerProfiles.length;
+  const leagueStandings = friendGameData?.standings.slice(0, 6) ?? [];
+  const viewerLeadsLeague = friendGameData?.viewer.rank === 1;
 
   const favoriteProducts = useMemo(() => {
     const result: ListProduct[] = favoriteSlugs.map((slug) => {
@@ -267,9 +332,46 @@ export default function ProfilPage() {
     }
   }, [user]);
 
+  const loadFriendGame = useCallback(async () => {
+    if (!user) {
+      setFriendGameData(null);
+      setFriendGameError(null);
+      setFriendGameLoaded(true);
+      return;
+    }
+
+    setFriendGameLoaded(false);
+    setFriendGameError(null);
+
+    try {
+      const response = await fetch("/api/profile/friends-game", {
+        cache: "no-store",
+      });
+
+      const json = (await response.json()) as FriendGameResponse;
+
+      if (!response.ok || !json.success || !json.data) {
+        setFriendGameData(null);
+        setFriendGameError(json.error || "Freundesliga konnte nicht geladen werden.");
+        return;
+      }
+
+      setFriendGameData(json.data);
+    } catch {
+      setFriendGameData(null);
+      setFriendGameError("Freundesliga konnte nicht geladen werden.");
+    } finally {
+      setFriendGameLoaded(true);
+    }
+  }, [user]);
+
   useEffect(() => {
     void loadFollowProfiles();
   }, [loadFollowProfiles]);
+
+  useEffect(() => {
+    void loadFriendGame();
+  }, [loadFriendGame]);
 
   async function handleSearchProfiles() {
     const query = profileSearchQuery.trim();
@@ -343,7 +445,7 @@ export default function ProfilPage() {
           : `Du folgst ${usernameText} nicht mehr.`
       );
 
-      await loadFollowProfiles();
+      await Promise.all([loadFollowProfiles(), loadFriendGame()]);
     } catch {
       setFollowMessage("Folgen-Status konnte nicht geändert werden.");
     } finally {
@@ -667,6 +769,192 @@ export default function ProfilPage() {
                 ))}
               </ul>
             )
+          )}
+        </section>
+
+        <section className="mb-8">
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h2 className="text-lg sm:text-xl font-semibold text-[#E8F6ED]">Freundesliga</h2>
+              <p className="text-sm text-[#8CA1B8] mt-1">
+                Ein kleiner Social-Block, der dich mit deinen Food-Friends oder den Profilen
+                vergleicht, denen du folgst.
+              </p>
+            </div>
+
+            {friendGameData && (
+              <span className="inline-flex w-fit rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#BFD0E2]">
+                {friendGameData.network.comparedAsFriends
+                  ? `${friendGameData.network.mutualFriendsCount} Food-Friends`
+                  : `${friendGameData.network.followingCount} verfolgte Profile`}
+              </span>
+            )}
+          </div>
+
+          {!friendGameLoaded && (
+            <div className="rounded-2xl border border-[#2D3A4B] bg-[#141C27] p-4 text-[#8CA1B8]">
+              Freundesliga wird geladen...
+            </div>
+          )}
+
+          {friendGameLoaded && friendGameError && (
+            <div className="rounded-2xl border border-[#5A2A2A] bg-[#2A1111] p-4 text-red-200">
+              {friendGameError}
+            </div>
+          )}
+
+          {friendGameLoaded && !friendGameError && friendGameData && (
+            <>
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4 mb-4">
+                <div className="rounded-2xl border border-[#2D3A4B] bg-[#141C27] p-4">
+                  <p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">Level</p>
+                  <p className="mt-2 text-xl font-semibold text-white">
+                    {friendGameData.viewer.currentLevelName}
+                  </p>
+                  <p className="mt-1 text-sm text-[#8AF5AC]">
+                    {friendGameData.viewer.points} Punkte
+                  </p>
+                  <p className="mt-3 text-xs text-[#8CA1B8]">
+                    {friendGameData.viewer.ratingCount} Bewertungen, {friendGameData.viewer.commentCount} Kommentare
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-[#2D3A4B] bg-[#141C27] p-4">
+                  <p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">Liga-Rang</p>
+                  <p className="mt-2 text-xl font-semibold text-white">
+                    #{friendGameData.viewer.rank} / {friendGameData.viewer.totalPlayers}
+                  </p>
+                  <p className="mt-1 text-sm text-[#C4D0DE]">
+                    {viewerLeadsLeague
+                      ? "Du fuehrst deine Liga aktuell an."
+                      : friendGameData.closestRival
+                        ? `Naechster Rivale: ${friendGameData.closestRival.username}`
+                        : "Noch keine Vergleichsprofile vorhanden."}
+                  </p>
+                  <p className="mt-3 text-xs text-[#8CA1B8]">
+                    {viewerLeadsLeague || !friendGameData.closestRival
+                      ? "Halte deinen Vorsprung mit weiteren Bewertungen."
+                      : `${Math.abs(friendGameData.closestRival.points - friendGameData.viewer.points)} Punkte Abstand.`}
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-[#2D3A4B] bg-[#141C27] p-4">
+                  <p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">Geschmacksmatch</p>
+                  {friendGameData.tasteMatch ? (
+                    <>
+                      <p className="mt-2 text-xl font-semibold text-white">
+                        {friendGameData.tasteMatch.matchScore}%
+                      </p>
+                      <p className="mt-1 text-sm text-[#C4D0DE]">
+                        Bester Match mit {friendGameData.tasteMatch.username}
+                      </p>
+                      <p className="mt-3 text-xs text-[#8CA1B8]">
+                        {friendGameData.tasteMatch.overlapCount} gemeinsame Bewertungen, Ø Unterschied {friendGameData.tasteMatch.averageDifference.toFixed(1)} Sterne.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="mt-2 text-xl font-semibold text-white">Noch offen</p>
+                      <p className="mt-1 text-sm text-[#C4D0DE]">
+                        Sobald du und deine Freunde dieselben Produkte bewertet habt, erscheint hier euer Match.
+                      </p>
+                    </>
+                  )}
+                </div>
+
+                <div className="rounded-2xl border border-[#2D3A4B] bg-[#141C27] p-4">
+                  <p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">Naechster Boost</p>
+                  {friendGameData.viewer.nextLevelName ? (
+                    <>
+                      <p className="mt-2 text-xl font-semibold text-white">
+                        {friendGameData.viewer.pointsToNextLevel} Punkte
+                      </p>
+                      <p className="mt-1 text-sm text-[#C4D0DE]">
+                        bis {friendGameData.viewer.nextLevelName}
+                      </p>
+                      <p className="mt-3 text-xs text-[#8CA1B8]">
+                        Neue Bewertungen, Kommentare und Follower bringen dich nach vorne.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="mt-2 text-xl font-semibold text-white">Max-Level</p>
+                      <p className="mt-1 text-sm text-[#C4D0DE]">
+                        Du hast aktuell das hoechste FoodRanker-Level erreicht.
+                      </p>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {friendGameData.network.followingCount === 0 ? (
+                <div className="rounded-2xl border border-[#2D3A4B] bg-[#141C27] p-4 text-[#8CA1B8]">
+                  Folge ein paar Profilen, damit hier eine kleine Liga, Geschmacksmatches und
+                  Ranglisten mit deinen Freunden entstehen.
+                </div>
+              ) : (
+                <>
+                  <p className="text-xs text-[#8CA1B8] mb-3">
+                    {friendGameData.network.comparedAsFriends
+                      ? "Die Liga nutzt aktuell gegenseitige Follows als echte Food-Friends."
+                      : "Noch keine gegenseitigen Follows vorhanden. Bis dahin vergleichst du dich mit Profilen, denen du folgst."}
+                  </p>
+
+                  <div className="rounded-2xl border border-[#2D3A4B] bg-[#141C27] p-4">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                      <div>
+                        <h3 className="text-base font-semibold text-white">Liga-Tabelle</h3>
+                        <p className="text-xs text-[#8CA1B8] mt-1">
+                          Top {leagueStandings.length} von {friendGameData.viewer.totalPlayers} Profilen in deinem aktuellen Vergleich.
+                        </p>
+                      </div>
+                    </div>
+
+                    <ul className="grid gap-3 mt-4">
+                      {leagueStandings.map((entry) => (
+                        <li
+                          key={`league-${entry.userId}`}
+                          className={`rounded-2xl border p-4 flex items-center justify-between gap-3 ${
+                            entry.isViewer
+                              ? "border-[#5EE287] bg-[linear-gradient(135deg,rgba(94,226,135,0.14),rgba(20,28,39,0.96))]"
+                              : "border-[#2D3A4B] bg-[#101822]"
+                          }`}
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#2D3A4B] bg-[#141C27] text-sm font-bold text-white">
+                              #{entry.rank}
+                            </span>
+
+                            <div className="min-w-0">
+                              {entry.isViewer ? (
+                                <p className="font-semibold text-white">Du</p>
+                              ) : (
+                                <Link
+                                  href={`/profil/${entry.userId}`}
+                                  className="font-semibold text-white hover:text-[#8AF5AC] transition-colors"
+                                >
+                                  {entry.username}
+                                </Link>
+                              )}
+                              <p className="text-xs text-[#8CA1B8] mt-1">
+                                {entry.currentLevelName} • {entry.ratingCount} Bewertungen • {entry.commentCount} Kommentare • {entry.favoriteCount} Favoriten
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="text-right shrink-0">
+                            <p className="text-lg font-bold text-[#8AF5AC]">{entry.points}</p>
+                            <p className="text-xs uppercase tracking-[0.16em] text-[#8CA1B8]">
+                              Punkte
+                            </p>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </>
+              )}
+            </>
           )}
         </section>
 
