@@ -254,23 +254,24 @@ export default function ProductPage() {
         </h1>
 
         <div className="grid lg:grid-cols-[1.1fr_1fr] gap-8">
-          <div className="group relative rounded-2xl overflow-hidden border border-[#2D3A4B] bg-[#141C27]">
-            <img
-              src={`/api/product-image/${routeSlug}`}
-              className="w-full aspect-[4/5] object-cover transition-transform duration-500 group-hover:scale-105"
-              alt={product.name}
-              decoding="async"
-              onError={(e) => {
-                const image = e.currentTarget;
-                if (image.dataset.fallbackApplied === "1") {
-                  image.src = "/images/placeholders/product-default.svg";
-                  return;
-                }
-                image.dataset.fallbackApplied = "1";
-                image.src = originalImageUrl;
-              }}
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/55 to-transparent pointer-events-none" />
+          <div className="group rounded-[28px] border border-[#2D3A4B] bg-[linear-gradient(180deg,rgba(22,28,37,0.96),rgba(13,18,27,0.98))] p-4 shadow-[0_14px_32px_rgba(0,0,0,0.24)] sm:p-6">
+            <div className="flex min-h-[320px] items-center justify-center rounded-[24px] border border-[#35465A] bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.06),rgba(10,15,23,0.92)_58%)] p-6 sm:min-h-[440px] sm:p-8">
+              <img
+                src={`/api/product-image/${routeSlug}`}
+                className="h-[260px] w-auto max-w-full object-contain drop-shadow-[0_16px_34px_rgba(0,0,0,0.34)] transition-transform duration-500 group-hover:scale-[1.04] sm:h-[360px] lg:h-[420px]"
+                alt={product.name}
+                decoding="async"
+                onError={(e) => {
+                  const image = e.currentTarget;
+                  if (image.dataset.fallbackApplied === "1") {
+                    image.src = "/images/placeholders/product-default.svg";
+                    return;
+                  }
+                  image.dataset.fallbackApplied = "1";
+                  image.src = originalImageUrl;
+                }}
+              />
+            </div>
           </div>
 
           <div className="space-y-8">
@@ -579,4 +580,5 @@ export default function ProductPage() {
     </div>
   );
 }
+
 
