@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -162,10 +162,10 @@ type ProfileTab = "overview" | "social" | "collection" | "activity";
 type NoticeTone = "success" | "info";
 
 const TAB_ITEMS: TabItem<ProfileTab>[] = [
-  { id: "overview", label: "Uebersicht", icon: FiGrid },
+  { id: "overview", label: "Übersicht", icon: FiGrid },
   { id: "social", label: "Social", icon: FiUsers },
   { id: "collection", label: "Sammlung", icon: FiBookmark },
-  { id: "activity", label: "Aktivitaet", icon: FiActivity },
+  { id: "activity", label: "Aktivität", icon: FiActivity },
 ];
 
 export default function ProfilPage() {
@@ -458,7 +458,7 @@ export default function ProfilPage() {
       const json = (await response.json()) as ToggleFollowResponse;
 
       if (!response.ok || !json.success) {
-        setFollowMessage(json.error || "Folgen-Status konnte nicht geaendert werden.");
+        setFollowMessage(json.error || "Folgen-Status konnte nicht geändert werden.");
         return;
       }
 
@@ -472,7 +472,7 @@ export default function ProfilPage() {
       );
       await Promise.all([loadFollowProfiles(), loadFriendGame()]);
     } catch {
-      setFollowMessage("Folgen-Status konnte nicht geaendert werden.");
+      setFollowMessage("Folgen-Status konnte nicht geändert werden.");
     } finally {
       setFollowMutationUserId(null);
     }
@@ -494,12 +494,12 @@ export default function ProfilPage() {
 
   async function handleAvatarUpload(file: File) {
     if (!file.type.startsWith("image/")) {
-      setProfileNotice({ tone: "info", text: "Bitte waehle eine gueltige Bilddatei aus." });
+      setProfileNotice({ tone: "info", text: "Bitte wähle eine gültige Bilddatei aus." });
       return;
     }
 
     if (file.size > PROFILE_AVATAR_MAX_FILE_BYTES) {
-      setProfileNotice({ tone: "info", text: "Bitte waehle ein Bild unter 4 MB." });
+      setProfileNotice({ tone: "info", text: "Bitte wähle ein Bild unter 4 MB." });
       return;
     }
 
@@ -591,7 +591,7 @@ export default function ProfilPage() {
                   className="inline-flex min-h-11 items-center gap-2 rounded-2xl border border-[#2D3A4B] bg-[#111925]/90 px-4 py-2 text-sm font-semibold text-white transition-all duration-300 hover:border-[#5EE287] disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <FiUploadCloud size={16} />
-                  {uploadingAvatar ? "Lade Bild..." : avatarUrl ? "Bild aendern" : "Bild hochladen"}
+                  {uploadingAvatar ? "Lade Bild..." : avatarUrl ? "Bild ändern" : "Bild hochladen"}
                 </button>
                 {avatarUrl && (
                   <button
@@ -618,7 +618,7 @@ export default function ProfilPage() {
                 {bio
                   ? bio
                   : hasUsername
-                    ? "Fuege jetzt noch ein Profilbild, eine kurze Bio und mehr Aktivitaet hinzu, damit dein Profil nach dir aussieht."
+                    ? "Füge jetzt noch ein Profilbild, eine kurze Bio und mehr Aktivität hinzu, damit dein Profil nach dir aussieht."
                     : "Lege zuerst deinen festen Username fest. Danach kannst du Bio, Profilbild und deine komplette Food-Identity ausbauen."}
               </p>
               <div className="mt-5 flex flex-wrap gap-2.5">
@@ -631,10 +631,10 @@ export default function ProfilPage() {
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2 xl:w-[420px]">
-            <MetricCard icon={FiStar} label="Bewertungen" value={String(ratingCount)} hint={ratingCount > 0 ? `${ratedProducts.length} Eintraege insgesamt` : "Zeit fuer deinen ersten Rating-Run"} />
-            <MetricCard icon={FiTrendingUp} label="Durchschnitt" value={averageRating !== null ? averageRating.toFixed(1) : "-"} hint={averageRating !== null ? "Dein persoenlicher Bewertungs-Schnitt" : "Noch keine Sterne gesammelt"} accent={averageRating !== null ? "text-[#FFD86C]" : undefined} />
+            <MetricCard icon={FiStar} label="Bewertungen" value={String(ratingCount)} hint={ratingCount > 0 ? `${ratedProducts.length} Einträge insgesamt` : "Zeit für deinen ersten Rating-Run"} />
+            <MetricCard icon={FiTrendingUp} label="Durchschnitt" value={averageRating !== null ? averageRating.toFixed(1) : "-"} hint={averageRating !== null ? "Dein persönlicher Bewertungs-Schnitt" : "Noch keine Sterne gesammelt"} accent={averageRating !== null ? "text-[#FFD86C]" : undefined} />
             <MetricCard icon={FiUsers} label="Social Reach" value={String(socialReach)} hint={`${followingCount} folgst du, ${followersCount} folgen dir`} />
-            <MetricCard icon={FiTarget} label="Naechstes Level" value={levelInfo.nextLevelName ? `${levelInfo.pointsToNextLevel} P` : "Max"} hint={levelInfo.nextLevelName ? `bis ${levelInfo.nextLevelName}` : "Du hast das Top-Level erreicht"} />
+            <MetricCard icon={FiTarget} label="Nächstes Level" value={levelInfo.nextLevelName ? `${levelInfo.pointsToNextLevel} P` : "Max"} hint={levelInfo.nextLevelName ? `bis ${levelInfo.nextLevelName}` : "Du hast das Top-Level erreicht"} />
           </div>
         </div>
       </section>
@@ -668,7 +668,7 @@ export default function ProfilPage() {
                     {hasUsername ? (
                       <div className="mt-3 rounded-[22px] border border-[#35503D] bg-[linear-gradient(135deg,rgba(94,226,135,0.12),rgba(15,22,33,0.95))] px-4 py-4">
                         <p className="text-sm font-semibold text-white">{username}</p>
-                        <p className="mt-2 text-sm text-[#BFE7CC]">Dein Username ist fest gespeichert und bereit fuer die Freundes-Suche.</p>
+                        <p className="mt-2 text-sm text-[#BFE7CC]">Dein Username ist fest gespeichert und bereit für die Freundes-Suche.</p>
                       </div>
                     ) : (
                       <>
@@ -698,7 +698,7 @@ export default function ProfilPage() {
                             {savingUsername ? "Speichere..." : "Username festlegen"}
                           </button>
                         </div>
-                        <p className="mt-3 text-sm text-[#9EB0C3]">Dein Username braucht {usernameLimits.min} bis {usernameLimits.max} Zeichen und kann danach nicht mehr geaendert werden.</p>
+                        <p className="mt-3 text-sm text-[#9EB0C3]">Dein Username braucht {usernameLimits.min} bis {usernameLimits.max} Zeichen und kann danach nicht mehr geändert werden.</p>
                       </>
                     )}
                   </div>
@@ -707,7 +707,7 @@ export default function ProfilPage() {
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">Bio</p>
-                        <p className="mt-2 text-sm text-[#9EB0C3]">Zeig in zwei Saetzen, was deinen Geschmack ausmacht.</p>
+                        <p className="mt-2 text-sm text-[#9EB0C3]">Zeig in zwei Sätzen, was deinen Geschmack ausmacht.</p>
                       </div>
                       <span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-xs font-semibold text-[#D6E2EF]">{bioInput.length}/{profileLimits.bioMax}</span>
                     </div>
@@ -745,14 +745,14 @@ export default function ProfilPage() {
                         className="inline-flex min-h-11 items-center gap-2 rounded-2xl border border-[#2D3A4B] bg-[#141C27] px-5 py-3 font-semibold text-white transition-colors hover:border-[#5EE287] disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         <FiClock size={16} />
-                        Zuruecksetzen
+                        Zurücksetzen
                       </button>
                     </div>
                   </div>
                 </div>
               </SectionShell>
 
-              <SectionShell eyebrow="Completion" title="Profil Fortschritt" description="Jeder kleine Schritt macht dein Profil persoenlicher und staerker.">
+              <SectionShell eyebrow="Completion" title="Profil Fortschritt" description="Jeder kleine Schritt macht dein Profil persönlicher und stärker.">
                 <div className="rounded-[26px] border border-[#2A394B] bg-[#111925]/88 p-5">
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                     <div>
@@ -779,12 +779,12 @@ export default function ProfilPage() {
               </SectionShell>
             </div>
 
-            <SectionShell eyebrow="Statistiken" title="Dein Geschmack in Zahlen" description="Ein schneller Snapshot ueber Aktivitaet, Qualitaet und Sammler-Vibes.">
+            <SectionShell eyebrow="Statistiken" title="Dein Geschmack in Zahlen" description="Ein schneller Snapshot über Aktivität, Qualität und Sammler-Vibes.">
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 <MetricCard icon={FiMessageCircle} label="Kommentarquote" value={formatPercent(ratingCoverage)} hint={commentCount > 0 ? `${commentCount} Kommentare zu deinen Ratings` : "Noch keine Kommentare gespeichert"} />
-                <MetricCard icon={FiHeart} label="Favoriten" value={String(favoriteProducts.length)} hint={favoriteProducts.length > 0 ? "Deine aktuelle Hall of Fame" : "Speichere Highlights fuer dein Profil"} />
+                <MetricCard icon={FiHeart} label="Favoriten" value={String(favoriteProducts.length)} hint={favoriteProducts.length > 0 ? "Deine aktuelle Hall of Fame" : "Speichere Highlights für dein Profil"} />
                 <MetricCard icon={FiBookmark} label="Watchlist" value={String(wantToTryProducts.length)} hint={wantToTryProducts.length > 0 ? "Produkte auf deiner Probieren-Liste" : "Baue dir eine Watchlist auf"} />
-                <MetricCard icon={FiTarget} label="Top Kategorie" value={topCategory ? topCategory[0] : "-"} hint={topCategory ? `${topCategory[1]} Eintraege in deinem staerksten Bereich` : "Noch keine dominante Kategorie"} />
+                <MetricCard icon={FiTarget} label="Top Kategorie" value={topCategory ? topCategory[0] : "-"} hint={topCategory ? `${topCategory[1]} Einträge in deinem stärksten Bereich` : "Noch keine dominante Kategorie"} />
               </div>
 
               <div className="mt-6 grid gap-4 lg:grid-cols-3">
@@ -797,14 +797,14 @@ export default function ProfilPage() {
                       <p className="mt-4 inline-flex rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-sm font-semibold text-[#FFD86C]">Rating {topRatedProduct.rating.toFixed(1)}/5</p>
                     </>
                   ) : (
-                    <p className="mt-3 text-sm text-[#9EB0C3]">Sobald du bewertest, taucht hier dein staerkstes Produkt auf.</p>
+                    <p className="mt-3 text-sm text-[#9EB0C3]">Sobald du bewertest, taucht hier dein stärkstes Produkt auf.</p>
                   )}
                 </div>
 
                 <div className="rounded-[26px] border border-[#2A394B] bg-[#111925]/88 p-5">
                   <p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">Liga Momentum</p>
                   <p className="mt-3 text-2xl font-black tracking-tight text-white">{friendGameData ? `#${friendGameData.viewer.rank}` : "-"}</p>
-                  <p className="mt-2 text-sm text-[#AFC1D3]">{friendGameData ? viewerLeadsLeague ? "Du fuehrst deine aktuelle Liga an." : friendGameData.closestRival ? `Naechster Rivale: ${friendGameData.closestRival.username}` : "Bald entstehen hier echte Rivalitaeten." : "Sobald Social-Daten geladen sind, siehst du hier deinen Platz."}</p>
+                  <p className="mt-2 text-sm text-[#AFC1D3]">{friendGameData ? viewerLeadsLeague ? "Du führst deine aktuelle Liga an." : friendGameData.closestRival ? `Nächster Rivale: ${friendGameData.closestRival.username}` : "Bald entstehen hier echte Rivalitäten." : "Sobald Social-Daten geladen sind, siehst du hier deinen Platz."}</p>
                 </div>
 
                 <div className="rounded-[26px] border border-[#2A394B] bg-[#111925]/88 p-5">
@@ -816,7 +816,7 @@ export default function ProfilPage() {
               </div>
             </SectionShell>
 
-            <SectionShell eyebrow="Badges" title="Freigeschaltete Profil-Vibes" description="Mehr Aktivitaet und ein rundes Profil schalten automatisch neue kleine Status-Momente frei." action={<span className="inline-flex rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#D6E2EF]">{profileBadges.filter((badge) => badge.unlocked).length}/{profileBadges.length} offen</span>}>
+            <SectionShell eyebrow="Badges" title="Freigeschaltete Profil-Vibes" description="Mehr Aktivität und ein rundes Profil schalten automatisch neue kleine Status-Momente frei." action={<span className="inline-flex rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#D6E2EF]">{profileBadges.filter((badge) => badge.unlocked).length}/{profileBadges.length} offen</span>}>
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {profileBadges.map((badge) => (
                   <BadgeCard key={badge.id} badge={badge} />
@@ -841,7 +841,7 @@ export default function ProfilPage() {
                 </form>
 
                 <div className="mt-5">
-                  {searchingProfiles && <div className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4 text-sm text-[#9EB0C3]">Suche laeuft...</div>}
+                  {searchingProfiles && <div className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4 text-sm text-[#9EB0C3]">Suche läuft...</div>}
                   {!searchingProfiles && profileSearchResults.length > 0 && (
                     <ul className="grid gap-3">
                       {profileSearchResults.map((entry) => (
@@ -859,7 +859,7 @@ export default function ProfilPage() {
                 </div>
               </SectionShell>
 
-              <SectionShell eyebrow="Netzwerk" title="Follower und Following" description="Oeffne gezielt deine Listen und springe schnell in fremde Profile hinein.">
+              <SectionShell eyebrow="Netzwerk" title="Follower und Following" description="Öffne gezielt deine Listen und springe schnell in fremde Profile hinein.">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <button type="button" onClick={() => setOpenFollowList((prev) => prev === "following" ? null : "following")} className="rounded-[26px] border border-[#2A394B] bg-[#111925]/88 p-5 text-left transition-all duration-300 hover:-translate-y-1 hover:border-[#5EE287]/25"><p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">Ich folge</p><p className="mt-3 text-3xl font-black tracking-tight text-white">{followingCount}</p><p className="mt-2 text-sm text-[#AFC1D3]">Tippe, um deine Following-Liste ein- oder auszublenden.</p></button>
                   <button type="button" onClick={() => setOpenFollowList((prev) => prev === "followers" ? null : "followers")} className="rounded-[26px] border border-[#2A394B] bg-[#111925]/88 p-5 text-left transition-all duration-300 hover:-translate-y-1 hover:border-[#5EE287]/25"><p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">Follower</p><p className="mt-3 text-3xl font-black tracking-tight text-white">{followersCount}</p><p className="mt-2 text-sm text-[#AFC1D3]">So viele Leute verfolgen bereits deine Food-Meinungen.</p></button>
@@ -867,9 +867,9 @@ export default function ProfilPage() {
 
                 <div className="mt-5">
                   {!followsLoaded && <div className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4 text-sm text-[#9EB0C3]">Netzwerk wird geladen...</div>}
-                  {followsLoaded && openFollowList === null && <EmptyPanel icon={FiUsers} title="Waehle eine Liste" description="Mit einem Klick auf die Karten oben oeffnest du entweder die Profile, denen du folgst, oder deine Follower." />}
+                  {followsLoaded && openFollowList === null && <EmptyPanel icon={FiUsers} title="Wähle eine Liste" description="Mit einem Klick auf die Karten oben öffnest du entweder die Profile, denen du folgst, oder deine Follower." />}
                   {followsLoaded && openFollowList === "following" && (followingCount === 0 ? <EmptyPanel icon={FiUsers} title="Noch niemand in deiner Crew" description="Suche oben nach Profilen, um deine erste kleine Food-Crew aufzubauen." /> : <ul className="grid gap-3">{followingProfiles.map((entry) => <PersonListItem key={`following-${entry.userId}`} username={entry.username} href={`/profil/${entry.userId}`} subtitle="Du folgst diesem Profil" action={<button type="button" disabled={followMutationUserId === entry.userId} onClick={() => { void handleToggleFollow(entry.userId, false, entry.username); }} className="rounded-2xl border border-[#2D3A4B] bg-[#141C27] px-4 py-2 text-sm font-semibold text-white transition-colors hover:border-red-300 disabled:cursor-not-allowed disabled:opacity-60">{followMutationUserId === entry.userId ? "Speichere..." : "Entfolgen"}</button>} />)}</ul>)}
-                  {followsLoaded && openFollowList === "followers" && (followersCount === 0 ? <EmptyPanel icon={FiUsers} title="Noch keine Follower" description="Mit mehr Bewertungen, Kommentaren und einem schoenen Profil waechst deine Reichweite fast automatisch." /> : <ul className="grid gap-3">{followerProfiles.map((entry) => <PersonListItem key={`follower-${entry.userId}`} username={entry.username} href={`/profil/${entry.userId}`} subtitle={entry.isFollowing ? "Ihr seid bereits verbunden" : "Folgt dir schon"} action={<button type="button" disabled={followMutationUserId === entry.userId} onClick={() => { void handleToggleFollow(entry.userId, !entry.isFollowing, entry.username); }} className={`rounded-2xl border px-4 py-2 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${entry.isFollowing ? "border-[#2D3A4B] bg-[#141C27] text-white hover:border-red-300" : "border-[#5EE287] bg-[#5EE287] text-[#0C1910] hover:bg-[#79F29C]"}`}>{followMutationUserId === entry.userId ? "Speichere..." : entry.isFollowing ? "Entfolgen" : "Zurueckfolgen"}</button>} />)}</ul>)}
+                  {followsLoaded && openFollowList === "followers" && (followersCount === 0 ? <EmptyPanel icon={FiUsers} title="Noch keine Follower" description="Mit mehr Bewertungen, Kommentaren und einem schönen Profil wächst deine Reichweite fast automatisch." /> : <ul className="grid gap-3">{followerProfiles.map((entry) => <PersonListItem key={`follower-${entry.userId}`} username={entry.username} href={`/profil/${entry.userId}`} subtitle={entry.isFollowing ? "Ihr seid bereits verbunden" : "Folgt dir schon"} action={<button type="button" disabled={followMutationUserId === entry.userId} onClick={() => { void handleToggleFollow(entry.userId, !entry.isFollowing, entry.username); }} className={`rounded-2xl border px-4 py-2 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${entry.isFollowing ? "border-[#2D3A4B] bg-[#141C27] text-white hover:border-red-300" : "border-[#5EE287] bg-[#5EE287] text-[#0C1910] hover:bg-[#79F29C]"}`}>{followMutationUserId === entry.userId ? "Speichere..." : entry.isFollowing ? "Entfolgen" : "Zurückfolgen"}</button>} />)}</ul>)}
                 </div>
               </SectionShell>
             </div>
@@ -877,7 +877,7 @@ export default function ProfilPage() {
             <SectionShell eyebrow="Freundesliga" title="Deine Social-Gamification" description="Rang, Level, Geschmacksmatch und Liga-Tabelle machen dein Profil lebendiger." action={friendGameData ? <span className="inline-flex rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#D6E2EF]">{friendGameData.network.comparedAsFriends ? `${friendGameData.network.mutualFriendsCount} Food-Friends` : `${friendGameData.network.followingCount} verglichene Profile`}</span> : null}>
               {!friendGameLoaded && <div className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4 text-sm text-[#9EB0C3]">Freundesliga wird geladen...</div>}
               {friendGameLoaded && friendGameError && <div className="rounded-[24px] border border-[#6A3434] bg-[#2A1313] p-4 text-sm text-red-100">{friendGameError}</div>}
-              {friendGameLoaded && !friendGameError && friendGameData && <><div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4"><MetricCard icon={FiAward} label="Level" value={friendGameData.viewer.currentLevelName} hint={`${friendGameData.viewer.points} Punkte aus Ratings, Kommentaren und Social-Signal`} /><MetricCard icon={FiTrendingUp} label="Liga Rang" value={`#${friendGameData.viewer.rank}`} hint={`von ${friendGameData.viewer.totalPlayers} Profilen in deiner aktuellen Liga`} /><MetricCard icon={FiHeart} label="Geschmacksmatch" value={friendGameData.tasteMatch ? `${friendGameData.tasteMatch.matchScore}%` : "-"} hint={friendGameData.tasteMatch ? `Bester Match mit ${friendGameData.tasteMatch.username}` : "Noch kein gemeinsamer Bewertungs-Match"} /><MetricCard icon={FiTarget} label="Naechster Boost" value={friendGameData.viewer.nextLevelName ? `${friendGameData.viewer.pointsToNextLevel} P` : "Max"} hint={friendGameData.viewer.nextLevelName ? `bis ${friendGameData.viewer.nextLevelName}` : "Aktuell oberstes Profil-Level"} /></div>{friendGameData.network.followingCount === 0 ? <div className="mt-6"><EmptyPanel icon={FiUsers} title="Starte deine Liga" description="Folge ein paar Profilen, damit hier Vergleiche, Geschmacksmatches und kleine Ranglisten entstehen." /></div> : <div className="mt-6 rounded-[28px] border border-[#2A394B] bg-[#111925]/88 p-5"><div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><h3 className="text-lg font-semibold text-white">Liga-Tabelle</h3><p className="mt-1 text-sm text-[#9EB0C3]">{friendGameData.network.comparedAsFriends ? "Gegenseitige Follows zaehlen hier als echte Food-Friends." : "Bis zu gegenseitigen Follows vergleichst du dich mit den Profilen, denen du folgst."}</p></div><span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#D6E2EF]">Top {leagueStandings.length}</span></div><ul className="mt-5 grid gap-3">{leagueStandings.map((entry) => <li key={`league-${entry.userId}`} className={`flex items-center justify-between gap-3 rounded-[24px] border p-4 transition-all duration-300 ${entry.isViewer ? "border-[#5EE287] bg-[linear-gradient(135deg,rgba(94,226,135,0.14),rgba(20,28,39,0.96))]" : "border-[#2D3A4B] bg-[#101822] hover:-translate-y-1 hover:border-[#5EE287]/25"}`}><div className="flex min-w-0 items-center gap-3"><span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[#2D3A4B] bg-[#141C27] text-sm font-black text-white">#{entry.rank}</span><div className="min-w-0">{entry.isViewer ? <p className="font-semibold text-white">Du</p> : <Link href={`/profil/${entry.userId}`} className="font-semibold text-white transition-colors hover:text-[#8AF5AC]">{entry.username}</Link>}<p className="mt-1 text-xs text-[#8CA1B8]">{entry.currentLevelName} | {entry.ratingCount} Bewertungen | {entry.commentCount} Kommentare | {entry.favoriteCount} Favoriten</p></div></div><div className="text-right"><p className="text-lg font-black text-[#8AF5AC]">{entry.points}</p><p className="text-xs uppercase tracking-[0.16em] text-[#8CA1B8]">Punkte</p></div></li>)}</ul></div>}</>}
+              {friendGameLoaded && !friendGameError && friendGameData && <><div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4"><MetricCard icon={FiAward} label="Level" value={friendGameData.viewer.currentLevelName} hint={`${friendGameData.viewer.points} Punkte aus Ratings, Kommentaren und Social-Signal`} /><MetricCard icon={FiTrendingUp} label="Liga Rang" value={`#${friendGameData.viewer.rank}`} hint={`von ${friendGameData.viewer.totalPlayers} Profilen in deiner aktuellen Liga`} /><MetricCard icon={FiHeart} label="Geschmacksmatch" value={friendGameData.tasteMatch ? `${friendGameData.tasteMatch.matchScore}%` : "-"} hint={friendGameData.tasteMatch ? `Bester Match mit ${friendGameData.tasteMatch.username}` : "Noch kein gemeinsamer Bewertungs-Match"} /><MetricCard icon={FiTarget} label="Nächster Boost" value={friendGameData.viewer.nextLevelName ? `${friendGameData.viewer.pointsToNextLevel} P` : "Max"} hint={friendGameData.viewer.nextLevelName ? `bis ${friendGameData.viewer.nextLevelName}` : "Aktuell oberstes Profil-Level"} /></div>{friendGameData.network.followingCount === 0 ? <div className="mt-6"><EmptyPanel icon={FiUsers} title="Starte deine Liga" description="Folge ein paar Profilen, damit hier Vergleiche, Geschmacksmatches und kleine Ranglisten entstehen." /></div> : <div className="mt-6 rounded-[28px] border border-[#2A394B] bg-[#111925]/88 p-5"><div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><h3 className="text-lg font-semibold text-white">Liga-Tabelle</h3><p className="mt-1 text-sm text-[#9EB0C3]">{friendGameData.network.comparedAsFriends ? "Gegenseitige Follows zählen hier als echte Food-Friends." : "Bis zu gegenseitigen Follows vergleichst du dich mit den Profilen, denen du folgst."}</p></div><span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#D6E2EF]">Top {leagueStandings.length}</span></div><ul className="mt-5 grid gap-3">{leagueStandings.map((entry) => <li key={`league-${entry.userId}`} className={`flex items-center justify-between gap-3 rounded-[24px] border p-4 transition-all duration-300 ${entry.isViewer ? "border-[#5EE287] bg-[linear-gradient(135deg,rgba(94,226,135,0.14),rgba(20,28,39,0.96))]" : "border-[#2D3A4B] bg-[#101822] hover:-translate-y-1 hover:border-[#5EE287]/25"}`}><div className="flex min-w-0 items-center gap-3"><span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[#2D3A4B] bg-[#141C27] text-sm font-black text-white">#{entry.rank}</span><div className="min-w-0">{entry.isViewer ? <p className="font-semibold text-white">Du</p> : <Link href={`/profil/${entry.userId}`} className="font-semibold text-white transition-colors hover:text-[#8AF5AC]">{entry.username}</Link>}<p className="mt-1 text-xs text-[#8CA1B8]">{entry.currentLevelName} | {entry.ratingCount} Bewertungen | {entry.commentCount} Kommentare | {entry.favoriteCount} Favoriten</p></div></div><div className="text-right"><p className="text-lg font-black text-[#8AF5AC]">{entry.points}</p><p className="text-xs uppercase tracking-[0.16em] text-[#8CA1B8]">Punkte</p></div></li>)}</ul></div>}</>}
             </SectionShell>
           </>
         )}
@@ -885,18 +885,18 @@ export default function ProfilPage() {
         {activeTab === "collection" && (
           <>
             <div className="grid gap-4 sm:grid-cols-3">
-              <MetricCard icon={FiHeart} label="Favoriten" value={String(favoriteProducts.length)} hint={favoriteProducts.length > 0 ? "Deine persoenliche Best-of-Liste" : "Fuege Produkte als Favorit hinzu"} />
-              <MetricCard icon={FiBookmark} label="Want to Try" value={String(wantToTryProducts.length)} hint={wantToTryProducts.length > 0 ? "Produkte fuer spaeter gespeichert" : "Baue dir eine Watchlist auf"} />
-              <MetricCard icon={FiGrid} label="Sammlung gesamt" value={String(favoriteProducts.length + wantToTryProducts.length)} hint="Alle Listenplaetze zusammen" />
+              <MetricCard icon={FiHeart} label="Favoriten" value={String(favoriteProducts.length)} hint={favoriteProducts.length > 0 ? "Deine persönliche Best-of-Liste" : "Füge Produkte als Favorit hinzu"} />
+              <MetricCard icon={FiBookmark} label="Want to Try" value={String(wantToTryProducts.length)} hint={wantToTryProducts.length > 0 ? "Produkte für später gespeichert" : "Baue dir eine Watchlist auf"} />
+              <MetricCard icon={FiGrid} label="Sammlung gesamt" value={String(favoriteProducts.length + wantToTryProducts.length)} hint="Alle Listenplätze zusammen" />
             </div>
 
             <div className="grid gap-6 xl:grid-cols-2">
-              <SectionShell eyebrow="Favoriten" title="Deine Hall of Fame" description="Die Produkte, die du immer wieder empfehlen wuerdest.">
-                {!listsLoaded ? <div className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4 text-sm text-[#9EB0C3]">Favoriten werden geladen...</div> : favoriteProducts.length === 0 ? <EmptyPanel icon={FiHeart} title="Noch keine Favoriten" description="Sobald du auf Produktseiten Favoriten speicherst, entsteht hier deine persoenliche Food Hall of Fame." /> : <ul className="grid gap-3">{favoriteProducts.map((item) => <li key={`favorite-${item.slug}`} className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4 transition-all duration-300 hover:-translate-y-1 hover:border-[#5EE287]/25"><Link href={`/produkt/${item.slug}`} className="font-semibold text-white transition-colors hover:text-[#8AF5AC]">{item.name}</Link><p className="mt-1 text-sm text-[#8CA1B8]">{item.category}</p></li>)}</ul>}
+              <SectionShell eyebrow="Favoriten" title="Deine Hall of Fame" description="Die Produkte, die du immer wieder empfehlen würdest.">
+                {!listsLoaded ? <div className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4 text-sm text-[#9EB0C3]">Favoriten werden geladen...</div> : favoriteProducts.length === 0 ? <EmptyPanel icon={FiHeart} title="Noch keine Favoriten" description="Sobald du auf Produktseiten Favoriten speicherst, entsteht hier deine persönliche Food Hall of Fame." /> : <ul className="grid gap-3">{favoriteProducts.map((item) => <li key={`favorite-${item.slug}`} className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4 transition-all duration-300 hover:-translate-y-1 hover:border-[#5EE287]/25"><Link href={`/produkt/${item.slug}`} className="font-semibold text-white transition-colors hover:text-[#8AF5AC]">{item.name}</Link><p className="mt-1 text-sm text-[#8CA1B8]">{item.category}</p></li>)}</ul>}
               </SectionShell>
 
-              <SectionShell eyebrow="Watchlist" title="Produkte fuer spaeter" description="Hier landen die Dinge, die du als Naechstes testen moechtest.">
-                {!listsLoaded ? <div className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4 text-sm text-[#9EB0C3]">Watchlist wird geladen...</div> : wantToTryProducts.length === 0 ? <EmptyPanel icon={FiBookmark} title="Noch keine Watchlist" description="Speichere Produkte auf deiner Probieren-Liste, damit dein Profil mehr Tiefe und Zukunftsplaene zeigt." /> : <ul className="grid gap-3">{wantToTryProducts.map((item) => <li key={`want-to-try-${item.slug}`} className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4 transition-all duration-300 hover:-translate-y-1 hover:border-[#5EE287]/25"><Link href={`/produkt/${item.slug}`} className="font-semibold text-white transition-colors hover:text-[#8AF5AC]">{item.name}</Link><p className="mt-1 text-sm text-[#8CA1B8]">{item.category}</p></li>)}</ul>}
+              <SectionShell eyebrow="Watchlist" title="Produkte für später" description="Hier landen die Dinge, die du als Nächstes testen möchtest.">
+                {!listsLoaded ? <div className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4 text-sm text-[#9EB0C3]">Watchlist wird geladen...</div> : wantToTryProducts.length === 0 ? <EmptyPanel icon={FiBookmark} title="Noch keine Watchlist" description="Speichere Produkte auf deiner Probieren-Liste, damit dein Profil mehr Tiefe und Zukunftspläne zeigt." /> : <ul className="grid gap-3">{wantToTryProducts.map((item) => <li key={`want-to-try-${item.slug}`} className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4 transition-all duration-300 hover:-translate-y-1 hover:border-[#5EE287]/25"><Link href={`/produkt/${item.slug}`} className="font-semibold text-white transition-colors hover:text-[#8AF5AC]">{item.name}</Link><p className="mt-1 text-sm text-[#8CA1B8]">{item.category}</p></li>)}</ul>}
               </SectionShell>
             </div>
           </>
@@ -907,14 +907,14 @@ export default function ProfilPage() {
             <div className="grid gap-4 sm:grid-cols-3">
               <MetricCard icon={FiStar} label="Aktive Ratings" value={String(ratingCount)} hint={ratingCount > 0 ? "Produkte mit Sternenbewertung" : "Noch keine Sterne vergeben"} />
               <MetricCard icon={FiMessageCircle} label="Kommentare" value={String(commentCount)} hint={commentCount > 0 ? "So oft hast du Kontext hinterlassen" : "Noch keine Kommentare gespeichert"} />
-              <MetricCard icon={FiSliders} label="Kommentarquote" value={formatPercent(ratingCoverage)} hint="Wie oft du deine Sterne auch erklaerst" />
+              <MetricCard icon={FiSliders} label="Kommentarquote" value={formatPercent(ratingCoverage)} hint="Wie oft du deine Sterne auch erklärst" />
             </div>
 
-            <SectionShell eyebrow="Aktivitaet" title="Deine Produkt-Historie" description={ratingsLoaded ? `Du hast bisher ${ratedProducts.length} Eintraege gespeichert.` : "Deine gespeicherten Ratings und Kommentare werden geladen."}>
+            <SectionShell eyebrow="Aktivität" title="Deine Produkt-Historie" description={ratingsLoaded ? `Du hast bisher ${ratedProducts.length} Einträge gespeichert.` : "Deine gespeicherten Ratings und Kommentare werden geladen."}>
               {!ratingsLoaded && <div className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4 text-sm text-[#9EB0C3]">Bewertungen werden geladen...</div>}
               {ratingsLoaded && ratedProducts.length > 0 && <div className="grid gap-3 sm:grid-cols-2 mb-5"><select value={selectedRatedCategory} onChange={(event) => setSelectedRatedCategory(event.target.value)} className="w-full rounded-2xl border border-[#2D3A4B] bg-[#141C27] px-4 py-3 text-white outline-none transition-colors focus:border-[#5EE287]"><option value="all">Alle Produktarten</option>{ratedCategories.map((category) => <option key={category} value={category}>{category}</option>)}</select><select value={ratedSortMode} onChange={(event) => setRatedSortMode(event.target.value as RatedSortMode)} className="w-full rounded-2xl border border-[#2D3A4B] bg-[#141C27] px-4 py-3 text-white outline-none transition-colors focus:border-[#5EE287]"><option value="rating-desc">Bewertung: hoch zu niedrig</option><option value="rating-asc">Bewertung: niedrig zu hoch</option><option value="category-asc">Produktart: A-Z</option><option value="category-desc">Produktart: Z-A</option><option value="name-asc">Name: A-Z</option><option value="name-desc">Name: Z-A</option></select></div>}
-              {ratingsLoaded && ratedProducts.length === 0 && <EmptyPanel icon={FiStar} title="Noch keine Aktivitaet" description="Sobald du Produkte bewertest oder kommentierst, baut sich hier automatisch deine persoenliche Food-Historie auf." />}
-              {ratingsLoaded && ratedProducts.length > 0 && visibleRatedProducts.length === 0 && <EmptyPanel icon={FiSliders} title="Kein Treffer fuer diesen Filter" description="In dieser Kategorie hast du aktuell noch keine Eintraege." />}
+              {ratingsLoaded && ratedProducts.length === 0 && <EmptyPanel icon={FiStar} title="Noch keine Aktivität" description="Sobald du Produkte bewertest oder kommentierst, baut sich hier automatisch deine persönliche Food-Historie auf." />}
+              {ratingsLoaded && ratedProducts.length > 0 && visibleRatedProducts.length === 0 && <EmptyPanel icon={FiSliders} title="Kein Treffer für diesen Filter" description="In dieser Kategorie hast du aktuell noch keine Einträge." />}
               {ratingsLoaded && visibleRatedProducts.length > 0 && <ul className="grid gap-3 sm:gap-4">{visibleRatedProducts.map((item) => <li key={item.slug} className="rounded-[26px] border border-[#2A394B] bg-[#111925]/88 p-4 transition-all duration-300 hover:-translate-y-1 hover:border-[#5EE287]/25"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><Link href={`/produkt/${item.slug}`} className="font-semibold text-white transition-colors hover:text-[#8AF5AC]">{item.name}</Link><p className="mt-1 text-sm text-[#8CA1B8]">{item.category}</p></div><span className="shrink-0 rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-sm font-semibold text-[#FFD86C]">{item.rating > 0 ? `Rating ${item.rating.toFixed(1)}/5` : "Nur Kommentar"}</span></div><p className="mt-4 text-sm leading-relaxed text-[#D3DFEB]">{item.comment || "Kein Kommentar hinterlegt."}</p></li>)}</ul>}
             </SectionShell>
           </>
@@ -923,4 +923,7 @@ export default function ProfilPage() {
     </div>
   );
 }
+
+
+
 

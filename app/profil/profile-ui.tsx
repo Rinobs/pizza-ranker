@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { type ReactNode } from "react";
@@ -304,3 +304,4 @@ export async function buildAvatarDataUrl(file: File) {
 
   return canvas.toDataURL("image/jpeg", 0.84);
 }
+

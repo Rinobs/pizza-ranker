@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -94,10 +94,10 @@ export default function UsernameSetupGate() {
       <div className="w-full max-w-xl rounded-3xl border border-[#35503D] bg-[linear-gradient(180deg,#192330_0%,#111924_100%)] p-6 sm:p-8 shadow-[0_25px_80px_rgba(0,0,0,0.5)]">
         <p className="text-xs uppercase tracking-[0.22em] text-[#8AF5AC]">Willkommen</p>
         <h2 className="mt-2 text-2xl font-bold text-[#F2FFF6] sm:text-3xl">
-          Waehle jetzt deinen Username
+          Wähle jetzt deinen Username
         </h2>
         <p className="mt-3 text-sm leading-relaxed text-[#C4D0DE] sm:text-base">
-          Dein Username muss eindeutig sein und kann nach dem ersten Speichern nicht mehr geaendert werden.
+          Dein Username muss eindeutig sein und kann nach dem ersten Speichern nicht mehr geändert werden.
         </p>
 
         <div className="mt-6 space-y-3">
@@ -172,3 +172,4 @@ export default function UsernameSetupGate() {
     </div>
   );
 }
+

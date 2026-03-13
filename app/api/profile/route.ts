@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { getSupabaseAdminClient, USER_PROFILES_TABLE } from "@/lib/supabase";
@@ -188,7 +188,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: "Dein Username wurde bereits festgelegt und kann nicht mehr geaendert werden.",
+        error: "Dein Username wurde bereits festgelegt und kann nicht mehr geändert werden.",
       },
       { status: 409 }
     );
@@ -216,7 +216,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: "Dieser Username ist bereits vergeben. Bitte waehle einen anderen.",
+        error: "Dieser Username ist bereits vergeben. Bitte wähle einen anderen.",
       },
       { status: 409 }
     );
@@ -324,7 +324,7 @@ export async function PATCH(req: NextRequest) {
 
   if (!hasBioUpdate && !hasAvatarUpdate) {
     return NextResponse.json(
-      { success: false, error: "Keine Profil-Aenderungen uebergeben." },
+      { success: false, error: "Keine Profil-Änderungen übergeben." },
       { status: 400 }
     );
   }
@@ -357,7 +357,7 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: "Das Profilbild ist zu gross. Bitte waehle eine kleinere Datei.",
+        error: "Das Profilbild ist zu groß. Bitte wähle eine kleinere Datei.",
       },
       { status: 400 }
     );
@@ -384,7 +384,7 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: "Bitte lade ein gueltiges JPG-, PNG- oder WebP-Bild hoch.",
+        error: "Bitte lade ein gültiges JPG-, PNG- oder WebP-Bild hoch.",
       },
       { status: 400 }
     );
@@ -419,3 +419,4 @@ export async function PATCH(req: NextRequest) {
     data: buildProfilePayload(savedProfileResult.row, true),
   });
 }
+

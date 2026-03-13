@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -308,7 +308,7 @@ export default function HomeContent() {
                   Ergebnisse
                 </p>
                 <h2 className="mt-2 text-2xl sm:text-3xl font-bold tracking-tight text-[#E8F6ED]">
-                  {searchQuery ? `Treffer fuer \"${searchQuery}\"` : "Gefilterte Produkte"}
+                  {searchQuery ? `Treffer für \"${searchQuery}\"` : "Gefilterte Produkte"}
                 </h2>
                 <p className="mt-2 text-sm sm:text-base text-[#B7C4D3]">
                   {activeCategory
@@ -335,7 +335,7 @@ export default function HomeContent() {
             </div>
 
             {!statsLoaded && (
-              <p className="mb-4 text-sm text-[#8CA1B8]">Bewertungen fuer Sortierung werden geladen...</p>
+              <p className="mb-4 text-sm text-[#8CA1B8]">Bewertungen für Sortierung werden geladen...</p>
             )}
 
             {browseProducts.length > 0 ? (
@@ -347,18 +347,18 @@ export default function HomeContent() {
             ) : (
               <div className="rounded-2xl border border-[#2D3A4B] bg-[#1B222D] p-6 text-[#C4D0DE]">
                 Keine Treffer gefunden. Versuche andere Begriffe wie Pizza, Salami, Vanille oder
-                waehle eine andere Kategorie.
+                wähle eine andere Kategorie.
               </div>
             )}
           </section>
         ) : (
           <>
             <ProductSection
-              title={"\u{1F525} Top 10 Tiefkuehlpizzen"}
+              title={"\u{1F525} Top 10 Tiefkühlpizzen"}
               products={sections.topPizza}
             />
             <ProductSection
-              title={"\u{1F195} Neu hinzugefuegt"}
+              title={"\u{1F195} Neu hinzugefügt"}
               products={sections.newlyAdded}
             />
             <ProductSection
@@ -415,3 +415,4 @@ export default function HomeContent() {
     </main>
   );
 }
+

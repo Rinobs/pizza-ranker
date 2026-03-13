@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import {
@@ -104,7 +104,7 @@ export async function GET(
 
   if (!isUuid(userId)) {
     return NextResponse.json(
-      { success: false, error: "Ungueltige User-ID" },
+      { success: false, error: "Ungültige User-ID" },
       { status: 400 }
     );
   }
@@ -279,3 +279,4 @@ export async function GET(
     },
   });
 }
+

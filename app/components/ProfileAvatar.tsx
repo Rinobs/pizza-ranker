@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Image from "next/image";
 import { FiCamera } from "react-icons/fi";
@@ -25,7 +25,7 @@ export default function ProfileAvatar({
   name,
   size = "lg",
   onAction,
-  actionLabel = "Profilbild aendern",
+  actionLabel = "Profilbild ändern",
   className = "",
 }: ProfileAvatarProps) {
   const sizeClassName = SIZE_CLASS_NAMES[size];
@@ -69,3 +69,4 @@ export default function ProfileAvatar({
     </div>
   );
 }
+

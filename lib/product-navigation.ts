@@ -1,4 +1,4 @@
-import { getProductRouteSlug, type Product } from "@/app/data/products";
+﻿import { getProductRouteSlug, type Product } from "@/app/data/products";
 
 export type DiscoverSortMode = "popular" | "best" | "new";
 
@@ -22,7 +22,7 @@ export type CategoryNavigationItem = {
 export const CATEGORY_NAV_ITEMS: CategoryNavigationItem[] = [
   {
     slug: "pizza",
-    name: "Tiefkuehlpizza",
+    name: "Tiefkühlpizza",
     shortName: "Pizza",
     category: "Pizza",
     icon: "\u{1F355}",
@@ -83,12 +83,12 @@ export const DISCOVER_SORT_OPTIONS: DiscoverSortOption[] = [
   {
     value: "best",
     label: "Beste",
-    hint: "Hoechste Bewertung zuerst",
+    hint: "Höchste Bewertung zuerst",
   },
   {
     value: "new",
     label: "Neu",
-    hint: "Zuletzt hinzugefuegt zuerst",
+    hint: "Zuletzt hinzugefügt zuerst",
   },
 ];
 
@@ -265,3 +265,4 @@ export function compareByDiscoverSort(
 
   return left.name.localeCompare(right.name, "de");
 }
+

@@ -1,4 +1,4 @@
-export const PROFILE_BIO_MAX_LENGTH = 180;
+﻿export const PROFILE_BIO_MAX_LENGTH = 180;
 export const PROFILE_AVATAR_MAX_CHARS = 450000;
 export const PROFILE_AVATAR_MAX_FILE_BYTES = 4 * 1024 * 1024;
 
@@ -110,19 +110,19 @@ export function buildProfileCompletion(input: ProfileCompletionInput): ProfileCo
     {
       id: "avatar",
       label: "Profilbild hochgeladen",
-      description: "Ein Bild macht dein Profil persoenlicher.",
+      description: "Ein Bild macht dein Profil persönlicher.",
       completed: Boolean(input.avatarUrl),
     },
     {
       id: "bio",
-      label: "Bio hinzugefuegt",
-      description: "Erzaehle kurz, worauf du beim Snacken achtest.",
+      label: "Bio hinzugefügt",
+      description: "Erzähle kurz, worauf du beim Snacken achtest.",
       completed: Boolean(input.bio),
     },
     {
       id: "ratings",
       label: "3 Produkte bewertet",
-      description: "Ein paar Bewertungen fuellen deine Statistik sofort.",
+      description: "Ein paar Bewertungen füllen deine Statistik sofort.",
       completed: input.ratingCount >= 3,
     },
     {
@@ -164,7 +164,7 @@ export function buildProfileBadges(input: ProfileBadgeInput): ProfileBadge[] {
     {
       id: "taster",
       label: "Taste Scout",
-      description: "Fuer fleissiges Bewerten und schnelles Geschmacksgespuer.",
+      description: "Für fleißiges Bewerten und schnelles Geschmacksgespür.",
       progressLabel:
         input.ratingCount >= 12 ? `${input.ratingCount} Bewertungen` : `${input.ratingCount}/12 Bewertungen`,
       unlocked: input.ratingCount >= 12,
@@ -184,7 +184,7 @@ export function buildProfileBadges(input: ProfileBadgeInput): ProfileBadge[] {
       label: "Shelf Curator",
       description: "Favoriten und Wunschliste zeigen deinen Style als Sammler.",
       progressLabel:
-        collectionCount >= 8 ? `${collectionCount} Listenplaetze` : `${collectionCount}/8 Listenplaetze`,
+        collectionCount >= 8 ? `${collectionCount} Listenplätze` : `${collectionCount}/8 Listenplätze`,
       unlocked: collectionCount >= 8,
       tone: "sky",
     },
@@ -200,7 +200,7 @@ export function buildProfileBadges(input: ProfileBadgeInput): ProfileBadge[] {
     {
       id: "polished",
       label: "Profile Glow",
-      description: "Ein rundes Profil wirkt direkt lebendig und vertrauenswuerdig.",
+      description: "Ein rundes Profil wirkt direkt lebendig und vertrauenswürdig.",
       progressLabel: `${input.completionPercent}% Profil komplett`,
       unlocked: input.completionPercent === 100,
       tone: "mint",
@@ -208,7 +208,7 @@ export function buildProfileBadges(input: ProfileBadgeInput): ProfileBadge[] {
     {
       id: "legend",
       label: "League Spark",
-      description: "Fuehre deine Freundesliga an oder sammle viele Punkte.",
+      description: "Führe deine Freundesliga an oder sammle viele Punkte.",
       progressLabel:
         input.isLeagueLeader || input.points >= 360
           ? `${input.points} Punkte`
@@ -229,3 +229,5 @@ export function buildProfileBadges(input: ProfileBadgeInput): ProfileBadge[] {
     },
   ];
 }
+
+

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
@@ -230,8 +230,8 @@ export function useUserRatings() {
           error:
             json.error ||
             (target === "comment"
-              ? "Kommentar konnte nicht geloescht werden."
-              : "Bewertung konnte nicht geloescht werden."),
+              ? "Kommentar konnte nicht gelöscht werden."
+              : "Bewertung konnte nicht gelöscht werden."),
         } as DeleteRatingResponse;
       }
 
@@ -244,8 +244,8 @@ export function useUserRatings() {
         success: false,
         error:
           target === "comment"
-            ? "Kommentar konnte nicht geloescht werden."
-            : "Bewertung konnte nicht geloescht werden.",
+            ? "Kommentar konnte nicht gelöscht werden."
+            : "Bewertung konnte nicht gelöscht werden.",
       } as DeleteRatingResponse;
     }
   }
@@ -313,7 +313,7 @@ export function useUserRatings() {
         rollback();
         setCommentErrors((prev) => ({
           ...prev,
-          [slug]: response.error || "Bewertung konnte nicht geloescht werden.",
+          [slug]: response.error || "Bewertung konnte nicht gelöscht werden.",
         }));
       }
 
@@ -376,7 +376,7 @@ export function useUserRatings() {
         rollback();
         setCommentErrors((prev) => ({
           ...prev,
-          [slug]: response.error || "Kommentar konnte nicht geloescht werden.",
+          [slug]: response.error || "Kommentar konnte nicht gelöscht werden.",
         }));
       }
 
@@ -592,3 +592,4 @@ export function useUserRatings() {
     },
   };
 }
+

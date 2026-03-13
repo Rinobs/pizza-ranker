@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -221,7 +221,7 @@ export default function ProductPage() {
         <div className="rounded-2xl border border-[#2D3A4B] bg-[#1B222D] p-8 text-center shadow-[0_10px_28px_rgba(0,0,0,0.26)]">
           <h1 className="text-3xl font-bold mb-4">Produkt nicht gefunden</h1>
           <Link href="/" className="text-[#8AF5AC] hover:text-[#CFFFE0] underline">
-            Zurueck zur Startseite
+            Zurück zur Startseite
           </Link>
         </div>
       </div>
@@ -293,7 +293,7 @@ export default function ProductPage() {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold mb-3 text-[#E8F6ED]">Naehrwerte</h2>
+              <h2 className="text-xl font-semibold mb-3 text-[#E8F6ED]">Nährwerte</h2>
               <ul className="grid sm:grid-cols-2 gap-2 text-[#C4D0DE]">
                 <li className="rounded-lg bg-[#141C27] border border-[#2D3A4B] px-3 py-2">
                   <strong className="text-white">Kalorien:</strong> {mergedDetails.naehrwerte.kcal}
@@ -372,16 +372,16 @@ export default function ProductPage() {
                               onClick={async () => {
                                 const response = await deleteComment(routeSlug);
                                 if (!response.success) {
-                                  setCommentMessage(response.error || "Kommentar konnte nicht geloescht werden.");
+                                  setCommentMessage(response.error || "Kommentar konnte nicht gelöscht werden.");
                                   return;
                                 }
 
                                 setIsEditingOwnComment(false);
-                                setCommentMessage("Kommentar erfolgreich geloescht.");
+                                setCommentMessage("Kommentar erfolgreich gelöscht.");
                                 setDetailsReloadToken((prev) => prev + 1);
                               }}
                             >
-                              {submittingComments[routeSlug] ? "Loesche..." : "Loeschen"}
+                              {submittingComments[routeSlug] ? "Lösche..." : "Löschen"}
                             </button>
                           </div>
                         )}
@@ -418,7 +418,7 @@ export default function ProductPage() {
                     if (!response.success) return;
 
                     setListMessage(
-                      wasFavorite ? "Aus Favoriten entfernt." : "Zu Favoriten hinzugefuegt."
+                      wasFavorite ? "Aus Favoriten entfernt." : "Zu Favoriten hinzugefügt."
                     );
                   }}
                   className={`px-3 py-2 rounded-lg text-sm font-semibold border transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
@@ -444,7 +444,7 @@ export default function ProductPage() {
                     setListMessage(
                       wasWantToTry
                         ? "Aus Probieren-Liste entfernt."
-                        : "Zur Probieren-Liste hinzugefuegt."
+                        : "Zur Probieren-Liste hinzugefügt."
                     );
                   }}
                   className={`px-3 py-2 rounded-lg text-sm font-semibold border transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
@@ -453,7 +453,7 @@ export default function ProductPage() {
                       : "bg-[#141C27] text-white border-[#2D3A4B] hover:border-[#F7D26B]"
                   }`}
                 >
-                  {wantToTryActive ? "Will ich probieren" : "Moechte ich probieren"}
+                  {wantToTryActive ? "Will ich probieren" : "Möchte ich probieren"}
                 </button>
               </div>
 
@@ -540,7 +540,7 @@ export default function ProductPage() {
                 </>
               ) : (
                 <p className="rounded-lg bg-[#141C27] border border-[#2D3A4B] px-3 py-2 text-sm text-[#8CA1B8]">
-                  Dein Kommentar ist gespeichert. Bearbeiten oder loeschen kannst du ihn direkt an
+                  Dein Kommentar ist gespeichert. Bearbeiten oder löschen kannst du ihn direkt an
                   deinem Kommentar.
                 </p>
               )}
@@ -553,15 +553,15 @@ export default function ProductPage() {
                   onClick={async () => {
                     const response = await deleteRating(routeSlug);
                     if (!response.success) {
-                      setCommentMessage(response.error || "Bewertung konnte nicht geloescht werden.");
+                      setCommentMessage(response.error || "Bewertung konnte nicht gelöscht werden.");
                       return;
                     }
 
-                    setCommentMessage("Bewertung erfolgreich geloescht.");
+                    setCommentMessage("Bewertung erfolgreich gelöscht.");
                     setDetailsReloadToken((prev) => prev + 1);
                   }}
                 >
-                  Bewertung loeschen
+                  Bewertung löschen
                 </button>
               </div>
 
@@ -579,3 +579,4 @@ export default function ProductPage() {
     </div>
   );
 }
+

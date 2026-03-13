@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -75,7 +75,7 @@ export default function PublicProfilePage() {
 
     async function loadProfile() {
       if (!routeUserId) {
-        setError("Ungueltige Profil-URL.");
+        setError("Ungültige Profil-URL.");
         setLoading(false);
         return;
       }
@@ -129,7 +129,7 @@ export default function PublicProfilePage() {
       const json = (await response.json()) as ToggleFollowResponse;
 
       if (!response.ok || !json.success) {
-        setFollowMessage(json.error || "Folgen-Status konnte nicht geaendert werden.");
+        setFollowMessage(json.error || "Folgen-Status konnte nicht geändert werden.");
         return;
       }
 
@@ -146,7 +146,7 @@ export default function PublicProfilePage() {
       });
       setFollowMessage(active ? "Du folgst diesem Profil." : "Du folgst diesem Profil nicht mehr.");
     } catch {
-      setFollowMessage("Folgen-Status konnte nicht geaendert werden.");
+      setFollowMessage("Folgen-Status konnte nicht geändert werden.");
     } finally {
       setFollowLoading(false);
     }
@@ -212,7 +212,7 @@ export default function PublicProfilePage() {
             <div className="max-w-3xl">
               <p className="text-xs uppercase tracking-[0.22em] text-[#9CC9AE]">Food Profil</p>
               <h1 className="mt-3 text-4xl font-black tracking-tight text-[#F3FFF6] sm:text-5xl">{profileData.profile.username}</h1>
-              <p className="mt-4 max-w-2xl text-base leading-relaxed text-[#C9D8E7] sm:text-lg">{profileData.profile.bio || "Noch keine Bio vorhanden. Dieses Profil sammelt aber schon Geschmackspunkte und Aktivitaet."}</p>
+              <p className="mt-4 max-w-2xl text-base leading-relaxed text-[#C9D8E7] sm:text-lg">{profileData.profile.bio || "Noch keine Bio vorhanden. Dieses Profil sammelt aber schon Geschmackspunkte und Aktivität."}</p>
               <div className="mt-5 flex flex-wrap gap-2.5">
                 <span className="inline-flex items-center gap-2 rounded-full border border-[#34503B] bg-[#173023] px-4 py-2 text-sm font-semibold text-[#D9FFE6]"><FiAward size={15} />{summary.levelInfo.currentLevelName}</span>
                 <span className="inline-flex items-center gap-2 rounded-full border border-[#2D3A4B] bg-[#111925]/90 px-4 py-2 text-sm font-semibold text-[#D6E2EF]"><FiTrendingUp size={15} />{summary.points} Punkte</span>
@@ -242,13 +242,13 @@ export default function PublicProfilePage() {
       </div>
 
       <div className="mt-8 grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
-        <SectionShell eyebrow="Badges" title="Profil Vibes" description="Auch oeffentliche Profile bekommen jetzt kleine Gamification-Signale fuer Aktivitaet und Profilpflege.">
+        <SectionShell eyebrow="Badges" title="Profil Vibes" description="Auch öffentliche Profile bekommen jetzt kleine Gamification-Signale für Aktivität und Profilpflege.">
           <div className="grid gap-4 md:grid-cols-2">
             {summary.badges.slice(0, 4).map((badge) => <BadgeCard key={badge.id} badge={badge} />)}
           </div>
         </SectionShell>
 
-        <SectionShell eyebrow="Snapshot" title="Schneller Eindruck" description="Ein kompakter Blick auf Level, Aktivitaet und Sammler-Stil.">
+        <SectionShell eyebrow="Snapshot" title="Schneller Eindruck" description="Ein kompakter Blick auf Level, Aktivität und Sammler-Stil.">
           <div className="grid gap-4 sm:grid-cols-2">
             <MetricCard icon={FiAward} label="Level" value={summary.levelInfo.currentLevelName} hint={summary.levelInfo.nextLevelName ? `${summary.levelInfo.pointsToNextLevel} Punkte bis ${summary.levelInfo.nextLevelName}` : "Top-Level erreicht"} />
             <MetricCard icon={FiHeart} label="Favoriten" value={String(profileData.favorites.length)} hint={profileData.wantToTry.length > 0 ? `${profileData.wantToTry.length} Produkte auf der Watchlist` : "Noch keine Watchlist sichtbar"} />
@@ -266,9 +266,10 @@ export default function PublicProfilePage() {
         </SectionShell>
 
         <SectionShell eyebrow="Watchlist" title="Was noch getestet werden soll">
-          {profileData.wantToTry.length === 0 ? <EmptyPanel icon={FiBookmark} title="Watchlist ist leer" description="Aktuell wurden noch keine Produkte fuer spaeter gespeichert." /> : <ul className="grid gap-3">{profileData.wantToTry.slice(0, 6).map((item) => <li key={`want-${item.productSlug}`} className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4"><Link href={`/produkt/${item.productSlug}`} className="font-semibold text-white transition-colors hover:text-[#8AF5AC]">{item.name}</Link><p className="mt-1 text-sm text-[#8CA1B8]">{item.category}</p></li>)}</ul>}
+          {profileData.wantToTry.length === 0 ? <EmptyPanel icon={FiBookmark} title="Watchlist ist leer" description="Aktuell wurden noch keine Produkte für später gespeichert." /> : <ul className="grid gap-3">{profileData.wantToTry.slice(0, 6).map((item) => <li key={`want-${item.productSlug}`} className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4"><Link href={`/produkt/${item.productSlug}`} className="font-semibold text-white transition-colors hover:text-[#8AF5AC]">{item.name}</Link><p className="mt-1 text-sm text-[#8CA1B8]">{item.category}</p></li>)}</ul>}
         </SectionShell>
       </div>
     </div>
   );
 }
+

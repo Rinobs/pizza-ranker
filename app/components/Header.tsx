@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
@@ -223,7 +223,7 @@ export default function Header() {
             onClick={resetDiscover}
             className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-4 py-2 text-sm font-semibold text-white transition-colors hover:border-[#5EE287]"
           >
-            Alles zuruecksetzen
+            Alles zurücksetzen
           </button>
         </div>
 
@@ -325,7 +325,7 @@ export default function Header() {
     >
       <button
         type="button"
-        aria-label="Entdecken schliessen"
+        aria-label="Entdecken schließen"
         onClick={closeCategories}
         className="absolute inset-0 bg-[#0A111A]/65 backdrop-blur-[2px]"
       />
@@ -357,7 +357,7 @@ export default function Header() {
             type="button"
             onClick={closeCategories}
             className="inline-flex min-h-10 min-w-10 items-center justify-center rounded-full border border-[#2D3A4B] bg-[#121B27] text-white"
-            aria-label="Schliessen"
+            aria-label="Schließen"
           >
             <FiX size={18} />
           </button>
@@ -683,6 +683,7 @@ export default function Header() {
     </>
   );
 }
+
 
 
 

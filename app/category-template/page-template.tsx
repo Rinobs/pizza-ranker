@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React from "react";
 import Link from "next/link";
@@ -41,12 +41,12 @@ const SORT_OPTIONS: Array<{ value: DiscoverSortMode; label: string; hint: string
   {
     value: "best",
     label: "Beste",
-    hint: "Hoechste Bewertung zuerst",
+    hint: "Höchste Bewertung zuerst",
   },
   {
     value: "new",
     label: "Neu",
-    hint: "Zuletzt hinzugefuegt zuerst",
+    hint: "Zuletzt hinzugefügt zuerst",
   },
 ];
 
