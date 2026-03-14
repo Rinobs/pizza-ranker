@@ -1,6 +1,5 @@
 ﻿import { getProductRouteSlug, type Product } from "@/app/data/products";
-
-export type DiscoverSortMode = "popular" | "best" | "new";
+export type DiscoverSortMode = "popular" | "best" | "new" | "price";
 
 export type DiscoverSortOption = {
   value: DiscoverSortMode;
@@ -90,6 +89,11 @@ export const DISCOVER_SORT_OPTIONS: DiscoverSortOption[] = [
     label: "Neu",
     hint: "Zuletzt hinzugefügt zuerst",
   },
+  {
+    value: "price",
+    label: "Preis",
+    hint: "Günstigste zuerst",
+  },
 ];
 
 export const DISCOVER_QUICK_SEARCH_TAGS = [
@@ -101,7 +105,7 @@ export const DISCOVER_QUICK_SEARCH_TAGS = [
 ];
 
 export function isDiscoverSortMode(value: string | null): value is DiscoverSortMode {
-  return value === "popular" || value === "best" || value === "new";
+  return value === "popular" || value === "best" || value === "new" || value === "price";
 }
 
 export function isCategoryFilter(value: string | null): value is CategoryNavigationItem["slug"] {
@@ -211,6 +215,7 @@ export type DiscoverSortable = {
   ratingAvg: number | null;
   ratingCount: number;
   newIndex: number;
+  priceValue: number | null;
 };
 
 export function compareByDiscoverSort(
@@ -220,6 +225,33 @@ export function compareByDiscoverSort(
 ) {
   const leftAvg = left.ratingAvg ?? 0;
   const rightAvg = right.ratingAvg ?? 0;
+
+  if (sortMode === "price") {
+    const leftHasPrice = typeof left.priceValue === "number" ? 1 : 0;
+    const rightHasPrice = typeof right.priceValue === "number" ? 1 : 0;
+
+    if (leftHasPrice !== rightHasPrice) {
+      return rightHasPrice - leftHasPrice;
+    }
+    if (
+      typeof left.priceValue === "number" &&
+      typeof right.priceValue === "number" &&
+      left.priceValue !== right.priceValue
+    ) {
+      return left.priceValue - right.priceValue;
+    }
+    if (left.ratingCount !== right.ratingCount) {
+      return right.ratingCount - left.ratingCount;
+    }
+    if (leftAvg !== rightAvg) {
+      return rightAvg - leftAvg;
+    }
+    if (left.newIndex !== right.newIndex) {
+      return right.newIndex - left.newIndex;
+    }
+
+    return left.name.localeCompare(right.name, "de");
+  }
 
   if (sortMode === "new") {
     if (left.newIndex !== right.newIndex) {

@@ -7,9 +7,15 @@ import ProductComparisonPanel, {
   COMPARE_LIMIT,
   type ComparableProduct,
 } from "../components/ProductComparisonPanel";
-import { getProductImageUrl, getProductRouteSlug, type Product } from "@/app/data/products";
+import {
+  getProductImageUrl,
+  getProductPriceValue,
+  getProductRouteSlug,
+  type Product,
+} from "@/app/data/products";
 import {
   DEFAULT_DISCOVER_SORT,
+  DISCOVER_SORT_OPTIONS,
   compareByDiscoverSort,
   getProductSearchScore,
   type DiscoverSortMode,
@@ -27,29 +33,15 @@ type RatingSummaryResponse = {
 
 type CategoryProduct = ComparableProduct & {
   newIndex: number;
+  priceValue: number | null;
 };
 
 type VisibleProduct = CategoryProduct & {
   searchScore: number;
 };
 
-const SORT_OPTIONS: Array<{ value: DiscoverSortMode; label: string; hint: string }> = [
-  {
-    value: "popular",
-    label: "Beliebt",
-    hint: "Meiste Bewertungen zuerst",
-  },
-  {
-    value: "best",
-    label: "Beste",
-    hint: "Höchste Bewertung zuerst",
-  },
-  {
-    value: "new",
-    label: "Neu",
-    hint: "Zuletzt hinzugefügt zuerst",
-  },
-];
+const SORT_OPTIONS: Array<{ value: DiscoverSortMode; label: string; hint: string }> =
+  DISCOVER_SORT_OPTIONS;
 
 function getChipClass(active: boolean) {
   return `rounded-full border px-4 py-2 text-sm font-semibold transition-all duration-200 ${
@@ -134,6 +126,7 @@ export default function CategoryPage({
         ratingAvg: stats?.ratingAvg ?? null,
         ratingCount: stats?.ratingCount ?? 0,
         newIndex: index,
+        priceValue: getProductPriceValue(item),
       };
     });
   }, [products, ratingStats]);

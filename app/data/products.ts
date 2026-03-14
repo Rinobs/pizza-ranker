@@ -35,6 +35,36 @@ export function getProductImageUrl(product: {
   return imageUrl || DEFAULT_PRODUCT_IMAGE;
 }
 
+export function getProductPriceValue(product: {
+  price?: string | null;
+}): number | null {
+  const rawPrice = product.price?.trim();
+  if (!rawPrice) {
+    return null;
+  }
+
+  const normalizedPrice = rawPrice
+    .replace(/â‚¬/g, "€")
+    .replace(/\s+/g, "")
+    .replace(/€/g, "")
+    .replace(/,/g, ".");
+
+  const numericMatches = normalizedPrice.match(/\d+(?:\.\d+)?/g);
+  if (!numericMatches || numericMatches.length === 0) {
+    return null;
+  }
+
+  const numericValues = numericMatches
+    .map((value) => Number.parseFloat(value))
+    .filter((value) => Number.isFinite(value));
+
+  if (numericValues.length === 0) {
+    return null;
+  }
+
+  return Math.min(...numericValues);
+}
+
 export const PIZZA_PRODUCTS: Product[] = [
   // --- Dr. Oetker Ristorante ---
   {

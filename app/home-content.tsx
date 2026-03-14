@@ -7,6 +7,7 @@ import {
   ALL_PRODUCTS,
   PIZZA_PRODUCTS,
   getProductImageUrl,
+  getProductPriceValue,
   getProductRouteSlug,
   type Product,
 } from "./data/products";
@@ -36,6 +37,7 @@ type RankedProduct = {
 type BrowseProduct = RankedProduct & {
   newIndex: number;
   searchScore: number;
+  priceValue: number | null;
 };
 
 type HomeSectionsResponse = {
@@ -264,6 +266,7 @@ export default function HomeContent() {
         ratingCount: stats?.ratingCount ?? 0,
         newIndex: index,
         searchScore,
+        priceValue: getProductPriceValue(product),
       });
     }
 
