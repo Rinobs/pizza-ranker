@@ -25,6 +25,11 @@ type ProductComment = {
   isOwnComment: boolean;
 };
 
+type AminoAcidEntry = {
+  name: string;
+  amount: string;
+};
+
 type ProductDetailsPayload = {
   marke: string;
   gewicht: string;
@@ -32,13 +37,17 @@ type ProductDetailsPayload = {
   kategorie?: string | null;
   zutaten: string;
   naehrwerte: {
+    energyKj?: number | string;
     kcal: number | string;
     protein: number | string;
     fat: number | string;
+    saturatedFat?: number | string;
     carbs: number | string;
+    sugar?: number | string;
     ballaststoffe?: number | string;
     salz?: number | string;
   };
+  aminosaeurenprofil?: AminoAcidEntry[];
   durchschnittsbewertung: number | string;
   kommentare: ProductComment[];
   quelle: "online" | "placeholder";
@@ -52,13 +61,17 @@ function createFallbackDetails(product: Product): ProductDetailsPayload {
     kategorie: null,
     zutaten: PLACEHOLDER_TEXT,
     naehrwerte: {
+      energyKj: PLACEHOLDER_NUMBER,
       kcal: typeof product.kcal === "number" ? product.kcal : PLACEHOLDER_NUMBER,
       protein: typeof product.protein === "number" ? product.protein : PLACEHOLDER_NUMBER,
       fat: typeof product.fat === "number" ? product.fat : PLACEHOLDER_NUMBER,
+      saturatedFat: PLACEHOLDER_NUMBER,
       carbs: typeof product.carbs === "number" ? product.carbs : PLACEHOLDER_NUMBER,
+      sugar: PLACEHOLDER_NUMBER,
       ballaststoffe: PLACEHOLDER_NUMBER,
       salz: PLACEHOLDER_NUMBER,
     },
+    aminosaeurenprofil: [],
     durchschnittsbewertung: PLACEHOLDER_NUMBER,
     kommentare: [],
     quelle: "placeholder",
@@ -263,6 +276,21 @@ export default function ProductPage() {
     ["Kohlenhydrate", mergedDetails.naehrwerte.carbs],
   ];
 
+  if (!isPlaceholderValue(mergedDetails.naehrwerte.energyKj)) {
+    nutritionFacts.unshift(["Energie", mergedDetails.naehrwerte.energyKj as string | number]);
+  }
+
+  if (!isPlaceholderValue(mergedDetails.naehrwerte.saturatedFat)) {
+    nutritionFacts.push([
+      "davon gesättigte Fettsäuren",
+      mergedDetails.naehrwerte.saturatedFat as string | number,
+    ]);
+  }
+
+  if (!isPlaceholderValue(mergedDetails.naehrwerte.sugar)) {
+    nutritionFacts.push(["davon Zucker", mergedDetails.naehrwerte.sugar as string | number]);
+  }
+
   if (!isPlaceholderValue(mergedDetails.naehrwerte.ballaststoffe)) {
     nutritionFacts.push(["Ballaststoffe", mergedDetails.naehrwerte.ballaststoffe as string | number]);
   }
@@ -270,6 +298,17 @@ export default function ProductPage() {
   if (!isPlaceholderValue(mergedDetails.naehrwerte.salz)) {
     nutritionFacts.push(["Salz", mergedDetails.naehrwerte.salz as string | number]);
   }
+
+  const aminoAcidProfile = Array.isArray(mergedDetails.aminosaeurenprofil)
+    ? mergedDetails.aminosaeurenprofil.filter(
+        (entry): entry is AminoAcidEntry =>
+          Boolean(entry) &&
+          typeof entry.name === "string" &&
+          entry.name.trim().length > 0 &&
+          typeof entry.amount === "string" &&
+          entry.amount.trim().length > 0
+      )
+    : [];
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-8 lg:px-12 pb-24 text-white">
@@ -331,6 +370,30 @@ export default function ProductPage() {
               </ul>
               {detailsLoading && <p className="text-xs text-[#8CA1B8] mt-2">Lade Produktdaten...</p>}
             </section>
+
+            {aminoAcidProfile.length > 0 && (
+              <section>
+                <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
+                  <div>
+                    <h2 className="text-xl font-semibold text-[#E8F6ED]">Aminosäurebilanz</h2>
+                    <p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">
+                      pro 100 g Protein
+                    </p>
+                  </div>
+                </div>
+
+                <ul className="grid gap-2 sm:grid-cols-2">
+                  {aminoAcidProfile.map((entry) => (
+                    <li
+                      key={`${entry.name}-${entry.amount}`}
+                      className="rounded-lg border border-[#2D3A4B] bg-[#141C27] px-3 py-2 text-sm text-[#C4D0DE]"
+                    >
+                      <strong className="text-white">{entry.name}:</strong> {entry.amount}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
 
             <section>
               <h2 className="text-xl font-semibold mb-3 text-[#E8F6ED]">Kommentare</h2>

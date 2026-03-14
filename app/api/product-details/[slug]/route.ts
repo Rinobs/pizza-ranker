@@ -44,6 +44,11 @@ type ProductComment = {
   isOwnComment: boolean;
 };
 
+type AminoAcidEntry = {
+  name: string;
+  amount: string;
+};
+
 type ProductDetails = {
   marke: string;
   gewicht: string;
@@ -51,13 +56,17 @@ type ProductDetails = {
   kategorie?: string | null;
   zutaten: string;
   naehrwerte: {
+    energyKj?: number | string;
     kcal: number | string;
     protein: number | string;
     fat: number | string;
+    saturatedFat?: number | string;
     carbs: number | string;
+    sugar?: number | string;
     ballaststoffe?: number | string;
     salz?: number | string;
   };
+  aminosaeurenprofil?: AminoAcidEntry[];
   durchschnittsbewertung: number | string;
   kommentare: ProductComment[];
   quelle: "online" | "placeholder";
@@ -93,13 +102,17 @@ function getDefaultDetails(product: Product): ProductDetails {
     kategorie: null,
     zutaten: PLACEHOLDER_TEXT,
     naehrwerte: {
+      energyKj: PLACEHOLDER_NUMBER,
       kcal: typeof product.kcal === "number" ? product.kcal : PLACEHOLDER_NUMBER,
       protein: typeof product.protein === "number" ? product.protein : PLACEHOLDER_NUMBER,
       fat: typeof product.fat === "number" ? product.fat : PLACEHOLDER_NUMBER,
+      saturatedFat: PLACEHOLDER_NUMBER,
       carbs: typeof product.carbs === "number" ? product.carbs : PLACEHOLDER_NUMBER,
+      sugar: PLACEHOLDER_NUMBER,
       ballaststoffe: PLACEHOLDER_NUMBER,
       salz: PLACEHOLDER_NUMBER,
     },
+    aminosaeurenprofil: [],
     durchschnittsbewertung: PLACEHOLDER_NUMBER,
     kommentare: [],
     quelle: "placeholder",
@@ -209,14 +222,21 @@ async function findOpenFoodFactsMatch(product: Product): Promise<OpenFoodFactsPr
 function mergeOnlineDetails(base: ProductDetails, online: OpenFoodFactsProduct): ProductDetails {
   const nutriments = online.nutriments || {};
 
+  const energyKj =
+    asNumber(nutriments["energy-kj_100g"]) ??
+    asNumber(nutriments["energy-kj"]) ??
+    asNumber(nutriments["energy_100g"]);
   const kcal =
     asNumber(nutriments["energy-kcal_100g"]) ??
     asNumber(nutriments["energy-kcal"]) ??
-    asNumber(nutriments["energy_100g"]);
+    (energyKj !== null ? Number((energyKj / 4.184).toFixed(2)) : null);
   const protein = asNumber(nutriments["proteins_100g"]) ?? asNumber(nutriments["proteins"]);
   const fat = asNumber(nutriments["fat_100g"]) ?? asNumber(nutriments["fat"]);
+  const saturatedFat =
+    asNumber(nutriments["saturated-fat_100g"]) ?? asNumber(nutriments["saturated-fat"]);
   const carbs =
     asNumber(nutriments["carbohydrates_100g"]) ?? asNumber(nutriments["carbohydrates"]);
+  const sugar = asNumber(nutriments["sugars_100g"]) ?? asNumber(nutriments["sugars"]);
   const ballaststoffe = asNumber(nutriments["fiber_100g"]) ?? asNumber(nutriments["fiber"]);
   const salz = asNumber(nutriments["salt_100g"]) ?? asNumber(nutriments["salt"]);
 
@@ -226,10 +246,13 @@ function mergeOnlineDetails(base: ProductDetails, online: OpenFoodFactsProduct):
     gewicht: asText(online.quantity),
     zutaten: asText(online.ingredients_text),
     naehrwerte: {
+      energyKj: energyKj ?? base.naehrwerte.energyKj,
       kcal: kcal ?? base.naehrwerte.kcal,
       protein: protein ?? base.naehrwerte.protein,
       fat: fat ?? base.naehrwerte.fat,
+      saturatedFat: saturatedFat ?? base.naehrwerte.saturatedFat,
       carbs: carbs ?? base.naehrwerte.carbs,
+      sugar: sugar ?? base.naehrwerte.sugar,
       ballaststoffe: ballaststoffe ?? base.naehrwerte.ballaststoffe,
       salz: salz ?? base.naehrwerte.salz,
     },
@@ -637,6 +660,45 @@ function getManualDetails(product: Product): Partial<ProductDetails> | null {
         salz: "ca. 7 g",
       },
       quelle: "placeholder",
+    },
+    "ESN Designer Whey - Salted Dark Chocolate": {
+      marke: "ESN",
+      gewicht: "908 g (30 Portionen)",
+      preis: "Keine Preisangabe hinterlegt",
+      kategorie: "Proteinpulver",
+      zutaten: "Keine Zutatenangaben hinterlegt.",
+      naehrwerte: {
+        energyKj: "1633 kJ / 100 g",
+        kcal: "387 kcal / 100 g",
+        protein: "72 g / 100 g",
+        fat: "7,1 g / 100 g",
+        saturatedFat: "4,0 g / 100 g",
+        carbs: "8,0 g / 100 g",
+        sugar: "5,5 g / 100 g",
+        ballaststoffe: "2,3 g / 100 g",
+        salz: "1,8 g / 100 g",
+      },
+      aminosaeurenprofil: [
+        { name: "Alanin", amount: "4,7 g" },
+        { name: "Arginin", amount: "2,3 g" },
+        { name: "Asparaginsäure", amount: "10 g" },
+        { name: "Cystein", amount: "2,2 g" },
+        { name: "Glutaminsäure", amount: "17 g" },
+        { name: "Glycin", amount: "1,7 g" },
+        { name: "Histidin", amount: "1,7 g" },
+        { name: "Isoleucin", amount: "5,9 g" },
+        { name: "Leucin", amount: "10 g" },
+        { name: "Lysin", amount: "8,9 g" },
+        { name: "Methionin", amount: "2,0 g" },
+        { name: "Phenylalanin", amount: "3,0 g" },
+        { name: "Prolin", amount: "5,6 g" },
+        { name: "Serin", amount: "4,7 g" },
+        { name: "Threonin", amount: "6,6 g" },
+        { name: "Tryptophan", amount: "1,7 g" },
+        { name: "Tyrosin", amount: "2,8 g" },
+        { name: "Valin", amount: "5,3 g" },
+      ],
+      quelle: "placeholder",
     }
   };
 
@@ -777,6 +839,4 @@ export async function GET(
     },
   });
 }
-
-
 

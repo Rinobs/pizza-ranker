@@ -891,6 +891,16 @@ export const PROTEINPULVER_PRODUCTS: Product[] = [
     slug: "proteinpulver",
   },
   {
+    name: "ESN Designer Whey - Salted Dark Chocolate",
+    imageUrl: "https://www.fitnesswebshop.de/cdn/shop/files/e_DesignerWhey_908g_Salted_Dark_Chocolate600.jpg?v=1767747678",
+    category: "Proteinpulver",
+    slug: "proteinpulver",
+    kcal: 387,
+    protein: 72,
+    fat: 7.1,
+    carbs: 8,
+  },
+  {
     name: "ESN Designer Whey â€“ Strawberry",
     imageUrl: "https://assets.esn.com/products/Designer-Whey/Strawberry.png",
     category: "Proteinpulver",
@@ -1058,5 +1068,4 @@ export const ALL_PRODUCTS: Product[] = [
   ...Eis_PRODUCTS,
   ...CHIPS_PRODUCTS,
 ];
-
 
