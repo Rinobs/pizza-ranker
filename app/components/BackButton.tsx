@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function BackButton({
   href = "/",
@@ -9,9 +9,19 @@ export default function BackButton({
   href?: string;
   label?: string;
 }) {
+  const router = useRouter();
+
   return (
-    <Link
-      href={href}
+    <button
+      type="button"
+      onClick={() => {
+        if (window.history.length > 1) {
+          router.back();
+          return;
+        }
+
+        router.push(href);
+      }}
       className="
         inline-flex items-center gap-2 mb-8 px-5 py-2.5 rounded-xl
         bg-[#1B222D] text-[#E8EDF5] border border-[#2D3A4B]
@@ -21,6 +31,6 @@ export default function BackButton({
       "
     >
       {label}
-    </Link>
+    </button>
   );
 }
