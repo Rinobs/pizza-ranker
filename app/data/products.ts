@@ -1,4 +1,5 @@
 import { MORE_NUTRITION_PROTEINPULVER_PRODUCTS } from "./more-nutrition-protein";
+import { OFFICIAL_PROTEINRIEGEL_PRODUCTS } from "./official-protein-bars";
 
 export interface Product {
   name: string;
@@ -826,26 +827,6 @@ export const PIZZA_PRODUCTS: Product[] = [
     slug: "proteinriegel",
   },
 
-  // ESN Designer Bar
-  {
-    name: "ESN Designer Bar Chocolate Crumble",
-    imageUrl: "https://m.media-amazon.com/images/I/71S28bShGUL._AC_SL1500_.jpg",
-    category: "Proteinriegel",
-    slug: "proteinriegel",
-  },
-  {
-    name: "ESN Designer Bar Caramel Choco",
-    imageUrl: "https://m.media-amazon.com/images/I/71JWmw5I80L._AC_SL1500_.jpg",
-    category: "Proteinriegel",
-    slug: "proteinriegel",
-  },
-  {
-    name: "ESN Designer Bar Vanilla Crisp",
-    imageUrl: "https://m.media-amazon.com/images/I/71uyVTSfCKL._AC_SL1500_.jpg",
-    category: "Proteinriegel",
-    slug: "proteinriegel",
-  },
-
   // MyProtein
   {
     name: "MyProtein Layered Bar Chocolate Cookie",
@@ -894,19 +875,7 @@ export const PIZZA_PRODUCTS: Product[] = [
     slug: "proteinriegel",
   },
 
-  // More Nutrition
-  {
-    name: "MORE Nutrition Bar Hazelnut Nougat",
-    imageUrl: "https://m.media-amazon.com/images/I/71oGT3hk8JL._AC_SL1500_.jpg",
-    category: "Proteinriegel",
-    slug: "proteinriegel",
-  },
-  {
-    name: "MORE Nutrition Bar White Choco Crisp",
-    imageUrl: "https://m.media-amazon.com/images/I/71Osrc1e+iL._AC_SL1500_.jpg",
-    category: "Proteinriegel",
-    slug: "proteinriegel",
-  },
+  ...OFFICIAL_PROTEINRIEGEL_PRODUCTS,
 ];
 
 export const PROTEINPULVER_PRODUCTS: Product[] = [

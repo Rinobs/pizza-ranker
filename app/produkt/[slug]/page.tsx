@@ -48,6 +48,7 @@ type ProductDetailsPayload = {
     salz?: number | string;
     koffein?: number | string;
     glucomannan?: number | string;
+    polyole?: number | string;
   };
   aminosaeurenprofil?: AminoAcidEntry[];
   durchschnittsbewertung: number | string;
@@ -74,6 +75,7 @@ function createFallbackDetails(product: Product): ProductDetailsPayload {
       salz: PLACEHOLDER_NUMBER,
       koffein: PLACEHOLDER_NUMBER,
       glucomannan: PLACEHOLDER_NUMBER,
+      polyole: PLACEHOLDER_NUMBER,
     },
     aminosaeurenprofil: [],
     durchschnittsbewertung: PLACEHOLDER_NUMBER,
@@ -301,6 +303,10 @@ export default function ProductPage() {
 
   if (!isPlaceholderValue(mergedDetails.naehrwerte.salz)) {
     nutritionFacts.push(["Salz", mergedDetails.naehrwerte.salz as string | number]);
+  }
+
+  if (!isPlaceholderValue(mergedDetails.naehrwerte.polyole)) {
+    nutritionFacts.push(["Mehrwertige Alkohole", mergedDetails.naehrwerte.polyole as string | number]);
   }
 
   if (!isPlaceholderValue(mergedDetails.naehrwerte.koffein)) {
