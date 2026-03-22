@@ -1,3 +1,5 @@
+import { MORE_NUTRITION_PROTEINPULVER_PRODUCTS } from "./more-nutrition-protein";
+
 export interface Product {
   name: string;
   imageUrl: string;
@@ -1210,7 +1212,8 @@ export const PROTEINPULVER_PRODUCTS: Product[] = [
     imageUrl: "https://rockanutrition.de/cdn/shop/products/HazelnutNougat.png?v=1668504635",
     category: "Proteinpulver",
     slug: "proteinpulver",
-  }
+  },
+  ...MORE_NUTRITION_PROTEINPULVER_PRODUCTS,
 ];
 export const Eis_PRODUCTS: Product[] = [
   {

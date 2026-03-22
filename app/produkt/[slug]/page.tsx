@@ -46,6 +46,8 @@ type ProductDetailsPayload = {
     sugar?: number | string;
     ballaststoffe?: number | string;
     salz?: number | string;
+    koffein?: number | string;
+    glucomannan?: number | string;
   };
   aminosaeurenprofil?: AminoAcidEntry[];
   durchschnittsbewertung: number | string;
@@ -70,6 +72,8 @@ function createFallbackDetails(product: Product): ProductDetailsPayload {
       sugar: PLACEHOLDER_NUMBER,
       ballaststoffe: PLACEHOLDER_NUMBER,
       salz: PLACEHOLDER_NUMBER,
+      koffein: PLACEHOLDER_NUMBER,
+      glucomannan: PLACEHOLDER_NUMBER,
     },
     aminosaeurenprofil: [],
     durchschnittsbewertung: PLACEHOLDER_NUMBER,
@@ -297,6 +301,14 @@ export default function ProductPage() {
 
   if (!isPlaceholderValue(mergedDetails.naehrwerte.salz)) {
     nutritionFacts.push(["Salz", mergedDetails.naehrwerte.salz as string | number]);
+  }
+
+  if (!isPlaceholderValue(mergedDetails.naehrwerte.koffein)) {
+    nutritionFacts.push(["Koffein", mergedDetails.naehrwerte.koffein as string | number]);
+  }
+
+  if (!isPlaceholderValue(mergedDetails.naehrwerte.glucomannan)) {
+    nutritionFacts.push(["Glucomannan", mergedDetails.naehrwerte.glucomannan as string | number]);
   }
 
   const aminoAcidProfile = Array.isArray(mergedDetails.aminosaeurenprofil)

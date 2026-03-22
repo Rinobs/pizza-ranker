@@ -6,6 +6,7 @@ import {
   RATINGS_TABLE,
   USER_PROFILES_TABLE,
 } from "@/lib/supabase";
+import { MORE_NUTRITION_PROTEIN_DETAILS } from "@/app/data/more-nutrition-protein";
 import { ALL_PRODUCTS, getProductRouteSlug, type Product } from "@/app/data/products";
 import { getStableUserId } from "@/lib/user-id";
 
@@ -65,6 +66,8 @@ type ProductDetails = {
     sugar?: number | string;
     ballaststoffe?: number | string;
     salz?: number | string;
+    koffein?: number | string;
+    glucomannan?: number | string;
   };
   aminosaeurenprofil?: AminoAcidEntry[];
   durchschnittsbewertung: number | string;
@@ -111,6 +114,8 @@ function getDefaultDetails(product: Product): ProductDetails {
       sugar: PLACEHOLDER_NUMBER,
       ballaststoffe: PLACEHOLDER_NUMBER,
       salz: PLACEHOLDER_NUMBER,
+      koffein: PLACEHOLDER_NUMBER,
+      glucomannan: PLACEHOLDER_NUMBER,
     },
     aminosaeurenprofil: [],
     durchschnittsbewertung: PLACEHOLDER_NUMBER,
@@ -273,6 +278,7 @@ function mergeDetails(base: ProductDetails, override: Partial<ProductDetails>): 
 
 function getManualDetails(product: Product): Partial<ProductDetails> | null {
   const manualDetailsByName: Record<string, Partial<ProductDetails>> = {
+    ...MORE_NUTRITION_PROTEIN_DETAILS,
     "Dr. Oetker Ristorante Mozzarella": {
       marke: "Dr. Oetker",
       gewicht: "355 g",
