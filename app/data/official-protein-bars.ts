@@ -38,188 +38,1090 @@ type ProductDetailsRecord = {
   quelle: "online" | "placeholder";
 };
 
-export const OFFICIAL_PROTEINRIEGEL_PRODUCTS = [
+type NutritionPair = {
+  perServing: string;
+  per100: string;
+};
+
+type VariantNutrition = {
+  energyKj?: NutritionPair;
+  kcal: NutritionPair;
+  protein: NutritionPair;
+  fat: NutritionPair;
+  saturatedFat?: NutritionPair;
+  carbs: NutritionPair;
+  sugar?: NutritionPair;
+  ballaststoffe?: NutritionPair;
+  salz?: NutritionPair;
+  glucomannan?: NutritionPair;
+  polyole?: NutritionPair;
+};
+
+type ProteinBarVariant = {
+  name: string;
+  marke: string;
+  imageUrl: string;
+  summaryPrice: string;
+  detailPrice: string;
+  gewicht: string;
+  servingLabel: string;
+  zutaten: string;
+  nutrition: VariantNutrition;
+};
+
+function pair(perServing: string, per100: string): NutritionPair {
+  return { perServing, per100 };
+}
+
+function formatNumber(value: number): string {
+  const rounded = Math.abs(value) < 1 ? Number(value.toFixed(2)) : Number(value.toFixed(1));
+  const normalized = Number.isInteger(rounded) ? String(rounded) : String(rounded).replace(".", ",");
+  return normalized;
+}
+
+function derivedPair(perServing: number, unit: string, servingWeightGrams: number): NutritionPair {
+  const per100 = (perServing / servingWeightGrams) * 100;
+  return pair(`${formatNumber(perServing)} ${unit}`, `${formatNumber(per100)} ${unit}`);
+}
+
+function derivedNutrition(config: {
+  servingWeightGrams: number;
+  kcal: number;
+  energyKj?: number;
+  protein: number;
+  fat: number;
+  saturatedFat?: number;
+  carbs: number;
+  sugar?: number;
+  ballaststoffe?: number;
+  salz?: number;
+  polyole?: number;
+  glucomannan?: number;
+}): VariantNutrition {
+  const energyKj = config.energyKj ?? config.kcal * 4.184;
+
+  return {
+    energyKj: derivedPair(energyKj, "kJ", config.servingWeightGrams),
+    kcal: derivedPair(config.kcal, "kcal", config.servingWeightGrams),
+    protein: derivedPair(config.protein, "g", config.servingWeightGrams),
+    fat: derivedPair(config.fat, "g", config.servingWeightGrams),
+    saturatedFat:
+      typeof config.saturatedFat === "number"
+        ? derivedPair(config.saturatedFat, "g", config.servingWeightGrams)
+        : undefined,
+    carbs: derivedPair(config.carbs, "g", config.servingWeightGrams),
+    sugar:
+      typeof config.sugar === "number"
+        ? derivedPair(config.sugar, "g", config.servingWeightGrams)
+        : undefined,
+    ballaststoffe:
+      typeof config.ballaststoffe === "number"
+        ? derivedPair(config.ballaststoffe, "g", config.servingWeightGrams)
+        : undefined,
+    salz:
+      typeof config.salz === "number"
+        ? derivedPair(config.salz, "g", config.servingWeightGrams)
+        : undefined,
+    polyole:
+      typeof config.polyole === "number"
+        ? derivedPair(config.polyole, "g", config.servingWeightGrams)
+        : undefined,
+    glucomannan:
+      typeof config.glucomannan === "number"
+        ? derivedPair(config.glucomannan, "g", config.servingWeightGrams)
+        : undefined,
+  };
+}
+
+function parseNumericValue(value: string): number | undefined {
+  const match = value.match(/-?\d+(?:[.,]\d+)?/);
+  if (!match) return undefined;
+
+  const parsed = Number.parseFloat(match[0].replace(",", "."));
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+function formatNutritionValue(
+  nutritionPair: NutritionPair | undefined,
+  servingLabel: string
+): string | undefined {
+  if (!nutritionPair) {
+    return undefined;
+  }
+
+  return `${nutritionPair.perServing} / ${servingLabel}, ${nutritionPair.per100} / 100 g`;
+}
+
+function createProductSummary(variant: ProteinBarVariant): ProductSummary {
+  return {
+    name: variant.name,
+    imageUrl: variant.imageUrl,
+    category: "Proteinriegel",
+    slug: "proteinriegel",
+    price: variant.summaryPrice,
+    kcal: parseNumericValue(variant.nutrition.kcal.perServing),
+    protein: parseNumericValue(variant.nutrition.protein.perServing),
+    fat: parseNumericValue(variant.nutrition.fat.perServing),
+    carbs: parseNumericValue(variant.nutrition.carbs.perServing),
+  };
+}
+
+function createProductDetails(variant: ProteinBarVariant): ProductDetailsRecord {
+  return {
+    marke: variant.marke,
+    gewicht: variant.gewicht,
+    preis: variant.detailPrice,
+    kategorie: "Proteinriegel",
+    zutaten: variant.zutaten,
+    naehrwerte: {
+      energyKj: formatNutritionValue(variant.nutrition.energyKj, variant.servingLabel),
+      kcal: formatNutritionValue(variant.nutrition.kcal, variant.servingLabel) || "9999",
+      protein: formatNutritionValue(variant.nutrition.protein, variant.servingLabel) || "9999",
+      fat: formatNutritionValue(variant.nutrition.fat, variant.servingLabel) || "9999",
+      saturatedFat: formatNutritionValue(variant.nutrition.saturatedFat, variant.servingLabel),
+      carbs: formatNutritionValue(variant.nutrition.carbs, variant.servingLabel) || "9999",
+      sugar: formatNutritionValue(variant.nutrition.sugar, variant.servingLabel),
+      ballaststoffe: formatNutritionValue(variant.nutrition.ballaststoffe, variant.servingLabel),
+      salz: formatNutritionValue(variant.nutrition.salz, variant.servingLabel),
+      glucomannan: formatNutritionValue(variant.nutrition.glucomannan, variant.servingLabel),
+      polyole: formatNutritionValue(variant.nutrition.polyole, variant.servingLabel),
+    },
+    aminosaeurenprofil: [],
+    quelle: "online",
+  };
+}
+
+function designerBarDescription(flavor: string): string {
+  return `Offizielle ESN-Produktseite: Soft-Dough-Proteinriegel mit cremigem Kern und knackigem Topping. Geschmacksrichtung: ${flavor}.`;
+}
+
+function goatBarDescription(flavor: string): string {
+  return `Offizielle ESN-Produktseite: natuerlicher Muelsiriegel mit Eiklarprotein, Haferflocken, Nuessen und Fruechten. Geschmacksrichtung: ${flavor}.`;
+}
+
+function moreBarDescription(line: string, flavor: string): string {
+  return `Offizielle More-Nutrition-Produktseite: ${line} in der Geschmacksrichtung ${flavor}.`;
+}
+
+const ESN_DESIGNER_BAR_VARIANTS: ProteinBarVariant[] = [
   {
-    name: "ESN Designer Bar Proteinriegel",
+    name: "ESN Designer Bar - Almond Coconut",
+    marke: "ESN",
+    imageUrl:
+      "https://cdn.shopify.com/s/files/1/0845/1358/7515/files/DesignerBar_45g_Tray_AlmondCoconutFlavor_2024x2024_shop-vR2hiYO1_8ba69622-ec3b-4b5e-a91c-38ac88f42cea.jpg?v=1773753890",
+    summaryPrice: "28,90 EUR",
+    detailPrice: "28,90 EUR / 12 x 45 g, einzeln 2,49 EUR / 45 g",
+    gewicht: "12 x 45 g (auch einzeln 45 g)",
+    servingLabel: "Riegel",
+    zutaten: designerBarDescription("Almond Coconut"),
+    nutrition: derivedNutrition({
+      servingWeightGrams: 45,
+      kcal: 191,
+      protein: 14,
+      fat: 11,
+      saturatedFat: 5,
+      carbs: 15,
+      sugar: 2,
+      ballaststoffe: 1.3,
+      polyole: 12,
+    }),
+  },
+  {
+    name: "ESN Designer Bar - Cinnamon Cereal",
+    marke: "ESN",
+    imageUrl:
+      "https://cdn.shopify.com/s/files/1/0845/1358/7515/files/DesignerBar_45g_Tray_CinnamonCerealFlavor_2024x2024_shop-nSvCXZu_932d9be0-b929-477a-abae-5b11fe4db8f6.jpg?v=1773753890",
+    summaryPrice: "28,90 EUR",
+    detailPrice: "28,90 EUR / 12 x 45 g, einzeln 2,49 EUR / 45 g",
+    gewicht: "12 x 45 g (auch einzeln 45 g)",
+    servingLabel: "Riegel",
+    zutaten: designerBarDescription("Cinnamon Cereal"),
+    nutrition: derivedNutrition({
+      servingWeightGrams: 45,
+      kcal: 180,
+      protein: 14,
+      fat: 8.7,
+      saturatedFat: 4.6,
+      carbs: 16,
+      sugar: 1.8,
+      ballaststoffe: 2.2,
+      polyole: 13,
+    }),
+  },
+  {
+    name: "ESN Designer Bar - Dark Chocolate Salted Almond",
+    marke: "ESN",
     imageUrl:
       "https://cdn.shopify.com/s/files/1/0845/1358/7515/files/DesignerBar_45g_Tray_DarkChocolateSaltedAlmondFlavor_2024x2024_shop-4mvbqa9t_ff7823ec-c07e-4039-80a7-f3bf95d0638a.jpg?v=1773753890",
-    category: "Proteinriegel",
-    slug: "proteinriegel",
-    price: "28,90 € / 12 x 45 g",
-    kcal: 184,
-    protein: 14.5,
-    fat: 9,
-    carbs: 15,
+    summaryPrice: "28,90 EUR",
+    detailPrice: "28,90 EUR / 12 x 45 g, einzeln 2,49 EUR / 45 g",
+    gewicht: "12 x 45 g (auch einzeln 45 g)",
+    servingLabel: "Riegel",
+    zutaten: designerBarDescription("Dark Chocolate Salted Almond"),
+    nutrition: derivedNutrition({
+      servingWeightGrams: 45,
+      kcal: 179,
+      protein: 15,
+      fat: 9.2,
+      saturatedFat: 4,
+      carbs: 13,
+      sugar: 0.3,
+      ballaststoffe: 3.1,
+      polyole: 12,
+    }),
   },
   {
-    name: "ESN GOAT Bar",
+    name: "ESN Designer Bar - Dark Cookie White Choc",
+    marke: "ESN",
+    imageUrl:
+      "https://cdn.shopify.com/s/files/1/0845/1358/7515/files/DesignerBar_45g_Tray_DarkCookieWhiteChocFlavor_2024x2024_shop-BIZkYGGC_5ff82805-9cc1-436a-a5da-dc4d21a26286.jpg?v=1773753890",
+    summaryPrice: "28,90 EUR",
+    detailPrice: "28,90 EUR / 12 x 45 g, einzeln 2,49 EUR / 45 g",
+    gewicht: "12 x 45 g (auch einzeln 45 g)",
+    servingLabel: "Riegel",
+    zutaten: designerBarDescription("Dark Cookie White Choc"),
+    nutrition: derivedNutrition({
+      servingWeightGrams: 45,
+      kcal: 178,
+      protein: 14,
+      fat: 8.6,
+      saturatedFat: 4.9,
+      carbs: 17,
+      sugar: 1.6,
+      ballaststoffe: 1.6,
+      polyole: 14,
+    }),
+  },
+  {
+    name: "ESN Designer Bar - Fudge Brownie",
+    marke: "ESN",
+    imageUrl:
+      "https://cdn.shopify.com/s/files/1/0845/1358/7515/files/DesignerBar_45g_Tray_FudgeBrownieFlavor_2024x2024_shop-J7HtK_vk_9b11199f-c7c3-4427-8d09-a54706b38c73.jpg?v=1773753890",
+    summaryPrice: "28,90 EUR",
+    detailPrice: "28,90 EUR / 12 x 45 g, einzeln 2,49 EUR / 45 g",
+    gewicht: "12 x 45 g (auch einzeln 45 g)",
+    servingLabel: "Riegel",
+    zutaten: designerBarDescription("Fudge Brownie"),
+    nutrition: derivedNutrition({
+      servingWeightGrams: 45,
+      kcal: 187,
+      protein: 14,
+      fat: 10,
+      saturatedFat: 5.3,
+      carbs: 14,
+      sugar: 1.5,
+      ballaststoffe: 2,
+      polyole: 12,
+    }),
+  },
+  {
+    name: "ESN Designer Bar - Hazelnut Nougat",
+    marke: "ESN",
+    imageUrl:
+      "https://cdn.shopify.com/s/files/1/0845/1358/7515/files/DesignerBar_45g_Tray_HazelnutNougatFlavor_2024x2024_shop-ET2nendt_5f890e73-0059-418d-89d1-a13f30acc5cb.jpg?v=1773753890",
+    summaryPrice: "28,90 EUR",
+    detailPrice: "28,90 EUR / 12 x 45 g, einzeln 2,49 EUR / 45 g",
+    gewicht: "12 x 45 g (auch einzeln 45 g)",
+    servingLabel: "Riegel",
+    zutaten: designerBarDescription("Hazelnut Nougat"),
+    nutrition: derivedNutrition({
+      servingWeightGrams: 45,
+      kcal: 186,
+      protein: 14,
+      fat: 10,
+      saturatedFat: 4.3,
+      carbs: 15,
+      sugar: 2,
+      ballaststoffe: 1.8,
+      polyole: 12,
+    }),
+  },
+  {
+    name: "ESN Designer Bar - Peanut Caramel",
+    marke: "ESN",
+    imageUrl:
+      "https://cdn.shopify.com/s/files/1/0845/1358/7515/files/DesignerBar_45g_PeanutCaramelFlavor_2024x2024_shop-1gxdHtjg_700aa965-afed-4da7-8628-83983925a3b4.jpg?v=1773753890",
+    summaryPrice: "28,90 EUR",
+    detailPrice: "28,90 EUR / 12 x 45 g, einzeln 2,49 EUR / 45 g",
+    gewicht: "12 x 45 g (auch einzeln 45 g)",
+    servingLabel: "Riegel",
+    zutaten: designerBarDescription("Peanut Caramel"),
+    nutrition: derivedNutrition({
+      servingWeightGrams: 45,
+      kcal: 180,
+      protein: 14,
+      fat: 8.8,
+      saturatedFat: 4.4,
+      carbs: 15,
+      sugar: 1.8,
+      ballaststoffe: 2.8,
+      polyole: 10,
+    }),
+  },
+  {
+    name: "ESN Designer Bar - Peanut Butter Pretzel",
+    marke: "ESN",
+    imageUrl:
+      "https://cdn.shopify.com/s/files/1/0845/1358/7515/files/DesignerBar_45g_Tray_PeanutButterPretzelFlavor_2024x2024_shop-cAAVd7Jr_e3a5d784-32da-4907-9f16-7eaa4836b89f.jpg?v=1774017535",
+    summaryPrice: "28,90 EUR",
+    detailPrice: "28,90 EUR / 12 x 45 g, einzeln 2,49 EUR / 45 g",
+    gewicht: "12 x 45 g (auch einzeln 45 g)",
+    servingLabel: "Riegel",
+    zutaten: designerBarDescription("Peanut Butter Pretzel"),
+    nutrition: derivedNutrition({
+      servingWeightGrams: 45,
+      kcal: 174,
+      protein: 14,
+      fat: 8.2,
+      carbs: 16,
+      sugar: 1.7,
+      ballaststoffe: 2.7,
+    }),
+  },
+  {
+    name: "ESN Designer Bar - Spekulatius",
+    marke: "ESN",
+    imageUrl:
+      "https://cdn.shopify.com/s/files/1/0845/1358/7515/files/DesignerBar_45g_Tray_SpekulatiusFlavor_2024x2024_shop-azwSr9AO_c88f0cd4-0f01-4485-9e21-298bac3fd171.jpg?v=1773753890",
+    summaryPrice: "28,90 EUR",
+    detailPrice: "28,90 EUR / 12 x 45 g, einzeln 2,49 EUR / 45 g",
+    gewicht: "12 x 45 g (auch einzeln 45 g)",
+    servingLabel: "Riegel",
+    zutaten: designerBarDescription("Spekulatius"),
+    nutrition: derivedNutrition({
+      servingWeightGrams: 45,
+      kcal: 179,
+      protein: 14.9,
+      fat: 8.1,
+      carbs: 13.5,
+      sugar: 1.5,
+      ballaststoffe: 2.4,
+    }),
+  },
+  {
+    name: "ESN Designer Bar - Lebkuchen",
+    marke: "ESN",
+    imageUrl:
+      "https://cdn.shopify.com/s/files/1/0845/1358/7515/files/DesignerBar_Tray_45g_LebkuchenFlavor_2024x2024_shop-ddMCPiOc_8105d583-55ec-4939-a0d5-081e33ff0a19.jpg?v=1773665884",
+    summaryPrice: "28,90 EUR",
+    detailPrice: "28,90 EUR / 12 x 45 g, einzeln 2,49 EUR / 45 g",
+    gewicht: "12 x 45 g (auch einzeln 45 g)",
+    servingLabel: "Riegel",
+    zutaten: designerBarDescription("Lebkuchen"),
+    nutrition: derivedNutrition({
+      servingWeightGrams: 45,
+      kcal: 167,
+      energyKj: 699,
+      protein: 14,
+      fat: 7.5,
+      saturatedFat: 3.5,
+      carbs: 15,
+      sugar: 0.3,
+      ballaststoffe: 3.4,
+      salz: 0.23,
+    }),
+  },
+  {
+    name: "ESN Designer Bar - Strawberry White Chocolate",
+    marke: "ESN",
+    imageUrl:
+      "https://cdn.shopify.com/s/files/1/0845/1358/7515/files/DesignerBar_45g_Tray_StrawberryWhiteChocolateFlavor_2024x2024_shop-bJZz9h3U_15c582ce-c6af-4b75-9d8f-7143e7afa139.jpg?v=1773665863",
+    summaryPrice: "28,90 EUR",
+    detailPrice: "28,90 EUR / 12 x 45 g, einzeln 2,49 EUR / 45 g",
+    gewicht: "12 x 45 g (auch einzeln 45 g)",
+    servingLabel: "Riegel",
+    zutaten: designerBarDescription("Strawberry White Chocolate"),
+    nutrition: derivedNutrition({
+      servingWeightGrams: 45,
+      kcal: 179,
+      protein: 15,
+      fat: 8.5,
+      saturatedFat: 4.3,
+      carbs: 15,
+      sugar: 2,
+      ballaststoffe: 1.4,
+      polyole: 13,
+    }),
+  },
+  {
+    name: "ESN Designer Bar - Strawberry Yogurt",
+    marke: "ESN",
+    imageUrl:
+      "https://cdn.shopify.com/s/files/1/0845/1358/7515/files/DesignerBar_45g_Tray_StrawberryYogurtFlavor_2024x2024_shop-2O331kPD_f4de1673-b0fe-4be6-8b6e-e7820f3d04fb.jpg?v=1774018443",
+    summaryPrice: "28,90 EUR",
+    detailPrice: "28,90 EUR / 12 x 45 g, einzeln 2,49 EUR / 45 g",
+    gewicht: "12 x 45 g (auch einzeln 45 g)",
+    servingLabel: "Riegel",
+    zutaten: designerBarDescription("Strawberry Yogurt"),
+    nutrition: derivedNutrition({
+      servingWeightGrams: 45,
+      kcal: 179,
+      protein: 15,
+      fat: 8.7,
+      saturatedFat: 4.5,
+      carbs: 15,
+      sugar: 2,
+      ballaststoffe: 1.8,
+      polyole: 12,
+    }),
+  },
+  {
+    name: "ESN Designer Bar - White Chocolate Pistachio",
+    marke: "ESN",
+    imageUrl:
+      "https://cdn.shopify.com/s/files/1/0845/1358/7515/files/DesignerBar_45g_Tray_WhiteChocolatePistachioFlavor_2024x2024_shop-zVk2d4vy_8620a7dd-2c80-4c28-b139-43621561eb6e.jpg?v=1773666563",
+    summaryPrice: "28,90 EUR",
+    detailPrice: "28,90 EUR / 12 x 45 g, einzeln 2,49 EUR / 45 g",
+    gewicht: "12 x 45 g (auch einzeln 45 g)",
+    servingLabel: "Riegel",
+    zutaten: designerBarDescription("White Chocolate Pistachio"),
+    nutrition: derivedNutrition({
+      servingWeightGrams: 45,
+      kcal: 183,
+      protein: 15,
+      fat: 9.1,
+      saturatedFat: 4.3,
+      carbs: 15,
+      sugar: 1.7,
+      ballaststoffe: 1.3,
+      polyole: 13,
+    }),
+  },
+];
+const ESN_GOAT_BAR_VARIANTS: ProteinBarVariant[] = [
+  {
+    name: "ESN GOAT Bar - Salty Peanut",
+    marke: "ESN",
     imageUrl:
       "https://cdn.shopify.com/s/files/1/0845/1358/7515/files/GOAT_Bar_Tray_12x55g_SaltyPeanutFlavor_2024x2024_shop-pEBRAfJA_e9e3f97e-4a5e-458d-830c-ed20b48b8895.jpg?v=1773753727",
-    category: "Proteinriegel",
-    slug: "proteinriegel",
-    price: "32,90 € / 12 x 55 g",
-    kcal: 204,
-    protein: 14,
-    fat: 6,
-    carbs: 20,
+    summaryPrice: "32,90 EUR",
+    detailPrice: "32,90 EUR / 12 x 55 g, einzeln 2,79 EUR / 55 g",
+    gewicht: "12 x 55 g (auch einzeln 55 g)",
+    servingLabel: "Riegel",
+    zutaten: goatBarDescription("Salty Peanut"),
+    nutrition: derivedNutrition({
+      servingWeightGrams: 55,
+      kcal: 223,
+      energyKj: 933,
+      protein: 14,
+      fat: 7.9,
+      carbs: 22,
+      sugar: 13,
+      ballaststoffe: 4.7,
+    }),
   },
   {
-    name: "More Protein Bar",
+    name: "ESN GOAT Bar - Berries",
+    marke: "ESN",
     imageUrl:
-      "https://morenutrition.de/cdn/shop/files/More_Protein_Bar_White_Chocolate_Coconut_50g_4096x4096-gI0kqNul.png?v=1772441088&width=160",
-    category: "Proteinriegel",
-    slug: "proteinriegel",
-    price: "28,99 € / 10 x 50 g",
-    kcal: 182,
-    protein: 16,
-    fat: 7.5,
-    carbs: 15,
+      "https://cdn.shopify.com/s/files/1/0845/1358/7515/files/GOAT_Bar_Tray_12x55g_BerriesFlavor_2024x2024_shop-da4wiuV0_735e1791-d8d9-4d7f-bb8c-e01cdd4731eb.jpg?v=1773753727",
+    summaryPrice: "32,90 EUR",
+    detailPrice: "32,90 EUR / 12 x 55 g, einzeln 2,79 EUR / 55 g",
+    gewicht: "12 x 55 g (auch einzeln 55 g)",
+    servingLabel: "Riegel",
+    zutaten: goatBarDescription("Berries"),
+    nutrition: derivedNutrition({
+      servingWeightGrams: 55,
+      kcal: 204,
+      energyKj: 852,
+      protein: 14.3,
+      fat: 4.8,
+      saturatedFat: 1,
+      carbs: 23.1,
+      sugar: 12.1,
+      salz: 0.24,
+    }),
   },
+];
+
+const MORE_PROTEIN_BAR_VARIANTS: ProteinBarVariant[] = [
   {
-    name: "More Protein Satisbites",
+    name: "More Protein Bar - Birthday Cake",
+    marke: "More Nutrition",
     imageUrl:
-      "https://morenutrition.de/cdn/shop/files/More_Protein_Satisbites_White_Chocolate_Blueberry_Cheesecake_4096x4096-xFW66rF6.png?v=1752745805&width=160",
-    category: "Proteinriegel",
-    slug: "proteinriegel",
-    price: "34,49 € / 12 x 2 x 25 g",
-    kcal: 184,
-    protein: 15,
-    fat: 8.2,
-    carbs: 17,
+      "https://cdn.shopify.com/s/files/1/0503/7536/0676/files/Protein_Bar_Birthday_Cake_Tray_4096x4096-zM7x6M8t_fc717250-14e0-41e9-8f66-b6fe7fb21e1c.png?v=1767605986",
+    summaryPrice: "28,99 EUR",
+    detailPrice: "28,99 EUR / 10 x 50 g, einzeln 2,89 EUR / 50 g",
+    gewicht: "10 x 50 g (auch einzeln 50 g)",
+    servingLabel: "Riegel",
+    zutaten: moreBarDescription("More Protein Bar", "Birthday Cake"),
+    nutrition: {
+      energyKj: pair("743 kJ", "1485 kJ"),
+      kcal: pair("178 kcal", "356 kcal"),
+      protein: pair("16 g", "32 g"),
+      fat: pair("6,5 g", "13 g"),
+      saturatedFat: pair("3,5 g", "7,0 g"),
+      carbs: pair("18 g", "35 g"),
+      sugar: pair("1,6 g", "3,3 g"),
+      ballaststoffe: pair("4,1 g", "8,2 g"),
+      salz: pair("0,32 g", "0,63 g"),
+      polyole: pair("15 g", "31 g"),
+    },
   },
   {
-    name: "More Vegan Protein Bar",
+    name: "More Protein Bar - Caramel Crunch",
+    marke: "More Nutrition",
+    imageUrl:
+      "https://cdn.shopify.com/s/files/1/0503/7536/0676/files/more_protein_bar_caramel_crunch_box-xJW6KKG3_bed43479-c5e2-42d6-8ccd-e5a1aaa590d4.png?v=1759652485",
+    summaryPrice: "28,99 EUR",
+    detailPrice: "28,99 EUR / 10 x 50 g, einzeln 2,89 EUR / 50 g",
+    gewicht: "10 x 50 g (auch einzeln 50 g)",
+    servingLabel: "Riegel",
+    zutaten: moreBarDescription("More Protein Bar", "Caramel Crunch"),
+    nutrition: {
+      energyKj: pair("760 kJ", "1519 kJ"),
+      kcal: pair("182 kcal", "364 kcal"),
+      protein: pair("16 g", "31 g"),
+      fat: pair("7,5 g", "15 g"),
+      saturatedFat: pair("3,6 g", "7,3 g"),
+      carbs: pair("15 g", "31 g"),
+      sugar: pair("1,9 g", "3,9 g"),
+      ballaststoffe: pair("5,3 g", "11 g"),
+      salz: pair("0,43 g", "0,85 g"),
+      polyole: pair("13 g", "26 g"),
+    },
+  },
+  {
+    name: "More Protein Bar - Caramel Morezipan",
+    marke: "More Nutrition",
+    imageUrl:
+      "https://cdn.shopify.com/s/files/1/0503/7536/0676/files/Protein_Bar_Caramel_Morezipan_Tray_4096x4096-1usqV1ru_d2e865e9-8dd1-4615-bcd0-40d79a323683.png?v=1761817165",
+    summaryPrice: "28,99 EUR",
+    detailPrice: "28,99 EUR / 10 x 50 g, einzeln 2,89 EUR / 50 g",
+    gewicht: "10 x 50 g (auch einzeln 50 g)",
+    servingLabel: "Riegel",
+    zutaten: moreBarDescription("More Protein Bar", "Caramel Morezipan"),
+    nutrition: {
+      energyKj: pair("746 kJ", "1492 kJ"),
+      kcal: pair("179 kcal", "358 kcal"),
+      protein: pair("16 g", "32 g"),
+      fat: pair("7,5 g", "15 g"),
+      saturatedFat: pair("3,9 g", "7,8 g"),
+      carbs: pair("15 g", "30 g"),
+      sugar: pair("1,7 g", "3,5 g"),
+      ballaststoffe: pair("4,5 g", "9,0 g"),
+      salz: pair("0,58 g", "1,17 g"),
+      polyole: pair("13 g", "26 g"),
+    },
+  },
+  {
+    name: "More Protein Bar - Dark Chocolate Praline Crunch",
+    marke: "More Nutrition",
+    imageUrl:
+      "https://cdn.shopify.com/s/files/1/0503/7536/0676/files/Protein_Bar_Dark_Chocolate_Praline_Crunch_Tray_4096x4096-G0MEPkxb_ea36b65e-231c-4ef9-8b6d-adda3431c935.png?v=1759652485",
+    summaryPrice: "28,99 EUR",
+    detailPrice: "28,99 EUR / 10 x 50 g, einzeln 2,89 EUR / 50 g",
+    gewicht: "10 x 50 g (auch einzeln 50 g)",
+    servingLabel: "Riegel",
+    zutaten: moreBarDescription("More Protein Bar", "Dark Chocolate Praline Crunch"),
+    nutrition: {
+      energyKj: pair("748 kJ", "1496 kJ"),
+      kcal: pair("179 kcal", "359 kcal"),
+      protein: pair("16 g", "32 g"),
+      fat: pair("7,1 g", "14 g"),
+      saturatedFat: pair("3,6 g", "7,1 g"),
+      carbs: pair("16 g", "32 g"),
+      sugar: pair("0,6 g", "1,2 g"),
+      ballaststoffe: pair("4,6 g", "9,2 g"),
+      salz: pair("0,34 g", "0,67 g"),
+      polyole: pair("14 g", "29 g"),
+    },
+  },
+  {
+    name: "More Protein Bar - Milky Candy Cream",
+    marke: "More Nutrition",
+    imageUrl:
+      "https://cdn.shopify.com/s/files/1/0503/7536/0676/files/Protein_Bar_Milky_Candy_Cream_Tray_4096x4096-4JhKabGJ_98b4ffe9-c7da-44b1-8d0f-9088652cf2c9.png?v=1765190356",
+    summaryPrice: "28,99 EUR",
+    detailPrice: "28,99 EUR / 10 x 50 g, einzeln 2,89 EUR / 50 g",
+    gewicht: "10 x 50 g (auch einzeln 50 g)",
+    servingLabel: "Riegel",
+    zutaten: moreBarDescription("More Protein Bar", "Milky Candy Cream"),
+    nutrition: {
+      energyKj: pair("745 kJ", "1491 kJ"),
+      kcal: pair("178 kcal", "356 kcal"),
+      protein: pair("19 g", "37 g"),
+      fat: pair("6,3 g", "13 g"),
+      saturatedFat: pair("3,4 g", "6,8 g"),
+      carbs: pair("18 g", "35 g"),
+      sugar: pair("2,0 g", "3,9 g"),
+      ballaststoffe: pair("0 g", "0,6 g"),
+      salz: pair("0,35 g", "0,69 g"),
+      polyole: pair("15 g", "31 g"),
+    },
+  },
+  {
+    name: "More Protein Bar - Milky Hazelnut Chocolate Cream",
+    marke: "More Nutrition",
+    imageUrl:
+      "https://cdn.shopify.com/s/files/1/0503/7536/0676/files/Protein_Bar_Milky_Hazelnut_Chocolate_Cream_Tray_4096x4096-pVheoHYY_ee466036-1db2-4492-a6f9-e6496b26264b.png?v=1767605952",
+    summaryPrice: "28,99 EUR",
+    detailPrice: "28,99 EUR / 10 x 50 g, einzeln 2,89 EUR / 50 g",
+    gewicht: "10 x 50 g (auch einzeln 50 g)",
+    servingLabel: "Riegel",
+    zutaten: moreBarDescription("More Protein Bar", "Milky Hazelnut Chocolate Cream"),
+    nutrition: {
+      energyKj: pair("710 kJ", "1421 kJ"),
+      kcal: pair("171 kcal", "341 kcal"),
+      protein: pair("15 g", "30 g"),
+      fat: pair("7,0 g", "14 g"),
+      saturatedFat: pair("3,1 g", "6,3 g"),
+      carbs: pair("13 g", "27 g"),
+      sugar: pair("2,0 g", "4,0 g"),
+      ballaststoffe: pair("7,8 g", "16 g"),
+      salz: pair("0,26 g", "0,53 g"),
+      polyole: pair("11 g", "23 g"),
+    },
+  },
+  {
+    name: "More Protein Bar - Peanut Caramel",
+    marke: "More Nutrition",
+    imageUrl:
+      "https://cdn.shopify.com/s/files/1/0503/7536/0676/files/more_protein_bar_peanut_caramel_box-ViVD29sx_5b1f04d2-2c95-498c-b90a-abc9de305da6.png?v=1759652485",
+    summaryPrice: "28,99 EUR",
+    detailPrice: "28,99 EUR / 10 x 50 g, einzeln 2,89 EUR / 50 g",
+    gewicht: "10 x 50 g (auch einzeln 50 g)",
+    servingLabel: "Riegel",
+    zutaten: moreBarDescription("More Protein Bar", "Peanut Caramel"),
+    nutrition: {
+      energyKj: pair("794 kJ", "1588 kJ"),
+      kcal: pair("191 kcal", "381 kcal"),
+      protein: pair("16 g", "33 g"),
+      fat: pair("8,7 g", "18 g"),
+      saturatedFat: pair("3,9 g", "7,9 g"),
+      carbs: pair("14 g", "28 g"),
+      sugar: pair("1,7 g", "3,4 g"),
+      ballaststoffe: pair("4,7 g", "9,5 g"),
+      salz: pair("0,53 g", "1,1 g"),
+      polyole: pair("11 g", "23 g"),
+    },
+  },
+  {
+    name: "More Protein Bar - White Chocolate Caramel Crunch",
+    marke: "More Nutrition",
+    imageUrl:
+      "https://cdn.shopify.com/s/files/1/0503/7536/0676/files/Protein_Bar_White_Chocolate_Caramel_Crunch_Tray_2048x2048-8gF4lv8u_0d51dd09-544a-4c16-ac23-7dbeb67a999e.png?v=1759652485",
+    summaryPrice: "28,99 EUR",
+    detailPrice: "28,99 EUR / 10 x 50 g, einzeln 2,89 EUR / 50 g",
+    gewicht: "10 x 50 g (auch einzeln 50 g)",
+    servingLabel: "Riegel",
+    zutaten: moreBarDescription("More Protein Bar", "White Chocolate Caramel Crunch"),
+    nutrition: {
+      energyKj: pair("766 kJ", "1533 kJ"),
+      kcal: pair("184 kcal", "368 kcal"),
+      protein: pair("15 g", "31 g"),
+      fat: pair("7,7 g", "15 g"),
+      saturatedFat: pair("3,7 g", "7,4 g"),
+      carbs: pair("16 g", "32 g"),
+      sugar: pair("2,1 g", "4,2 g"),
+      ballaststoffe: pair("5,0 g", "10 g"),
+      salz: pair("0,45 g", "0,91 g"),
+      polyole: pair("14 g", "27 g"),
+    },
+  },
+  {
+    name: "More Protein Bar - White Chocolate Coconut",
+    marke: "More Nutrition",
+    imageUrl:
+      "https://cdn.shopify.com/s/files/1/0503/7536/0676/files/Protein_Bar_White_Chocolate_Coconut_Tray_4096x4096-ku2zZSku_defda07a-e1f3-44e9-815c-5a46e58a2151.png?v=1760348350",
+    summaryPrice: "28,99 EUR",
+    detailPrice: "28,99 EUR / 10 x 50 g, einzeln 2,89 EUR / 50 g",
+    gewicht: "10 x 50 g (auch einzeln 50 g)",
+    servingLabel: "Riegel",
+    zutaten: moreBarDescription("More Protein Bar", "White Chocolate Coconut"),
+    nutrition: {
+      energyKj: pair("762 kJ", "1525 kJ"),
+      kcal: pair("183 kcal", "366 kcal"),
+      protein: pair("16 g", "33 g"),
+      fat: pair("7,8 g", "16 g"),
+      saturatedFat: pair("3,9 g", "7,8 g"),
+      carbs: pair("15 g", "30 g"),
+      sugar: pair("1,7 g", "3,4 g"),
+      ballaststoffe: pair("4,1 g", "8,2 g"),
+      salz: pair("0,42 g", "0,83 g"),
+      polyole: pair("13 g", "25 g"),
+    },
+  },
+  {
+    name: "More Protein Bar - White Chocolate Peanut Caramel",
+    marke: "More Nutrition",
+    imageUrl:
+      "https://cdn.shopify.com/s/files/1/0503/7536/0676/files/more_protein_bar_white_chocolate_peanut_caramel_box-Dcpv0pQe_f5696f65-24fa-40bd-bdb9-5fc80a659278.png?v=1759315671",
+    summaryPrice: "28,99 EUR",
+    detailPrice: "28,99 EUR / 10 x 50 g, einzeln 2,89 EUR / 50 g",
+    gewicht: "10 x 50 g (auch einzeln 50 g)",
+    servingLabel: "Riegel",
+    zutaten: moreBarDescription("More Protein Bar", "White Chocolate Peanut Caramel"),
+    nutrition: {
+      energyKj: pair("800 kJ", "1600 kJ"),
+      kcal: pair("192 kcal", "384 kcal"),
+      protein: pair("16 g", "32 g"),
+      fat: pair("9,0 g", "18 g"),
+      saturatedFat: pair("3,9 g", "7,9 g"),
+      carbs: pair("14 g", "28 g"),
+      sugar: pair("1,7 g", "3,4 g"),
+      ballaststoffe: pair("4,5 g", "8,9 g"),
+      salz: pair("0,53 g", "1,1 g"),
+      polyole: pair("12 g", "23 g"),
+    },
+  },
+];
+
+const MORE_PROTEIN_SATISBITES_VARIANTS: ProteinBarVariant[] = [
+  {
+    name: "More Protein Satisbites - Dark Chocolate Caramel Brownie",
+    marke: "More Nutrition",
+    imageUrl:
+      "https://cdn.shopify.com/s/files/1/0503/7536/0676/files/More_Protein_Satisbites_Dark_Chocolate_Caramel_Brownie_Tray_4096x4096-eHLAIwmQ_07afbd41-34f9-4bc0-a6d7-9bbd275a95c4.png?v=1767606848",
+    summaryPrice: "34,49 EUR",
+    detailPrice: "34,49 EUR / 12 x 2 x 25 g, einzeln 2,89 EUR / 2 x 25 g",
+    gewicht: "12 x 2 x 25 g (auch einzeln 2 x 25 g)",
+    servingLabel: "Portion",
+    zutaten: moreBarDescription("More Protein Satisbites", "Dark Chocolate Caramel Brownie"),
+    nutrition: {
+      energyKj: pair("764 kJ", "1528 kJ"),
+      kcal: pair("183 kcal", "365 kcal"),
+      protein: pair("14 g", "28 g"),
+      fat: pair("8,1 g", "16 g"),
+      saturatedFat: pair("4,7 g", "9,4 g"),
+      carbs: pair("16 g", "33 g"),
+      sugar: pair("0,2 g", "0,4 g"),
+      ballaststoffe: pair("5,0 g", "10 g"),
+      salz: pair("0,31 g", "0,62 g"),
+      glucomannan: pair("1,0 g", "2,0 g"),
+      polyole: pair("14 g", "28 g"),
+    },
+  },
+  {
+    name: "More Protein Satisbites - Dark Cookie Crumble",
+    marke: "More Nutrition",
+    imageUrl:
+      "https://cdn.shopify.com/s/files/1/0503/7536/0676/files/More_Protein_Satisbites_Dark_Cookie_Crumble_Tray_4096x4096-ce6kO8NX_5b36a01c-85fe-4e49-8373-774d1d2efa68.png?v=1772031270",
+    summaryPrice: "34,49 EUR",
+    detailPrice: "34,49 EUR / 12 x 2 x 25 g, einzeln 2,89 EUR / 2 x 25 g",
+    gewicht: "12 x 2 x 25 g (auch einzeln 2 x 25 g)",
+    servingLabel: "Portion",
+    zutaten: moreBarDescription("More Protein Satisbites", "Dark Cookie Crumble"),
+    nutrition: {
+      energyKj: pair("790 kJ", "1581 kJ"),
+      kcal: pair("189 kcal", "378 kcal"),
+      protein: pair("13 g", "26 g"),
+      fat: pair("8,9 g", "18 g"),
+      saturatedFat: pair("4,8 g", "9,6 g"),
+      carbs: pair("17 g", "35 g"),
+      sugar: pair("1,6 g", "3,3 g"),
+      ballaststoffe: pair("4,6 g", "9,2 g"),
+      salz: pair("0,33 g", "0,66 g"),
+      glucomannan: pair("1,0 g", "2,0 g"),
+      polyole: pair("14 g", "27 g"),
+    },
+  },
+  {
+    name: "More Protein Satisbites - Lebkuchen",
+    marke: "More Nutrition",
+    imageUrl:
+      "https://cdn.shopify.com/s/files/1/0503/7536/0676/files/More_Protein_Satisbites_Lebkuchen_Tray_4096x4096-D5K_G7Sa_36a7faba-1fcf-499e-999f-d2582299bc0e.png?v=1761306385",
+    summaryPrice: "34,49 EUR",
+    detailPrice: "34,49 EUR / 12 x 2 x 25 g, einzeln 2,89 EUR / 2 x 25 g",
+    gewicht: "12 x 2 x 25 g (auch einzeln 2 x 25 g)",
+    servingLabel: "Portion",
+    zutaten: moreBarDescription("More Protein Satisbites", "Lebkuchen"),
+    nutrition: {
+      energyKj: pair("773 kJ", "1546 kJ"),
+      kcal: pair("184 kcal", "369 kcal"),
+      protein: pair("15 g", "30 g"),
+      fat: pair("8,2 g", "16 g"),
+      saturatedFat: pair("4,0 g", "8,0 g"),
+      carbs: pair("17 g", "34 g"),
+      sugar: pair("1,6 g", "3,2 g"),
+      ballaststoffe: pair("4,0 g", "7,9 g"),
+      salz: pair("0,24 g", "0,47 g"),
+      glucomannan: pair("1,0 g", "2,0 g"),
+      polyole: pair("12 g", "23 g"),
+    },
+  },
+  {
+    name: "More Protein Satisbites - Milk Chocolate Coconut",
+    marke: "More Nutrition",
+    imageUrl:
+      "https://cdn.shopify.com/s/files/1/0503/7536/0676/files/More_Protein_Satisbites_Milk_Chocolate_Coconut_Tray_4096x4096-hRrP-jH2_ae74135f-3bfd-480c-b1fd-4fa69cd46065.png?v=1770030552",
+    summaryPrice: "34,49 EUR",
+    detailPrice: "34,49 EUR / 12 x 2 x 25 g, einzeln 2,89 EUR / 2 x 25 g",
+    gewicht: "12 x 2 x 25 g (auch einzeln 2 x 25 g)",
+    servingLabel: "Portion",
+    zutaten: moreBarDescription("More Protein Satisbites", "Milk Chocolate Coconut"),
+    nutrition: {
+      energyKj: pair("825 kJ", "1649 kJ"),
+      kcal: pair("198 kcal", "396 kcal"),
+      protein: pair("15 g", "31 g"),
+      fat: pair("11 g", "21 g"),
+      saturatedFat: pair("5,6 g", "11 g"),
+      carbs: pair("15 g", "29 g"),
+      sugar: pair("1,5 g", "3,0 g"),
+      ballaststoffe: pair("3,3 g", "6,6 g"),
+      salz: pair("0,22 g", "0,44 g"),
+      glucomannan: pair("1,0 g", "2,0 g"),
+      polyole: pair("13 g", "25 g"),
+    },
+  },
+  {
+    name: "More Protein Satisbites - Milk Chocolate Pistachio",
+    marke: "More Nutrition",
+    imageUrl:
+      "https://cdn.shopify.com/s/files/1/0503/7536/0676/files/More_Protein_Satisbites_Milk_Chocolate_Pistachio_Tray_4096x4096-G9K2W3FK_1654bb96-0a12-4508-aa91-145d57e34bf4.png?v=1761306385",
+    summaryPrice: "34,49 EUR",
+    detailPrice: "34,49 EUR / 12 x 2 x 25 g, einzeln 2,89 EUR / 2 x 25 g",
+    gewicht: "12 x 2 x 25 g (auch einzeln 2 x 25 g)",
+    servingLabel: "Portion",
+    zutaten: moreBarDescription("More Protein Satisbites", "Milk Chocolate Pistachio"),
+    nutrition: {
+      energyKj: pair("834 kJ", "1669 kJ"),
+      kcal: pair("199 kcal", "399 kcal"),
+      protein: pair("16 g", "31 g"),
+      fat: pair("10 g", "20 g"),
+      saturatedFat: pair("4,7 g", "9,5 g"),
+      carbs: pair("16 g", "31 g"),
+      sugar: pair("1,7 g", "3,4 g"),
+      ballaststoffe: pair("2,7 g", "5,4 g"),
+      salz: pair("0,18 g", "0,36 g"),
+      glucomannan: pair("1,0 g", "2,0 g"),
+      polyole: pair("14 g", "27 g"),
+    },
+  },
+  {
+    name: "More Protein Satisbites - White Chocolate Blueberry Cheesecake",
+    marke: "More Nutrition",
+    imageUrl:
+      "https://cdn.shopify.com/s/files/1/0503/7536/0676/files/More_Protein_Satisbites_White_Chocolate_Blueberry_Cheesecake_Tray_4096x4096_DE_1-RjX5OSwE_a3b1bcf7-70a9-4b08-b7f5-27103b4a55ae.png?v=1772180646",
+    summaryPrice: "34,49 EUR",
+    detailPrice: "34,49 EUR / 12 x 2 x 25 g, einzeln 2,89 EUR / 2 x 25 g",
+    gewicht: "12 x 2 x 25 g (auch einzeln 2 x 25 g)",
+    servingLabel: "Portion",
+    zutaten: moreBarDescription(
+      "More Protein Satisbites",
+      "White Chocolate Blueberry Cheesecake"
+    ),
+    nutrition: {
+      energyKj: pair("758 kJ", "1516 kJ"),
+      kcal: pair("181 kcal", "361 kcal"),
+      protein: pair("15 g", "29 g"),
+      fat: pair("6,8 g", "14 g"),
+      saturatedFat: pair("3,6 g", "7,3 g"),
+      carbs: pair("21 g", "41 g"),
+      sugar: pair("1,6 g", "3,2 g"),
+      ballaststoffe: pair("2,3 g", "4,5 g"),
+      salz: pair("0,24 g", "0,48 g"),
+      glucomannan: pair("1,0 g", "2,0 g"),
+      polyole: pair("14 g", "29 g"),
+    },
+  },
+  {
+    name: "More Protein Satisbites - White Chocolate Strawberry Cream",
+    marke: "More Nutrition",
+    imageUrl:
+      "https://cdn.shopify.com/s/files/1/0503/7536/0676/files/More_Protein_Satisbites_White_Chocolate_Strawberry_Cream_Tray_4096x4096-sfo4iJPb_00b87f91-34be-43ae-8001-823a9ec32a0d.png?v=1772030394",
+    summaryPrice: "34,49 EUR",
+    detailPrice: "34,49 EUR / 12 x 2 x 25 g, einzeln 2,89 EUR / 2 x 25 g",
+    gewicht: "12 x 2 x 25 g (auch einzeln 2 x 25 g)",
+    servingLabel: "Portion",
+    zutaten: moreBarDescription("More Protein Satisbites", "White Chocolate Strawberry Cream"),
+    nutrition: {
+      energyKj: pair("809 kJ", "1619 kJ"),
+      kcal: pair("193 kcal", "386 kcal"),
+      protein: pair("15 g", "30 g"),
+      fat: pair("8,9 g", "18 g"),
+      saturatedFat: pair("4,5 g", "9,0 g"),
+      carbs: pair("17 g", "34 g"),
+      sugar: pair("2,6 g", "5,1 g"),
+      ballaststoffe: pair("3,0 g", "6,0 g"),
+      salz: pair("0,19 g", "0,39 g"),
+      glucomannan: pair("1,0 g", "2,0 g"),
+      polyole: pair("14 g", "28 g"),
+    },
+  },
+  {
+    name: "More Protein Satisbites - White Hazelnut Nougat",
+    marke: "More Nutrition",
+    imageUrl:
+      "https://cdn.shopify.com/s/files/1/0503/7536/0676/files/More_Protein_Satisbites_White_Hazelnut_Nougat_Tray_4096x4096-pvTNZm2C_a18bcd86-0450-4baf-af8b-4738286723f6.png?v=1772030419",
+    summaryPrice: "34,49 EUR",
+    detailPrice: "34,49 EUR / 12 x 2 x 25 g, einzeln 2,89 EUR / 2 x 25 g",
+    gewicht: "12 x 2 x 25 g (auch einzeln 2 x 25 g)",
+    servingLabel: "Portion",
+    zutaten: moreBarDescription("More Protein Satisbites", "White Hazelnut Nougat"),
+    nutrition: {
+      energyKj: pair("824 kJ", "1649 kJ"),
+      kcal: pair("197 kcal", "394 kcal"),
+      protein: pair("15 g", "31 g"),
+      fat: pair("9,9 g", "20 g"),
+      saturatedFat: pair("3,9 g", "7,7 g"),
+      carbs: pair("15 g", "31 g"),
+      sugar: pair("1,9 g", "3,9 g"),
+      ballaststoffe: pair("2,7 g", "5,4 g"),
+      salz: pair("0,19 g", "0,38 g"),
+      glucomannan: pair("1,0 g", "2,0 g"),
+      polyole: pair("13 g", "27 g"),
+    },
+  },
+  {
+    name: "More Protein Satisbites - Zimtstern",
+    marke: "More Nutrition",
+    imageUrl:
+      "https://cdn.shopify.com/s/files/1/0503/7536/0676/files/More_Protein_Satisbites_Zimtstern_Tray_4096x4096-sYHUNC7X_9f71900a-5d6f-4d39-996d-68c9c7557eac.png?v=1761306385",
+    summaryPrice: "34,49 EUR",
+    detailPrice: "34,49 EUR / 12 x 2 x 25 g, einzeln 2,89 EUR / 2 x 25 g",
+    gewicht: "12 x 2 x 25 g (auch einzeln 2 x 25 g)",
+    servingLabel: "Portion",
+    zutaten: moreBarDescription("More Protein Satisbites", "Zimtstern"),
+    nutrition: {
+      energyKj: pair("798 kJ", "1596 kJ"),
+      kcal: pair("191 kcal", "381 kcal"),
+      protein: pair("14 g", "29 g"),
+      fat: pair("8,7 g", "17 g"),
+      saturatedFat: pair("4,4 g", "8,7 g"),
+      carbs: pair("19 g", "38 g"),
+      sugar: pair("1,6 g", "3,1 g"),
+      ballaststoffe: pair("3,8 g", "7,6 g"),
+      salz: pair("0,24 g", "0,49 g"),
+      glucomannan: pair("1,0 g", "2,0 g"),
+      polyole: pair("15 g", "29 g"),
+    },
+  },
+];
+
+const MORE_VEGAN_PROTEIN_BAR_VARIANTS: ProteinBarVariant[] = [
+  {
+    name: "More Vegan Protein Bar - Hazelnut Nougat",
+    marke: "More Nutrition",
+    imageUrl:
+      "https://cdn.shopify.com/s/files/1/0503/7536/0676/files/Protein_Bar_Vegan_Hazelnut_Nougat_Tray_4096x4096-43d6FmC6_c2f50f6c-9b2e-45fd-9a73-d25b5786f6d9.png?v=1762956552",
+    summaryPrice: "28,99 EUR",
+    detailPrice: "28,99 EUR / 10 x 55 g, einzeln 2,89 EUR / 55 g",
+    gewicht: "10 x 55 g (auch einzeln 55 g)",
+    servingLabel: "Riegel",
+    zutaten: moreBarDescription("More Vegan Protein Bar", "Hazelnut Nougat"),
+    nutrition: {
+      energyKj: pair("829 kJ", "1507 kJ"),
+      kcal: pair("199 kcal", "362 kcal"),
+      protein: pair("15 g", "28 g"),
+      fat: pair("9,0 g", "17 g"),
+      saturatedFat: pair("3,6 g", "6,6 g"),
+      carbs: pair("19 g", "34 g"),
+      sugar: pair("0,9 g", "1,6 g"),
+      ballaststoffe: pair("4,9 g", "9,0 g"),
+      salz: pair("0,49 g", "0,89 g"),
+      polyole: pair("17 g", "31 g"),
+    },
+  },
+  {
+    name: "More Vegan Protein Bar - Morezipan Almond Cake",
+    marke: "More Nutrition",
+    imageUrl:
+      "https://cdn.shopify.com/s/files/1/0503/7536/0676/files/Protein_Bar_Vegan_Morezipan_Almond_Cake_Tray_4096x4096-mQ5nhVGJ_3135a541-63a7-4588-9683-dc029bafd3ee.png?v=1761650647",
+    summaryPrice: "28,99 EUR",
+    detailPrice: "28,99 EUR / 10 x 55 g, einzeln 2,89 EUR / 55 g",
+    gewicht: "10 x 55 g (auch einzeln 55 g)",
+    servingLabel: "Riegel",
+    zutaten: moreBarDescription("More Vegan Protein Bar", "Morezipan Almond Cake"),
+    nutrition: {
+      energyKj: pair("828 kJ", "1506 kJ"),
+      kcal: pair("199 kcal", "362 kcal"),
+      protein: pair("16 g", "29 g"),
+      fat: pair("9,0 g", "16 g"),
+      saturatedFat: pair("3,8 g", "6,9 g"),
+      carbs: pair("17 g", "31 g"),
+      sugar: pair("0,8 g", "1,5 g"),
+      ballaststoffe: pair("5,5 g", "10 g"),
+      salz: pair("0,49 g", "0,89 g"),
+      polyole: pair("15 g", "28 g"),
+    },
+  },
+  {
+    name: "More Vegan Protein Bar - Peanut Butter",
+    marke: "More Nutrition",
     imageUrl:
       "https://cdn.shopify.com/s/files/1/0503/7536/0676/files/Protein_Bar_Vegan_Peanut_Butter_Tray_4096x4096-n6SUBGQq_52d720da-07d2-46dc-8b3f-f2ee0ff64bbd.png?v=1760426649",
-    category: "Proteinriegel",
-    slug: "proteinriegel",
-    price: "28,99 € / 10 x 55 g",
-    kcal: 199,
-    protein: 16,
-    fat: 9.2,
-    carbs: 18,
+    summaryPrice: "28,99 EUR",
+    detailPrice: "28,99 EUR / 10 x 55 g, einzeln 2,89 EUR / 55 g",
+    gewicht: "10 x 55 g (auch einzeln 55 g)",
+    servingLabel: "Riegel",
+    zutaten: moreBarDescription("More Vegan Protein Bar", "Peanut Butter"),
+    nutrition: {
+      energyKj: pair("826 kJ", "1502 kJ"),
+      kcal: pair("199 kcal", "362 kcal"),
+      protein: pair("16 g", "29 g"),
+      fat: pair("9,2 g", "17 g"),
+      saturatedFat: pair("3,3 g", "6,1 g"),
+      carbs: pair("18 g", "33 g"),
+      sugar: pair("0,8 g", "1,5 g"),
+      ballaststoffe: pair("4,4 g", "7,9 g"),
+      salz: pair("0,48 g", "0,88 g"),
+      polyole: pair("16 g", "29 g"),
+    },
   },
   {
-    name: "More Protein Wafer Bar",
+    name: "More Vegan Protein Bar - Spekulatius",
+    marke: "More Nutrition",
+    imageUrl:
+      "https://cdn.shopify.com/s/files/1/0503/7536/0676/files/Protein_Bar_Vegan_Spekulatius_Tray_4096x4096-Mxk4JBlG_472f4740-b132-4abb-8190-152979ea691e.png?v=1763383157",
+    summaryPrice: "17,25 EUR",
+    detailPrice: "17,25 EUR / 12 x 55 g, einzeln 1,45 EUR / 55 g",
+    gewicht: "12 x 55 g (auch einzeln 55 g)",
+    servingLabel: "Riegel",
+    zutaten: moreBarDescription("More Vegan Protein Bar", "Spekulatius"),
+    nutrition: {
+      energyKj: pair("826 kJ", "1501 kJ"),
+      kcal: pair("199 kcal", "361 kcal"),
+      protein: pair("13 g", "23 g"),
+      fat: pair("8,8 g", "16 g"),
+      saturatedFat: pair("4,6 g", "8,3 g"),
+      carbs: pair("15 g", "28 g"),
+      sugar: pair("1,8 g", "3,3 g"),
+      ballaststoffe: pair("12 g", "21 g"),
+      salz: pair("0,50 g", "0,91 g"),
+      polyole: pair("11 g", "19 g"),
+    },
+  },
+];
+
+const MORE_WAFER_BAR_VARIANTS: ProteinBarVariant[] = [
+  {
+    name: "More Protein Wafer Bar - Milk Chocolate Hazelnut",
+    marke: "More Nutrition",
     imageUrl:
       "https://cdn.shopify.com/s/files/1/0503/7536/0676/files/Protein_Wafer_Bar_Milk_Chocolate_Hazelnut_Tray_4096x4096-0biR3Aqk_9d2b825e-ea88-4e73-8acb-ebd0819f36b5.png?v=1767606848",
-    category: "Proteinriegel",
-    slug: "proteinriegel",
-    price: "16,99 € / 6 x 30 g",
-    kcal: 148,
-    protein: 8.1,
-    fat: 9.3,
-    carbs: 7.8,
-  },
-] satisfies ProductSummary[];
-
-export const OFFICIAL_PROTEINRIEGEL_DETAILS = {
-  "ESN Designer Bar Proteinriegel": {
-    marke: "ESN",
-    gewicht: "12 x 45 g",
-    preis: "28,90 €",
-    kategorie: "Proteinriegel",
-    zutaten:
-      "Die offizielle ESN-Produktseite beschreibt einen Proteinriegel mit Milchprotein, Schokolade, cremigem Kern und knusprigem Topping. Die genaue Zutatenliste variiert je nach Sorte. Verfuegbare Box-Sorten: Peanut Butter Pretzel, Strawberry White Chocolate, White Chocolate Pistachio, Strawberry Yogurt, Dark Cookie White Choc, Fudge Brownie, Almond Coconut, Cinnamon Cereal und Peanut Caramel.",
-    naehrwerte: {
-      kcal: "178-191 kcal / Riegel (je nach Sorte)",
-      protein: "14-15 g / Riegel",
-      fat: "8,2-10 g / Riegel",
-      carbs: "13-16 g / Riegel",
-      sugar: "0,3-2 g / Riegel (je nach Sorte)",
-      ballaststoffe: "1,2-4,6 g / Riegel (je nach Sorte)",
-    },
-    aminosaeurenprofil: [],
-    quelle: "online",
-  },
-  "ESN GOAT Bar": {
-    marke: "ESN",
-    gewicht: "12 x 55 g",
-    preis: "32,90 €",
-    kategorie: "Proteinriegel",
-    zutaten:
-      "Aktuell gelistete Sorte: Salty Peanut. Laut offizieller ESN-Beschreibung u. a. mit Haferflocken (20 %), geroesteten Erdnussen (19 %), Eiklarpulver (17 %), Dattelpaste (11 %), dunklen Schokoladenstueckchen (7 %), Oligofruktose, Invertzuckersirup, Honig (6 %), Sojakrispies, Kokosnussfett, Meersalz und Aroma. Verfuegbare Box-Sorten: Salty Peanut und Berries.",
-    naehrwerte: {
-      kcal: "ca. 204 kcal / Riegel",
-      protein: "14 g / Riegel",
-      fat: "ca. 6 g / Riegel",
-      carbs: "ca. 20 g / Riegel",
-      sugar: "ca. 12 g / Riegel",
-      ballaststoffe: "ca. 5,4 g / Riegel",
-    },
-    aminosaeurenprofil: [],
-    quelle: "online",
-  },
-  "More Protein Bar": {
-    marke: "More Nutrition",
-    gewicht: "10 x 50 g",
-    preis: "28,99 €",
-    kategorie: "Proteinriegel",
-    zutaten:
-      "Aktuell gelistete Variante: White Chocolate Coconut. Offizielle Zutatenangabe auszugsweise: 33 % Milcheiweiss, Suessungsmittel, weisse Schokolade (15 %), Fuellung mit Sonnenblumenoel und Magermilchpulver, Kollagenhydrolysat, Feuchthaltemittel, Palmfett, Ballaststoffe, Aroma und Emulgator. Verfuegbare Box-Sorten: White Chocolate Coconut, Caramel Morezipan, White Chocolate Caramel Crunch, Milky Hazelnut Chocolate Cream, Caramel Crunch, White Chocolate Peanut Caramel, Peanut Caramel und Milky Candy Cream.",
-    naehrwerte: {
-      energyKj: "1531 kJ / 100 g",
-      kcal: "182 kcal / Riegel, 363 kcal / 100 g",
-      protein: "16 g / Riegel, 33 g / 100 g",
-      fat: "7,5 g / Riegel, 15 g / 100 g",
-      saturatedFat: "4,8 g / 100 g",
-      carbs: "15 g / Riegel, 29 g / 100 g",
-      sugar: "2,2 g / Riegel, 4,4 g / 100 g",
-      ballaststoffe: "4,7 g / Riegel, 9,4 g / 100 g",
-      salz: "0,19 g / Riegel, 0,39 g / 100 g",
-      polyole: "11 g / Riegel, 22 g / 100 g",
-    },
-    aminosaeurenprofil: [],
-    quelle: "online",
-  },
-  "More Protein Satisbites": {
-    marke: "More Nutrition",
-    gewicht: "12 x 2 x 25 g",
-    preis: "34,49 €",
-    kategorie: "Proteinriegel",
-    zutaten:
-      "Aktuell gelistete Variante: White Chocolate Blueberry Cheesecake. Offizielle Produktseite bewirbt zwei Bites pro Portion, Protein, Glucomannan und keinen zugesetzten Zucker. Verfuegbare Box-Sorten: White Chocolate Blueberry Cheesecake, Dark Chocolate Caramel Brownie, Milk Chocolate Coconut, Dark Cookie Crumble, Milk Chocolate Pistachio und White Chocolate Strawberry Cream.",
-    naehrwerte: {
-      kcal: "184 kcal / Portion",
-      protein: "15 g / Portion",
-      fat: "8,2 g / Portion",
-      carbs: "17 g / Portion",
-      glucomannan: "1,5 g / Portion",
-    },
-    aminosaeurenprofil: [],
-    quelle: "online",
-  },
-  "More Vegan Protein Bar": {
-    marke: "More Nutrition",
-    gewicht: "10 x 55 g",
-    preis: "28,99 €",
-    kategorie: "Proteinriegel",
-    zutaten:
-      "Aktuell gelistete Variante: Peanut Butter. Offizielle Produktseite beschreibt einen veganen Proteinriegel ohne tierische Zutaten und ohne zugesetzten Zucker. Verfuegbare Box-Sorten: Peanut Butter, Spekulatius, Hazelnut Nougat und Morezipan Almond Cake.",
-    naehrwerte: {
-      kcal: "199 kcal / Riegel",
-      protein: "16 g / Riegel",
-      fat: "9,2 g / Riegel",
-      carbs: "18 g / Riegel",
-    },
-    aminosaeurenprofil: [],
-    quelle: "online",
-  },
-  "More Protein Wafer Bar": {
-    marke: "More Nutrition",
+    summaryPrice: "16,99 EUR",
+    detailPrice: "16,99 EUR / 6 x 30 g",
     gewicht: "6 x 30 g",
-    preis: "16,99 €",
-    kategorie: "Proteinriegel",
-    zutaten:
-      "Aktuell gelistete Variante: Milk Chocolate Hazelnut. Offizielle Produktseite beschreibt einen knusprigen Wafer-Riegel mit Schokolade, Haselnussnote, Protein und ohne zugesetzten Zucker.",
-    naehrwerte: {
-      kcal: "148 kcal / Riegel",
-      protein: "8,1 g / Riegel",
-      fat: "9,3 g / Riegel",
-      carbs: "7,8 g / Riegel",
-      sugar: "1,6 g / Riegel",
+    servingLabel: "Riegel",
+    zutaten: moreBarDescription("More Protein Wafer Bar", "Milk Chocolate Hazelnut"),
+    nutrition: {
+      energyKj: pair("613 kJ", "2042 kJ"),
+      kcal: pair("148 kcal", "493 kcal"),
+      protein: pair("8,1 g", "27 g"),
+      fat: pair("9,3 g", "31 g"),
+      saturatedFat: pair("3,9 g", "13 g"),
+      carbs: pair("7,8 g", "26 g"),
+      sugar: pair("1,6 g", "5,2 g"),
+      ballaststoffe: pair("2,6 g", "8,5 g"),
+      salz: pair("0,05 g", "0,15 g"),
+      polyole: pair("4,8 g", "16 g"),
     },
-    aminosaeurenprofil: [],
-    quelle: "online",
   },
-} satisfies Record<string, ProductDetailsRecord>;
+];
+
+const OFFICIAL_PROTEIN_BAR_VARIANTS: ProteinBarVariant[] = [
+  ...ESN_DESIGNER_BAR_VARIANTS,
+  ...ESN_GOAT_BAR_VARIANTS,
+  ...MORE_PROTEIN_BAR_VARIANTS,
+  ...MORE_PROTEIN_SATISBITES_VARIANTS,
+  ...MORE_VEGAN_PROTEIN_BAR_VARIANTS,
+  ...MORE_WAFER_BAR_VARIANTS,
+];
+
+export const OFFICIAL_PROTEINRIEGEL_PRODUCTS =
+  OFFICIAL_PROTEIN_BAR_VARIANTS.map(createProductSummary) satisfies ProductSummary[];
+
+export const OFFICIAL_PROTEINRIEGEL_DETAILS = Object.fromEntries(
+  OFFICIAL_PROTEIN_BAR_VARIANTS.map((variant) => [variant.name, createProductDetails(variant)])
+) satisfies Record<string, ProductDetailsRecord>;
