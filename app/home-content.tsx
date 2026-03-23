@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import ProductCardImage from "./components/ProductCardImage";
 import {
   ALL_PRODUCTS,
   PIZZA_PRODUCTS,
@@ -89,7 +90,13 @@ function fallbackSections(): HomeSectionsResponse {
   };
 }
 
-function ProductCard({ product }: { product: RankedProduct }) {
+function ProductCard({
+  product,
+  eager = false,
+}: {
+  product: RankedProduct;
+  eager?: boolean;
+}) {
   return (
     <Link
       href={`/produkt/${product.routeSlug}`}
@@ -104,21 +111,12 @@ function ProductCard({ product }: { product: RankedProduct }) {
       "
       style={{ aspectRatio: "3/4" }}
     >
-      <img
-        src={product.imageUrl}
+      <ProductCardImage
+        routeSlug={product.routeSlug}
         alt={product.name}
+        fallbackSrc={product.imageUrl}
+        eager={eager}
         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-        loading="lazy"
-        decoding="async"
-        onError={(event) => {
-          const image = event.currentTarget;
-          if (image.dataset.fallbackApplied === "1") {
-            image.src = "/images/placeholders/product-default.svg";
-            return;
-          }
-          image.dataset.fallbackApplied = "1";
-          image.src = `/api/product-image/${product.routeSlug}`;
-        }}
       />
 
       <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent opacity-90 group-hover:opacity-100 transition-opacity" />
@@ -155,8 +153,12 @@ function ProductSection({
         {title}
       </h2>
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5 md:gap-7">
-        {products.map((product) => (
-          <ProductCard key={`${title}-${product.routeSlug}`} product={product} />
+        {products.map((product, index) => (
+          <ProductCard
+            key={`${title}-${product.routeSlug}`}
+            product={product}
+            eager={index < 3}
+          />
         ))}
       </div>
     </section>
@@ -343,8 +345,12 @@ export default function HomeContent() {
 
             {browseProducts.length > 0 ? (
               <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5 md:gap-7">
-                {browseProducts.map((product) => (
-                  <ProductCard key={`browse-${product.routeSlug}`} product={product} />
+                {browseProducts.map((product, index) => (
+                  <ProductCard
+                    key={`browse-${product.routeSlug}`}
+                    product={product}
+                    eager={index < 3}
+                  />
                 ))}
               </div>
             ) : (

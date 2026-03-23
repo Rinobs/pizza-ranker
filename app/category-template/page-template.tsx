@@ -75,9 +75,11 @@ export default function CategoryPage({
 }) {
   const [sortMode, setSortMode] = React.useState<DiscoverSortMode>(DEFAULT_DISCOVER_SORT);
   const [searchQuery, setSearchQuery] = React.useState("");
+  const deferredSearchQuery = React.useDeferredValue(searchQuery);
   const [ratingStats, setRatingStats] = React.useState<Record<string, RatingStat>>({});
   const [statsLoaded, setStatsLoaded] = React.useState(false);
   const [selectedRouteSlugs, setSelectedRouteSlugs] = React.useState<string[]>([]);
+  const activeSearchQuery = deferredSearchQuery.trim();
 
   React.useEffect(() => {
     let cancelled = false;
@@ -136,9 +138,9 @@ export default function CategoryPage({
     const result: VisibleProduct[] = [];
 
     for (const product of categoryProducts) {
-      const score = searchQuery ? getProductSearchScore(product.item, searchQuery) : 0;
+      const score = activeSearchQuery ? getProductSearchScore(product.item, activeSearchQuery) : 0;
 
-      if (searchQuery && score <= 0) {
+      if (activeSearchQuery && score <= 0) {
         continue;
       }
 
@@ -149,7 +151,7 @@ export default function CategoryPage({
     }
 
     result.sort((left, right) => {
-      if (searchQuery && left.searchScore !== right.searchScore) {
+      if (activeSearchQuery && left.searchScore !== right.searchScore) {
         return right.searchScore - left.searchScore;
       }
 
@@ -157,7 +159,7 @@ export default function CategoryPage({
     });
 
     return result;
-  }, [categoryProducts, searchQuery, sortMode]);
+  }, [activeSearchQuery, categoryProducts, sortMode]);
 
   const comparedProducts = React.useMemo(() => {
     const productByRouteSlug = new Map(
@@ -258,7 +260,7 @@ export default function CategoryPage({
         <span className="rounded-full border border-[#35506D] bg-[#122233] px-3 py-1.5 text-[#D9ECFF]">
           Vergleich {comparedProducts.length}/{COMPARE_LIMIT}
         </span>
-        {searchQuery && (
+        {activeSearchQuery && (
           <span className="rounded-full border border-[#3F5C7A] bg-[#122233] px-3 py-1.5 text-[#D9ECFF]">
             Suche aktiv
           </span>

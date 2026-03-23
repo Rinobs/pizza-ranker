@@ -131,18 +131,58 @@ function getTokens(value: string) {
     .filter(Boolean);
 }
 
-export function getProductSearchScore(
-  product: Pick<Product, "name" | "category" | "slug">,
-  query: string
-) {
-  const normalizedQuery = normalizeSearchText(query);
-  if (!normalizedQuery) {
-    return 0;
+type PreparedSearchQuery = {
+  normalizedQuery: string;
+  queryTokens: string[];
+};
+
+type PreparedProductSearch = {
+  name: string;
+  category: string;
+  routeSlug: string;
+  aliasText: string;
+  nameTokens: string[];
+  categoryTokens: string[];
+  combinedSearchText: string;
+};
+
+const preparedSearchQueryCache = new Map<string, PreparedSearchQuery>();
+const preparedProductSearchCache = new Map<string, PreparedProductSearch>();
+
+function getPreparedSearchQuery(query: string): PreparedSearchQuery | null {
+  const queryKey = query.trim();
+
+  if (preparedSearchQueryCache.has(queryKey)) {
+    return preparedSearchQueryCache.get(queryKey) ?? null;
   }
 
-  const queryTokens = getTokens(normalizedQuery);
+  const normalizedQuery = normalizeSearchText(queryKey);
+  if (!normalizedQuery) {
+    return null;
+  }
+
+  const queryTokens = normalizedQuery.split(/\s+/).filter(Boolean);
   if (queryTokens.length === 0) {
-    return 0;
+    return null;
+  }
+
+  const preparedQuery = {
+    normalizedQuery,
+    queryTokens,
+  };
+
+  preparedSearchQueryCache.set(queryKey, preparedQuery);
+  return preparedQuery;
+}
+
+function getPreparedProductSearch(
+  product: Pick<Product, "name" | "category" | "slug">
+): PreparedProductSearch {
+  const cacheKey = `${product.slug}\u0000${product.category}\u0000${product.name}`;
+  const cached = preparedProductSearchCache.get(cacheKey);
+
+  if (cached) {
+    return cached;
   }
 
   const name = normalizeSearchText(product.name);
@@ -157,10 +197,43 @@ export function getProductSearchScore(
       ...(categoryItem?.aliases ?? []),
     ].join(" ")
   );
-
   const nameTokens = getTokens(name);
   const categoryTokens = getTokens(`${category} ${aliasText}`);
   const combinedSearchText = `${name} ${category} ${aliasText} ${routeSlug}`.trim();
+
+  const preparedProduct = {
+    name,
+    category,
+    routeSlug,
+    aliasText,
+    nameTokens,
+    categoryTokens,
+    combinedSearchText,
+  };
+
+  preparedProductSearchCache.set(cacheKey, preparedProduct);
+  return preparedProduct;
+}
+
+export function getProductSearchScore(
+  product: Pick<Product, "name" | "category" | "slug">,
+  query: string
+) {
+  const preparedQuery = getPreparedSearchQuery(query);
+  if (!preparedQuery) {
+    return 0;
+  }
+
+  const { normalizedQuery, queryTokens } = preparedQuery;
+  const {
+    name,
+    category,
+    routeSlug,
+    aliasText,
+    nameTokens,
+    categoryTokens,
+    combinedSearchText,
+  } = getPreparedProductSearch(product);
 
   let score = 0;
 
