@@ -1,0 +1,807 @@
+[
+  {
+    "handle": "more-clear-protein",
+    "variantId": 51137533346064,
+    "flavor": "Juice Style Pear Cinnamon",
+    "url": "https://morenutrition.de/products/more-clear-protein?variant=51137533346064",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-clear-protein-51137533346064.html"
+  },
+  {
+    "handle": "more-clear-protein",
+    "variantId": 51094760652964,
+    "flavor": "Lemonade Style Virgin Mojito",
+    "url": "https://morenutrition.de/products/more-clear-protein?variant=51094760652964",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-clear-protein-51094760652964.html"
+  },
+  {
+    "handle": "more-clear-protein",
+    "variantId": 51094754558116,
+    "flavor": "Juice Style Pure Apple",
+    "url": "https://morenutrition.de/products/more-clear-protein?variant=51094754558116",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-clear-protein-51094754558116.html"
+  },
+  {
+    "handle": "more-clear-protein",
+    "variantId": 51094748332196,
+    "flavor": "Iced Tea Style Green Tea Lime",
+    "url": "https://morenutrition.de/products/more-clear-protein?variant=51094748332196",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-clear-protein-51094748332196.html"
+  },
+  {
+    "handle": "more-clear-protein",
+    "variantId": 51137544585488,
+    "flavor": "Lemonade Style Strawberry Lime",
+    "url": "https://morenutrition.de/products/more-clear-protein?variant=51137544585488",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-clear-protein-51137544585488.html"
+  },
+  {
+    "handle": "more-clear-protein",
+    "variantId": 51094756327588,
+    "flavor": "Lemonade Style Granatapfel-Mojito",
+    "url": "https://morenutrition.de/products/more-clear-protein?variant=51094756327588",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-clear-protein-51094756327588.html"
+  },
+  {
+    "handle": "more-clear-protein",
+    "variantId": 51137602126096,
+    "flavor": "Watermelon",
+    "url": "https://morenutrition.de/products/more-clear-protein?variant=51137602126096",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-clear-protein-51137602126096.html"
+  },
+  {
+    "handle": "more-clear-protein",
+    "variantId": 51137597735184,
+    "flavor": "Lemonade Style Bloody Orange",
+    "url": "https://morenutrition.de/products/more-clear-protein?variant=51137597735184",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-clear-protein-51137597735184.html"
+  },
+  {
+    "handle": "more-clear-protein",
+    "variantId": 51137527873808,
+    "flavor": "Iced Tea Style Cherry White Tea",
+    "url": "https://morenutrition.de/products/more-clear-protein?variant=51137527873808",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-clear-protein-51137527873808.html"
+  },
+  {
+    "handle": "more-clear-protein",
+    "variantId": 51094758523044,
+    "flavor": "Juice Style Multifruit",
+    "url": "https://morenutrition.de/products/more-clear-protein?variant=51094758523044",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-clear-protein-51094758523044.html"
+  },
+  {
+    "handle": "more-clear-protein",
+    "variantId": 51098520682660,
+    "flavor": "Juice Style Pear",
+    "url": "https://morenutrition.de/products/more-clear-protein?variant=51098520682660",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-clear-protein-51098520682660.html"
+  },
+  {
+    "handle": "more-clear-protein",
+    "variantId": 51137535213840,
+    "flavor": "Juice Style Orange",
+    "url": "https://morenutrition.de/products/more-clear-protein?variant=51137535213840",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-clear-protein-51137535213840.html"
+  },
+  {
+    "handle": "more-clear-protein",
+    "variantId": 51137526694160,
+    "flavor": "Lemonade Style Grapefruit Lime",
+    "url": "https://morenutrition.de/products/more-clear-protein?variant=51137526694160",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-clear-protein-51137526694160.html"
+  },
+  {
+    "handle": "more-clear-protein",
+    "variantId": 51137530429712,
+    "flavor": "Juice Style Baked Apple",
+    "url": "https://morenutrition.de/products/more-clear-protein?variant=51137530429712",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-clear-protein-51137530429712.html"
+  },
+  {
+    "handle": "more-clear-protein",
+    "variantId": 51137530265872,
+    "flavor": "Lemonade Style Ginger kissed Orange",
+    "url": "https://morenutrition.de/products/more-clear-protein?variant=51137530265872",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-clear-protein-51137530265872.html"
+  },
+  {
+    "handle": "more-clear-protein",
+    "variantId": 51094746923172,
+    "flavor": "Iced Tea Style Peach",
+    "url": "https://morenutrition.de/products/more-clear-protein?variant=51094746923172",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-clear-protein-51094746923172.html"
+  },
+  {
+    "handle": "more-clear-protein",
+    "variantId": 51114883809444,
+    "flavor": "Lemonade Style Pink Peach Rings",
+    "url": "https://morenutrition.de/products/more-clear-protein?variant=51114883809444",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-clear-protein-51114883809444.html"
+  },
+  {
+    "handle": "more-clear-protein",
+    "variantId": 51104394641572,
+    "flavor": "Lemonade Style Summer Lemon",
+    "url": "https://morenutrition.de/products/more-clear-protein?variant=51104394641572",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-clear-protein-51104394641572.html"
+  },
+  {
+    "handle": "more-clear-protein",
+    "variantId": 51094748790948,
+    "flavor": "Iced Tea Style Raspberry Lemon",
+    "url": "https://morenutrition.de/products/more-clear-protein?variant=51094748790948",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-clear-protein-51094748790948.html"
+  },
+  {
+    "handle": "more-clear-protein",
+    "variantId": 51094750691492,
+    "flavor": "Iced Tea Style Lemon",
+    "url": "https://morenutrition.de/products/more-clear-protein?variant=51094750691492",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-clear-protein-51094750691492.html"
+  },
+  {
+    "handle": "more-clear-protein",
+    "variantId": 51094629974180,
+    "flavor": "Iced Tea Style Honey Melon",
+    "url": "https://morenutrition.de/products/more-clear-protein?variant=51094629974180",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-clear-protein-51094629974180.html"
+  },
+  {
+    "handle": "more-clear-protein",
+    "variantId": 51094762487972,
+    "flavor": "Lemonade Style Green Apple",
+    "url": "https://morenutrition.de/products/more-clear-protein?variant=51094762487972",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-clear-protein-51094762487972.html"
+  },
+  {
+    "handle": "more-clear-protein",
+    "variantId": 51094752657572,
+    "flavor": "Iced Tea Style Peach Passionfruit",
+    "url": "https://morenutrition.de/products/more-clear-protein?variant=51094752657572",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-clear-protein-51094752657572.html"
+  },
+  {
+    "handle": "more-clear-protein",
+    "variantId": 51094761570468,
+    "flavor": "Juice Style Mango",
+    "url": "https://morenutrition.de/products/more-clear-protein?variant=51094761570468",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-clear-protein-51094761570468.html"
+  },
+  {
+    "handle": "more-clear-protein",
+    "variantId": 51098481164452,
+    "flavor": "Iced Tea Style Blueberry",
+    "url": "https://morenutrition.de/products/more-clear-protein?variant=51098481164452",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-clear-protein-51098481164452.html"
+  },
+  {
+    "handle": "more-protein-iced-chai-latte",
+    "variantId": 51137602093328,
+    "flavor": "Maple Walnut",
+    "url": "https://morenutrition.de/products/more-protein-iced-chai-latte?variant=51137602093328",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-protein-iced-chai-latte-51137602093328.html"
+  },
+  {
+    "handle": "more-protein-iced-chai-latte",
+    "variantId": 51135209406628,
+    "flavor": "Cinnamon Bun",
+    "url": "https://morenutrition.de/products/more-protein-iced-chai-latte?variant=51135209406628",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-protein-iced-chai-latte-51135209406628.html"
+  },
+  {
+    "handle": "more-protein-iced-chai-latte",
+    "variantId": 51094742401188,
+    "flavor": "Original Taste",
+    "url": "https://morenutrition.de/products/more-protein-iced-chai-latte?variant=51094742401188",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-protein-iced-chai-latte-51094742401188.html"
+  },
+  {
+    "handle": "more-protein-iced-matcha-latte",
+    "variantId": 51137601831184,
+    "flavor": "Mango Dream",
+    "url": "https://morenutrition.de/products/more-protein-iced-matcha-latte?variant=51137601831184",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-protein-iced-matcha-latte-51137601831184.html"
+  },
+  {
+    "handle": "more-protein-iced-matcha-latte",
+    "variantId": 51137535115536,
+    "flavor": "Coconut Almond Biscuit",
+    "url": "https://morenutrition.de/products/more-protein-iced-matcha-latte?variant=51137535115536",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-protein-iced-matcha-latte-51137535115536.html"
+  },
+  {
+    "handle": "more-protein-iced-matcha-latte",
+    "variantId": 51137597767952,
+    "flavor": "Raspberry Marshmallow (Valentine´s Special)",
+    "url": "https://morenutrition.de/products/more-protein-iced-matcha-latte?variant=51137597767952",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-protein-iced-matcha-latte-51137597767952.html"
+  },
+  {
+    "handle": "more-protein-iced-matcha-latte",
+    "variantId": 51137529610512,
+    "flavor": "Caramelized Macadamia",
+    "url": "https://morenutrition.de/products/more-protein-iced-matcha-latte?variant=51137529610512",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-protein-iced-matcha-latte-51137529610512.html"
+  },
+  {
+    "handle": "more-protein-iced-matcha-latte",
+    "variantId": 51094744203428,
+    "flavor": "Strawberry Cheesecake",
+    "url": "https://morenutrition.de/products/more-protein-iced-matcha-latte?variant=51094744203428",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-protein-iced-matcha-latte-51094744203428.html"
+  },
+  {
+    "handle": "more-protein-iced-matcha-latte",
+    "variantId": 51104394543268,
+    "flavor": "Raspberry Panna Cotta",
+    "url": "https://morenutrition.de/products/more-protein-iced-matcha-latte?variant=51104394543268",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-protein-iced-matcha-latte-51104394543268.html"
+  },
+  {
+    "handle": "more-protein-iced-matcha-latte",
+    "variantId": 51104394969252,
+    "flavor": "Vanilla Crumble",
+    "url": "https://morenutrition.de/products/more-protein-iced-matcha-latte?variant=51104394969252",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-protein-iced-matcha-latte-51104394969252.html"
+  },
+  {
+    "handle": "more-protein-iced-matcha-latte",
+    "variantId": 51137526890768,
+    "flavor": "Chai",
+    "url": "https://morenutrition.de/products/more-protein-iced-matcha-latte?variant=51137526890768",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-protein-iced-matcha-latte-51137526890768.html"
+  },
+  {
+    "handle": "more-protein-iced-matcha-latte",
+    "variantId": 51104394674340,
+    "flavor": "Exotic Fruits",
+    "url": "https://morenutrition.de/products/more-protein-iced-matcha-latte?variant=51104394674340",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-protein-iced-matcha-latte-51104394674340.html"
+  },
+  {
+    "handle": "more-protein-iced-matcha-latte",
+    "variantId": 51137533247760,
+    "flavor": "Christmas Strawberry Biscuit",
+    "url": "https://morenutrition.de/products/more-protein-iced-matcha-latte?variant=51137533247760",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-protein-iced-matcha-latte-51137533247760.html"
+  },
+  {
+    "handle": "more-protein-iced-matcha-latte",
+    "variantId": 51114869227684,
+    "flavor": "Pistachio White Chocolate",
+    "url": "https://morenutrition.de/products/more-protein-iced-matcha-latte?variant=51114869227684",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-protein-iced-matcha-latte-51114869227684.html"
+  },
+  {
+    "handle": "more-protein-iced-matcha-latte",
+    "variantId": 51137534951696,
+    "flavor": "Original Taste",
+    "url": "https://morenutrition.de/products/more-protein-iced-matcha-latte?variant=51137534951696",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-protein-iced-matcha-latte-51137534951696.html"
+  },
+  {
+    "handle": "more-protein-milkshake",
+    "variantId": 51137602224400,
+    "flavor": "Milkshake Style Choco Coco",
+    "url": "https://morenutrition.de/products/more-protein-milkshake?variant=51137602224400",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-protein-milkshake-51137602224400.html"
+  },
+  {
+    "handle": "more-protein-milkshake",
+    "variantId": 51137535017232,
+    "flavor": "Milkshake Style Cherry Yoghurt",
+    "url": "https://morenutrition.de/products/more-protein-milkshake?variant=51137535017232",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-protein-milkshake-51137535017232.html"
+  },
+  {
+    "handle": "more-protein-milkshake",
+    "variantId": 51098520617124,
+    "flavor": "Milkshake Style Raspberry Ice Cream",
+    "url": "https://morenutrition.de/products/more-protein-milkshake?variant=51098520617124",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-protein-milkshake-51098520617124.html"
+  },
+  {
+    "handle": "more-protein-milkshake",
+    "variantId": 51137535181072,
+    "flavor": "Milkshake Style Caramel Waffle",
+    "url": "https://morenutrition.de/products/more-protein-milkshake?variant=51137535181072",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-protein-milkshake-51137535181072.html"
+  },
+  {
+    "handle": "more-protein-milkshake",
+    "variantId": 51137597702416,
+    "flavor": "Milkshake Style Caramel Cereal Crunch",
+    "url": "https://morenutrition.de/products/more-protein-milkshake?variant=51137597702416",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-protein-milkshake-51137597702416.html"
+  },
+  {
+    "handle": "more-protein-milkshake",
+    "variantId": 51094758949028,
+    "flavor": "Milkshake Style Strawberry",
+    "url": "https://morenutrition.de/products/more-protein-milkshake?variant=51094758949028",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-protein-milkshake-51094758949028.html"
+  },
+  {
+    "handle": "more-protein-milkshake",
+    "variantId": 51094748430500,
+    "flavor": "Milkshake Style Cinnalicious",
+    "url": "https://morenutrition.de/products/more-protein-milkshake?variant=51094748430500",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-protein-milkshake-51094748430500.html"
+  },
+  {
+    "handle": "more-protein-milkshake",
+    "variantId": 51137530298640,
+    "flavor": "Milkshake Style Vanilla Speculoos",
+    "url": "https://morenutrition.de/products/more-protein-milkshake?variant=51137530298640",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-protein-milkshake-51137530298640.html"
+  },
+  {
+    "handle": "more-protein-milkshake",
+    "variantId": 51094755573924,
+    "flavor": "Milkshake Style Vanilla Ice Cream",
+    "url": "https://morenutrition.de/products/more-protein-milkshake?variant=51094755573924",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-protein-milkshake-51094755573924.html"
+  },
+  {
+    "handle": "more-protein-milkshake",
+    "variantId": 51094765011108,
+    "flavor": "Milkshake Style Vanilla Chocolate Chip Cookie",
+    "url": "https://morenutrition.de/products/more-protein-milkshake?variant=51094765011108",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-protein-milkshake-51094765011108.html"
+  },
+  {
+    "handle": "more-protein-milkshake",
+    "variantId": 51094755279012,
+    "flavor": "Milkshake Style Hazelnut Nougat Praline",
+    "url": "https://morenutrition.de/products/more-protein-milkshake?variant=51094755279012",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-protein-milkshake-51094755279012.html"
+  },
+  {
+    "handle": "more-protein-milkshake",
+    "variantId": 51094762029220,
+    "flavor": "Milkshake Style Neutral",
+    "url": "https://morenutrition.de/products/more-protein-milkshake?variant=51094762029220",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-protein-milkshake-51094762029220.html"
+  },
+  {
+    "handle": "more-protein-milkshake",
+    "variantId": 51114883842212,
+    "flavor": "Milkshake Style Blueberry Cupcake",
+    "url": "https://morenutrition.de/products/more-protein-milkshake?variant=51114883842212",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-protein-milkshake-51114883842212.html"
+  },
+  {
+    "handle": "more-protein-milkshake",
+    "variantId": 51094757900452,
+    "flavor": "Milkshake Style Chocolate Brownie",
+    "url": "https://morenutrition.de/products/more-protein-milkshake?variant=51094757900452",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-protein-milkshake-51094757900452.html"
+  },
+  {
+    "handle": "more-protein-milkshake",
+    "variantId": 51137530757392,
+    "flavor": "Milkshake Style More-Oh Cheesecake",
+    "url": "https://morenutrition.de/products/more-protein-milkshake?variant=51137530757392",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-protein-milkshake-51137530757392.html"
+  },
+  {
+    "handle": "more-protein-milkshake",
+    "variantId": 51137530364176,
+    "flavor": "Milkshake Style Sweet Morezipan",
+    "url": "https://morenutrition.de/products/more-protein-milkshake?variant=51137530364176",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-protein-milkshake-51137530364176.html"
+  },
+  {
+    "handle": "more-protein-milkshake",
+    "variantId": 51137535279376,
+    "flavor": "Milkshake Style Banana",
+    "url": "https://morenutrition.de/products/more-protein-milkshake?variant=51137535279376",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-protein-milkshake-51137535279376.html"
+  },
+  {
+    "handle": "more-protein-milkshake",
+    "variantId": 51137530462480,
+    "flavor": "Milkshake Style Milchreis-Zimt",
+    "url": "https://morenutrition.de/products/more-protein-milkshake?variant=51137530462480",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-protein-milkshake-51137530462480.html"
+  },
+  {
+    "handle": "more-protein-milkshake",
+    "variantId": 51094744170660,
+    "flavor": "Milkshake Style Chocolate Drink",
+    "url": "https://morenutrition.de/products/more-protein-milkshake?variant=51094744170660",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-protein-milkshake-51094744170660.html"
+  },
+  {
+    "handle": "more-protein-milkshake",
+    "variantId": 51094755999908,
+    "flavor": "Milkshake Style Iced Coffee",
+    "url": "https://morenutrition.de/products/more-protein-milkshake?variant=51094755999908",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-protein-milkshake-51094755999908.html"
+  },
+  {
+    "handle": "more-protein-milkshake",
+    "variantId": 51104394379428,
+    "flavor": "Milkshake Style Greek Yoghurt",
+    "url": "https://morenutrition.de/products/more-protein-milkshake?variant=51104394379428",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-protein-milkshake-51104394379428.html"
+  },
+  {
+    "handle": "more-protein-milkshake",
+    "variantId": 51137601732880,
+    "flavor": "Milkshake Style Chocolate Crispy Cream",
+    "url": "https://morenutrition.de/products/more-protein-milkshake?variant=51137601732880",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-protein-milkshake-51137601732880.html"
+  },
+  {
+    "handle": "more-protein-milkyccino",
+    "variantId": 51137529577744,
+    "flavor": "Milk & Honey",
+    "url": "https://morenutrition.de/products/more-protein-milkyccino?variant=51137529577744",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-protein-milkyccino-51137529577744.html"
+  },
+  {
+    "handle": "more-protein-milkyccino",
+    "variantId": 51114869162148,
+    "flavor": "Mango Coconut",
+    "url": "https://morenutrition.de/products/more-protein-milkyccino?variant=51114869162148",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-protein-milkyccino-51114869162148.html"
+  },
+  {
+    "handle": "more-protein-milkyccino",
+    "variantId": 51137535246608,
+    "flavor": "Salted Caramel",
+    "url": "https://morenutrition.de/products/more-protein-milkyccino?variant=51137535246608",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-protein-milkyccino-51137535246608.html"
+  },
+  {
+    "handle": "more-protein-milkyccino",
+    "variantId": 51137526792464,
+    "flavor": "Apple Pie with Vanilla",
+    "url": "https://morenutrition.de/products/more-protein-milkyccino?variant=51137526792464",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-protein-milkyccino-51137526792464.html"
+  },
+  {
+    "handle": "more-protein-milkyccino",
+    "variantId": 51094741319844,
+    "flavor": "White Almond Coconut",
+    "url": "https://morenutrition.de/products/more-protein-milkyccino?variant=51094741319844",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-protein-milkyccino-51094741319844.html"
+  },
+  {
+    "handle": "more-protein-milkyccino",
+    "variantId": 51137598390544,
+    "flavor": "Chocolate Crispy Cream",
+    "url": "https://morenutrition.de/products/more-protein-milkyccino?variant=51137598390544",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-protein-milkyccino-51137598390544.html"
+  },
+  {
+    "handle": "more-protein-milkyccino",
+    "variantId": 51137526628624,
+    "flavor": "Vanilla Dark Cookie Dough",
+    "url": "https://morenutrition.de/products/more-protein-milkyccino?variant=51137526628624",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-protein-milkyccino-51137526628624.html"
+  },
+  {
+    "handle": "more-saucen-back-protein",
+    "variantId": 51137598259472,
+    "flavor": "Sahne",
+    "url": "https://morenutrition.de/products/more-saucen-back-protein?variant=51137598259472",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-saucen-back-protein-51137598259472.html"
+  },
+  {
+    "handle": "more-saucen-back-protein",
+    "variantId": 51094740041892,
+    "flavor": "Coconut Milk",
+    "url": "https://morenutrition.de/products/more-saucen-back-protein?variant=51094740041892",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-saucen-back-protein-51094740041892.html"
+  },
+  {
+    "handle": "more-vegan-protein",
+    "variantId": 51094741123236,
+    "flavor": "Cinnalicious",
+    "url": "https://morenutrition.de/products/more-vegan-protein?variant=51094741123236",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-vegan-protein-51094741123236.html"
+  },
+  {
+    "handle": "more-vegan-protein",
+    "variantId": 51137530560784,
+    "flavor": "Hazelnut Nougat Praliné",
+    "url": "https://morenutrition.de/products/more-vegan-protein?variant=51137530560784",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-vegan-protein-51137530560784.html"
+  },
+  {
+    "handle": "more-vegan-protein",
+    "variantId": 51094743875748,
+    "flavor": "Neutral",
+    "url": "https://morenutrition.de/products/more-vegan-protein?variant=51094743875748",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-vegan-protein-51094743875748.html"
+  },
+  {
+    "handle": "more-vegan-protein",
+    "variantId": 51094742565028,
+    "flavor": "Vanilla",
+    "url": "https://morenutrition.de/products/more-vegan-protein?variant=51094742565028",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-vegan-protein-51094742565028.html"
+  },
+  {
+    "handle": "more-vegan-protein",
+    "variantId": 51094742302884,
+    "flavor": "Fine Milk Chocolate",
+    "url": "https://morenutrition.de/products/more-vegan-protein?variant=51094742302884",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-vegan-protein-51094742302884.html"
+  },
+  {
+    "handle": "more-vegan-protein",
+    "variantId": 51137530855696,
+    "flavor": "Morezipan Cake",
+    "url": "https://morenutrition.de/products/more-vegan-protein?variant=51137530855696",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-vegan-protein-51137530855696.html"
+  },
+  {
+    "handle": "more-vegan-protein",
+    "variantId": 51137526563088,
+    "flavor": "Banana Bread",
+    "url": "https://morenutrition.de/products/more-vegan-protein?variant=51137526563088",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-vegan-protein-51137526563088.html"
+  },
+  {
+    "handle": "more-vegan-protein",
+    "variantId": 51137526759696,
+    "flavor": "White Almond Coconut",
+    "url": "https://morenutrition.de/products/more-vegan-protein?variant=51137526759696",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\more-vegan-protein-51137526759696.html"
+  },
+  {
+    "handle": "protein-iced-coffee",
+    "variantId": 51137601798416,
+    "flavor": "Salted Caramel Brownie",
+    "url": "https://morenutrition.de/products/protein-iced-coffee?variant=51137601798416",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\protein-iced-coffee-51137601798416.html"
+  },
+  {
+    "handle": "protein-iced-coffee",
+    "variantId": 51137535377680,
+    "flavor": "Honey Caramel Waffle",
+    "url": "https://morenutrition.de/products/protein-iced-coffee?variant=51137535377680",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\protein-iced-coffee-51137535377680.html"
+  },
+  {
+    "handle": "protein-iced-coffee",
+    "variantId": 51137526825232,
+    "flavor": "Tiramisu Swirl",
+    "url": "https://morenutrition.de/products/protein-iced-coffee?variant=51137526825232",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\protein-iced-coffee-51137526825232.html"
+  },
+  {
+    "handle": "protein-iced-coffee",
+    "variantId": 51137530331408,
+    "flavor": "Brownie Marshmallow",
+    "url": "https://morenutrition.de/products/protein-iced-coffee?variant=51137530331408",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\protein-iced-coffee-51137530331408.html"
+  },
+  {
+    "handle": "protein-iced-coffee",
+    "variantId": 51137598292240,
+    "flavor": "Double Chocolate Apricot",
+    "url": "https://morenutrition.de/products/protein-iced-coffee?variant=51137598292240",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\protein-iced-coffee-51137598292240.html"
+  },
+  {
+    "handle": "protein-iced-coffee",
+    "variantId": 51104844349604,
+    "flavor": "Pink Velvet Cookie",
+    "url": "https://morenutrition.de/products/protein-iced-coffee?variant=51104844349604",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\protein-iced-coffee-51104844349604.html"
+  },
+  {
+    "handle": "protein-iced-coffee",
+    "variantId": 51137597604112,
+    "flavor": "Dark Chocolate Raspberry (Valentine’s Special)",
+    "url": "https://morenutrition.de/products/protein-iced-coffee?variant=51137597604112",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\protein-iced-coffee-51137597604112.html"
+  },
+  {
+    "handle": "protein-iced-coffee",
+    "variantId": 51104395165860,
+    "flavor": "Creamy Salted Caramellow",
+    "url": "https://morenutrition.de/products/protein-iced-coffee?variant=51104395165860",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\protein-iced-coffee-51104395165860.html"
+  },
+  {
+    "handle": "protein-iced-coffee",
+    "variantId": 51137533411600,
+    "flavor": "Chocolate Amaretto Cake",
+    "url": "https://morenutrition.de/products/protein-iced-coffee?variant=51137533411600",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\protein-iced-coffee-51137533411600.html"
+  },
+  {
+    "handle": "protein-iced-coffee",
+    "variantId": 51135209439396,
+    "flavor": "Double Chocolate Chip Cookie",
+    "url": "https://morenutrition.de/products/protein-iced-coffee?variant=51135209439396",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\protein-iced-coffee-51135209439396.html"
+  },
+  {
+    "handle": "protein-iced-coffee",
+    "variantId": 51094779625636,
+    "flavor": "Cold Brew Mocha",
+    "url": "https://morenutrition.de/products/protein-iced-coffee?variant=51094779625636",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\protein-iced-coffee-51094779625636.html"
+  },
+  {
+    "handle": "protein-iced-coffee",
+    "variantId": 51094771433636,
+    "flavor": "Dark Chocolate Cookie Crumble",
+    "url": "https://morenutrition.de/products/protein-iced-coffee?variant=51094771433636",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\protein-iced-coffee-51094771433636.html"
+  },
+  {
+    "handle": "protein-iced-coffee",
+    "variantId": 51137529839888,
+    "flavor": "Latte Macchiato",
+    "url": "https://morenutrition.de/products/protein-iced-coffee?variant=51137529839888",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\protein-iced-coffee-51137529839888.html"
+  },
+  {
+    "handle": "protein-iced-coffee",
+    "variantId": 51104394412196,
+    "flavor": "Moretus Dark Cookie Crumble",
+    "url": "https://morenutrition.de/products/protein-iced-coffee?variant=51104394412196",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\protein-iced-coffee-51104394412196.html"
+  },
+  {
+    "handle": "protein-iced-coffee",
+    "variantId": 51104395296932,
+    "flavor": "Stracciatella",
+    "url": "https://morenutrition.de/products/protein-iced-coffee?variant=51104395296932",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\protein-iced-coffee-51104395296932.html"
+  },
+  {
+    "handle": "protein-iced-coffee",
+    "variantId": 51137530790160,
+    "flavor": "Cinnamon Latte",
+    "url": "https://morenutrition.de/products/protein-iced-coffee?variant=51137530790160",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\protein-iced-coffee-51137530790160.html"
+  },
+  {
+    "handle": "protein-iced-coffee",
+    "variantId": 51137535344912,
+    "flavor": "White Chocolate Caramel",
+    "url": "https://morenutrition.de/products/protein-iced-coffee?variant=51137535344912",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\protein-iced-coffee-51137535344912.html"
+  },
+  {
+    "handle": "protein-iced-coffee",
+    "variantId": 51094778118308,
+    "flavor": "Vanilla Chocolate Chip Cookie",
+    "url": "https://morenutrition.de/products/protein-iced-coffee?variant=51094778118308",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\protein-iced-coffee-51094778118308.html"
+  },
+  {
+    "handle": "protein-iced-coffee",
+    "variantId": 51094766944420,
+    "flavor": "Hazelnut Crispy Cream",
+    "url": "https://morenutrition.de/products/protein-iced-coffee?variant=51094766944420",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\protein-iced-coffee-51094766944420.html"
+  },
+  {
+    "handle": "protein-iced-coffee",
+    "variantId": 51104394608804,
+    "flavor": "S'Mores",
+    "url": "https://morenutrition.de/products/protein-iced-coffee?variant=51104394608804",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\protein-iced-coffee-51104394608804.html"
+  },
+  {
+    "handle": "protein-iced-coffee",
+    "variantId": 51137598357776,
+    "flavor": "Decaff Dark Chocolate Lover",
+    "url": "https://morenutrition.de/products/protein-iced-coffee?variant=51137598357776",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\protein-iced-coffee-51137598357776.html"
+  },
+  {
+    "handle": "protein-iced-coffee",
+    "variantId": 51094758064292,
+    "flavor": "Decaff Dark Cookie Crumble",
+    "url": "https://morenutrition.de/products/protein-iced-coffee?variant=51094758064292",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\protein-iced-coffee-51094758064292.html"
+  },
+  {
+    "handle": "protein-iced-coffee",
+    "variantId": 51094774349988,
+    "flavor": "Decaff Latte Macchiato",
+    "url": "https://morenutrition.de/products/protein-iced-coffee?variant=51094774349988",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\protein-iced-coffee-51094774349988.html"
+  },
+  {
+    "handle": "protein-iced-coffee",
+    "variantId": 51094770385060,
+    "flavor": "Crème Brûlée",
+    "url": "https://morenutrition.de/products/protein-iced-coffee?variant=51094770385060",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\protein-iced-coffee-51094770385060.html"
+  },
+  {
+    "handle": "protein-iced-coffee",
+    "variantId": 51094755344548,
+    "flavor": "Decaff Vanilla Chocolate Chip Cookie",
+    "url": "https://morenutrition.de/products/protein-iced-coffee?variant=51094755344548",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\protein-iced-coffee-51094755344548.html"
+  },
+  {
+    "handle": "protein-iced-coffee",
+    "variantId": 51137534787856,
+    "flavor": "Dark Cookie Crumble",
+    "url": "https://morenutrition.de/products/protein-iced-coffee?variant=51137534787856",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\protein-iced-coffee-51137534787856.html"
+  },
+  {
+    "handle": "protein-iced-coffee",
+    "variantId": 51137534755088,
+    "flavor": "Dark Chocolate Lover",
+    "url": "https://morenutrition.de/products/protein-iced-coffee?variant=51137534755088",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\protein-iced-coffee-51137534755088.html"
+  },
+  {
+    "handle": "protein-iced-coffee",
+    "variantId": 51094761177252,
+    "flavor": "Cafe Frappe Style",
+    "url": "https://morenutrition.de/products/protein-iced-coffee?variant=51094761177252",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\protein-iced-coffee-51094761177252.html"
+  },
+  {
+    "handle": "protein-iced-coffee",
+    "variantId": 51094762094756,
+    "flavor": "Coffee Lover",
+    "url": "https://morenutrition.de/products/protein-iced-coffee?variant=51094762094756",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\protein-iced-coffee-51094762094756.html"
+  },
+  {
+    "handle": "protein-iced-coffee",
+    "variantId": 51137530200336,
+    "flavor": "Speculoos",
+    "url": "https://morenutrition.de/products/protein-iced-coffee?variant=51137530200336",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\protein-iced-coffee-51137530200336.html"
+  },
+  {
+    "handle": "protein-iced-coffee",
+    "variantId": 51137529446672,
+    "flavor": "Cold Brew Vanilla",
+    "url": "https://morenutrition.de/products/protein-iced-coffee?variant=51137529446672",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\protein-iced-coffee-51137529446672.html"
+  },
+  {
+    "handle": "protein-iced-coffee",
+    "variantId": 51094769500324,
+    "flavor": "Dark Cookie Crumble Vanilla Dough",
+    "url": "https://morenutrition.de/products/protein-iced-coffee?variant=51094769500324",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\protein-iced-coffee-51094769500324.html"
+  },
+  {
+    "handle": "protein-iced-coffee",
+    "variantId": 51094758424740,
+    "flavor": "S'Mores Dark Cookie Crumble",
+    "url": "https://morenutrition.de/products/protein-iced-coffee?variant=51094758424740",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\protein-iced-coffee-51094758424740.html"
+  },
+  {
+    "handle": "protein-iced-coffee",
+    "variantId": 51094774939812,
+    "flavor": "White Chocolate Dark Cookie Crumble",
+    "url": "https://morenutrition.de/products/protein-iced-coffee?variant=51094774939812",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\protein-iced-coffee-51094774939812.html"
+  },
+  {
+    "handle": "protein-iced-coffee",
+    "variantId": 51094764191908,
+    "flavor": "Macchiato Marshmallow",
+    "url": "https://morenutrition.de/products/protein-iced-coffee?variant=51094764191908",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\protein-iced-coffee-51094764191908.html"
+  },
+  {
+    "handle": "protein-iced-coffee",
+    "variantId": 51137602453776,
+    "flavor": "Vanilla Caramel Cookie Crumble",
+    "url": "https://morenutrition.de/products/protein-iced-coffee?variant=51137602453776",
+    "cachePath": "C:\\Users\\nicob\\pizza-ranker\\.codex\\tmp\\more\\variants\\protein-iced-coffee-51137602453776.html"
+  }
+]
