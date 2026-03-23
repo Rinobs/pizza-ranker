@@ -125,10 +125,36 @@ export function normalizeSearchText(value: string) {
     .trim();
 }
 
+const SEARCH_TOKEN_EQUIVALENT_GROUPS = [
+  ["schokolade", "schoko", "chocolate", "choco", "cocoa", "kakao"],
+  ["vanille", "vanilla"],
+  ["erdbeer", "strawberry"],
+  ["karamell", "caramel"],
+  ["keks", "kekse", "cookie", "cookies", "biscuit", "biscuits"],
+  ["zimt", "cinnamon"],
+  ["haselnuss", "hazelnut"],
+  ["banane", "banana"],
+  ["kaffee", "coffee"],
+] as const;
+
+const SEARCH_TOKEN_CANONICAL_MAP = new Map<string, string>(
+  SEARCH_TOKEN_EQUIVALENT_GROUPS.flatMap((group) =>
+    group.map((token) => [token, group[0]] as const)
+  )
+);
+
+function canonicalizeSearchToken(token: string) {
+  return SEARCH_TOKEN_CANONICAL_MAP.get(token) ?? token;
+}
+
 function getTokens(value: string) {
   return normalizeSearchText(value)
     .split(/\s+/)
     .filter(Boolean);
+}
+
+function getCanonicalTokens(value: string) {
+  return getTokens(value).map(canonicalizeSearchToken);
 }
 
 type PreparedSearchQuery = {
@@ -161,7 +187,7 @@ function getPreparedSearchQuery(query: string): PreparedSearchQuery | null {
     return null;
   }
 
-  const queryTokens = normalizedQuery.split(/\s+/).filter(Boolean);
+  const queryTokens = getCanonicalTokens(normalizedQuery);
   if (queryTokens.length === 0) {
     return null;
   }
@@ -197,8 +223,8 @@ function getPreparedProductSearch(
       ...(categoryItem?.aliases ?? []),
     ].join(" ")
   );
-  const nameTokens = getTokens(name);
-  const categoryTokens = getTokens(`${category} ${aliasText}`);
+  const nameTokens = getCanonicalTokens(name);
+  const categoryTokens = getCanonicalTokens(`${category} ${aliasText}`);
   const combinedSearchText = `${name} ${category} ${aliasText} ${routeSlug}`.trim();
 
   const preparedProduct = {
