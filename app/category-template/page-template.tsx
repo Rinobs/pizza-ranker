@@ -301,7 +301,7 @@ export default function CategoryPage({
                 hover:-translate-y-1.5 hover:scale-[1.02]
                 transition-all duration-300 ease-out
               "
-                style={{ aspectRatio: "3 / 4", contentVisibility: "auto" }}
+                style={{ aspectRatio: "3 / 4" }}
               >
                 <button
                   type="button"
@@ -325,7 +325,7 @@ export default function CategoryPage({
                     routeSlug={product.routeSlug}
                     alt={product.item.name}
                     fallbackSrc={product.originalImageUrl}
-                    eager={index < 8}
+                    eager={index < 4}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
 

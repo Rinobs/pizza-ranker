@@ -4,7 +4,7 @@
 import React from "react";
 import { DEFAULT_PRODUCT_IMAGE } from "@/app/data/products";
 
-const VIEWPORT_PRELOAD_MARGIN = "1200px 0px";
+const VIEWPORT_PRELOAD_MARGIN = "400px 0px";
 
 type ProductCardImageProps = {
   routeSlug: string;
@@ -18,6 +18,29 @@ function getProxyImageUrl(routeSlug: string) {
   return `/api/product-image/${routeSlug}`;
 }
 
+function getPreferredImageUrl(imageUrl: string) {
+  if (imageUrl.startsWith("/")) {
+    return imageUrl;
+  }
+
+  if (imageUrl.includes("m.media-amazon.com/images/")) {
+    return imageUrl.replace(/_AC_(?:SX|SY|SL)\d+_/i, "_AC_SL640_");
+  }
+
+  try {
+    const url = new URL(imageUrl);
+
+    if (url.hostname.toLowerCase().endsWith("shopify.com") && !url.searchParams.has("width")) {
+      url.searchParams.set("width", "960");
+      return url.toString();
+    }
+  } catch {
+    return imageUrl;
+  }
+
+  return imageUrl;
+}
+
 export default function ProductCardImage({
   routeSlug,
   alt,
@@ -28,7 +51,10 @@ export default function ProductCardImage({
   const containerRef = React.useRef<HTMLDivElement | null>(null);
   const imageRef = React.useRef<HTMLImageElement | null>(null);
   const proxySrc = React.useMemo(() => getProxyImageUrl(routeSlug), [routeSlug]);
-  const normalizedFallbackSrc = fallbackSrc.trim() || DEFAULT_PRODUCT_IMAGE;
+  const normalizedFallbackSrc = React.useMemo(
+    () => getPreferredImageUrl(fallbackSrc.trim() || DEFAULT_PRODUCT_IMAGE),
+    [fallbackSrc]
+  );
   const [shouldLoad, setShouldLoad] = React.useState(eager);
   const [loadStage, setLoadStage] = React.useState(0);
   const [isLoaded, setIsLoaded] = React.useState(false);

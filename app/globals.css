@@ -12,6 +12,11 @@
   --accent: #5ee287;
 }
 
+html {
+  min-height: 100%;
+  background: linear-gradient(180deg, var(--app-bg-start) 0%, var(--app-bg-mid) 48%, var(--app-bg-end) 100%);
+}
+
 body {
   min-height: 100vh;
   background: linear-gradient(180deg, var(--app-bg-start) 0%, var(--app-bg-mid) 48%, var(--app-bg-end) 100%);
