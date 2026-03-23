@@ -133,6 +133,61 @@ function derivedNutrition(config: {
   };
 }
 
+function per100Pair(per100: number, unit: string, servingWeightGrams: number): NutritionPair {
+  const perServing = (per100 * servingWeightGrams) / 100;
+  return pair(`${formatNumber(perServing)} ${unit}`, `${formatNumber(per100)} ${unit}`);
+}
+
+function per100Nutrition(config: {
+  servingWeightGrams: number;
+  kcal: number;
+  energyKj?: number;
+  protein: number;
+  fat: number;
+  saturatedFat?: number;
+  carbs: number;
+  sugar?: number;
+  ballaststoffe?: number;
+  salz?: number;
+  polyole?: number;
+  glucomannan?: number;
+}): VariantNutrition {
+  return {
+    energyKj:
+      typeof config.energyKj === "number"
+        ? per100Pair(config.energyKj, "kJ", config.servingWeightGrams)
+        : undefined,
+    kcal: per100Pair(config.kcal, "kcal", config.servingWeightGrams),
+    protein: per100Pair(config.protein, "g", config.servingWeightGrams),
+    fat: per100Pair(config.fat, "g", config.servingWeightGrams),
+    saturatedFat:
+      typeof config.saturatedFat === "number"
+        ? per100Pair(config.saturatedFat, "g", config.servingWeightGrams)
+        : undefined,
+    carbs: per100Pair(config.carbs, "g", config.servingWeightGrams),
+    sugar:
+      typeof config.sugar === "number"
+        ? per100Pair(config.sugar, "g", config.servingWeightGrams)
+        : undefined,
+    ballaststoffe:
+      typeof config.ballaststoffe === "number"
+        ? per100Pair(config.ballaststoffe, "g", config.servingWeightGrams)
+        : undefined,
+    salz:
+      typeof config.salz === "number"
+        ? per100Pair(config.salz, "g", config.servingWeightGrams)
+        : undefined,
+    polyole:
+      typeof config.polyole === "number"
+        ? per100Pair(config.polyole, "g", config.servingWeightGrams)
+        : undefined,
+    glucomannan:
+      typeof config.glucomannan === "number"
+        ? per100Pair(config.glucomannan, "g", config.servingWeightGrams)
+        : undefined,
+  };
+}
+
 function parseNumericValue(value: string): number | undefined {
   const match = value.match(/-?\d+(?:[.,]\d+)?/);
   if (!match) return undefined;
@@ -201,6 +256,10 @@ function goatBarDescription(flavor: string): string {
 
 function moreBarDescription(line: string, flavor: string): string {
   return `Offizielle More-Nutrition-Produktseite: ${line} in der Geschmacksrichtung ${flavor}.`;
+}
+
+function officialBarDescription(brand: string, line: string, flavor: string): string {
+  return `Offizielle ${brand}-Produktseite: ${line} in der Sorte ${flavor}.`;
 }
 
 const ESN_DESIGNER_BAR_VARIANTS: ProteinBarVariant[] = [
@@ -1316,6 +1375,427 @@ const ADDITIONAL_BRAND_PROTEIN_BAR_VARIANTS: ProteinBarVariant[] = [
       sugar: pair("8,4 g", "15 g"),
       salz: pair("0,26 g", "0,46 g"),
     },
+  },
+  {
+    name: "KoRo Protein Bar - Schokolade Brownie",
+    marke: "KoRo",
+    imageUrl:
+      "https://koro.imgix.net/media/44/95/db/1744900915/PROTEIN-040.jpg?auto=format%2Ccompress&cs=srgb&fit=max&w=3000",
+    summaryPrice: "2,50 EUR",
+    detailPrice: "2,50 EUR / 55 g",
+    gewicht: "55 g",
+    servingLabel: "Riegel",
+    zutaten: officialBarDescription("KoRo", "Veganer Proteinriegel", "Schokolade Brownie"),
+    nutrition: per100Nutrition({
+      servingWeightGrams: 55,
+      energyKj: 1571,
+      kcal: 379,
+      protein: 27,
+      fat: 16,
+      saturatedFat: 6.6,
+      carbs: 27,
+      sugar: 1.9,
+      ballaststoffe: 14,
+      salz: 0.86,
+    }),
+  },
+  {
+    name: "KoRo Protein Bar Deluxe Vegan - Raspberry Choc",
+    marke: "KoRo",
+    imageUrl:
+      "https://koro.imgix.net/media/64/06/df/1747996922/PROTEIN_058.jpg?auto=format%2Ccompress&cs=srgb&fit=max&w=3000",
+    summaryPrice: "2,80 EUR",
+    detailPrice: "2,80 EUR / 55 g",
+    gewicht: "55 g",
+    servingLabel: "Riegel",
+    zutaten: officialBarDescription("KoRo", "Protein Bar Deluxe Vegan", "Raspberry Choc"),
+    nutrition: per100Nutrition({
+      servingWeightGrams: 55,
+      energyKj: 1541,
+      kcal: 372,
+      protein: 26,
+      fat: 14,
+      saturatedFat: 7.7,
+      carbs: 32,
+      sugar: 0.8,
+      ballaststoffe: 9.8,
+      salz: 0.7,
+    }),
+  },
+  {
+    name: "KoRo Veganer Bio Proteinriegel - Haselnuss",
+    marke: "KoRo",
+    imageUrl:
+      "https://koro.imgix.net/media/b2/8d/39/1737712461/PROTEIN_018.png?auto=format%2Ccompress&cs=srgb&fit=max&w=3000",
+    summaryPrice: "2,30 EUR",
+    detailPrice: "2,30 EUR / 60 g",
+    gewicht: "60 g",
+    servingLabel: "Riegel",
+    zutaten: officialBarDescription("KoRo", "Veganer Bio Proteinriegel", "Haselnuss"),
+    nutrition: per100Nutrition({
+      servingWeightGrams: 60,
+      energyKj: 1528,
+      kcal: 366,
+      protein: 24,
+      fat: 17,
+      saturatedFat: 5.7,
+      carbs: 26,
+      sugar: 14,
+      ballaststoffe: 6.5,
+      salz: 0.31,
+    }),
+  },
+  {
+    name: "KoRo Protein Bar Deluxe - White Chocolate Hazelnut",
+    marke: "KoRo",
+    imageUrl:
+      "https://koro.imgix.net/media/eb/28/ca/1747412174/PROTEIN_057.jpg?auto=format%2Ccompress&cs=srgb&fit=max&w=3000",
+    summaryPrice: "2,80 EUR",
+    detailPrice: "2,80 EUR / 55 g",
+    gewicht: "55 g",
+    servingLabel: "Riegel",
+    zutaten: officialBarDescription("KoRo", "Protein Bar Deluxe", "White Chocolate Hazelnut"),
+    nutrition: per100Nutrition({
+      servingWeightGrams: 55,
+      energyKj: 1681,
+      kcal: 403,
+      protein: 27,
+      fat: 18,
+      saturatedFat: 7.4,
+      carbs: 30,
+      sugar: 4.4,
+      ballaststoffe: 10,
+      salz: 0.69,
+    }),
+  },
+  {
+    name: "KoRo Crispy Protein Bar - Dark Chocolate",
+    marke: "KoRo",
+    imageUrl:
+      "https://koro.imgix.net/media/b7/46/e7/1737708455/PROTEIN_019.jpg?auto=format%2Ccompress&cs=srgb&fit=max&w=3000",
+    summaryPrice: "2,30 EUR",
+    detailPrice: "2,30 EUR / 60 g",
+    gewicht: "60 g",
+    servingLabel: "Riegel",
+    zutaten: officialBarDescription("KoRo", "Crispy Protein Bar", "Dark Chocolate"),
+    nutrition: per100Nutrition({
+      servingWeightGrams: 60,
+      energyKj: 1596,
+      kcal: 383,
+      protein: 27,
+      fat: 17,
+      saturatedFat: 7.5,
+      carbs: 29,
+      sugar: 0.8,
+      ballaststoffe: 10,
+      salz: 0.64,
+    }),
+  },
+  {
+    name: "KoRo Crispy Protein Bar - Peanut",
+    marke: "KoRo",
+    imageUrl:
+      "https://koro.imgix.net/media/9c/20/02/1735901814/PROTEIN_062_MAIN.jpg?w=3000&auto=format,compress&fit=max&cs=srgb",
+    summaryPrice: "2,90 EUR",
+    detailPrice: "2,90 EUR / 60 g",
+    gewicht: "60 g",
+    servingLabel: "Riegel",
+    zutaten: officialBarDescription("KoRo", "Crispy Protein Bar", "Peanut"),
+    nutrition: per100Nutrition({
+      servingWeightGrams: 60,
+      energyKj: 1733,
+      kcal: 417,
+      protein: 26,
+      fat: 20,
+      saturatedFat: 7.4,
+      carbs: 29,
+      sugar: 2.7,
+      ballaststoffe: 12,
+      salz: 0.67,
+    }),
+  },
+  {
+    name: "ahead Protein Bar - Cookies & Cream",
+    marke: "ahead",
+    imageUrl:
+      "https://www.ahead-nutrition.com/cdn/shop/files/Cookies_Cream_front.png?v=1739277483&width=160",
+    summaryPrice: "31,99 EUR",
+    detailPrice: "31,99 EUR / 14 x 45 g",
+    gewicht: "14 x 45 g",
+    servingLabel: "Riegel",
+    zutaten: officialBarDescription("ahead", "Protein Bar", "Cookies & Cream"),
+    nutrition: {
+      energyKj: pair("740 kJ", "1645 kJ"),
+      kcal: pair("177 kcal", "393 kcal"),
+      protein: pair("12 g", "27 g"),
+      fat: pair("9,1 g", "20 g"),
+      saturatedFat: pair("4,4 g", "9,8 g"),
+      carbs: pair("15 g", "34 g"),
+      sugar: pair("1,5 g", "3,4 g"),
+      ballaststoffe: pair("3,7 g", "8,2 g"),
+      salz: pair("0,12 g", "0,28 g"),
+      polyole: pair("12 g", "26 g"),
+    },
+  },
+  {
+    name: "ahead Protein Bar - Fudge Brownie",
+    marke: "ahead",
+    imageUrl:
+      "https://www.ahead-nutrition.com/cdn/shop/files/Fudge_Brownie_front.png?v=1739277482&width=160",
+    summaryPrice: "31,99 EUR",
+    detailPrice: "31,99 EUR / 14 x 45 g",
+    gewicht: "14 x 45 g",
+    servingLabel: "Riegel",
+    zutaten: officialBarDescription("ahead", "Protein Bar", "Fudge Brownie"),
+    nutrition: {
+      energyKj: pair("713 kJ", "1584 kJ"),
+      kcal: pair("171 kcal", "379 kcal"),
+      protein: pair("13 g", "29 g"),
+      fat: pair("8,2 g", "18 g"),
+      saturatedFat: pair("4,1 g", "9,1 g"),
+      carbs: pair("15 g", "33 g"),
+      sugar: pair("1,2 g", "2,7 g"),
+      ballaststoffe: pair("4,7 g", "10 g"),
+      salz: pair("0,11 g", "0,25 g"),
+      polyole: pair("11 g", "24 g"),
+    },
+  },
+  {
+    name: "ahead Protein Bar - Hazelnut Nougat",
+    marke: "ahead",
+    imageUrl:
+      "https://www.ahead-nutrition.com/cdn/shop/files/Hazelnut_Nougat_front.png?v=1739277480&width=160",
+    summaryPrice: "31,99 EUR",
+    detailPrice: "31,99 EUR / 14 x 45 g",
+    gewicht: "14 x 45 g",
+    servingLabel: "Riegel",
+    zutaten: officialBarDescription("ahead", "Protein Bar", "Hazelnut Nougat"),
+    nutrition: {
+      energyKj: pair("731 kJ", "1625 kJ"),
+      kcal: pair("175 kcal", "389 kcal"),
+      protein: pair("13 g", "28 g"),
+      fat: pair("8,8 g", "20 g"),
+      saturatedFat: pair("3,6 g", "8,1 g"),
+      carbs: pair("15 g", "34 g"),
+      sugar: pair("1,5 g", "3,4 g"),
+      ballaststoffe: pair("4,0 g", "8,8 g"),
+      salz: pair("0,12 g", "0,28 g"),
+      polyole: pair("11 g", "25 g"),
+    },
+  },
+  {
+    name: "ahead Protein Bar - Coconut Almond",
+    marke: "ahead",
+    imageUrl:
+      "https://www.ahead-nutrition.com/cdn/shop/files/PDP_01_29f3cfe4-6d9a-4506-b549-8e672f50369b.png?v=1755874540&width=160",
+    summaryPrice: "31,99 EUR",
+    detailPrice: "31,99 EUR / 14 x 45 g",
+    gewicht: "14 x 45 g",
+    servingLabel: "Riegel",
+    zutaten: officialBarDescription("ahead", "Protein Bar", "Coconut Almond"),
+    nutrition: {
+      energyKj: pair("701 kJ", "1558 kJ"),
+      kcal: pair("168 kcal", "373 kcal"),
+      protein: pair("12 g", "27 g"),
+      fat: pair("7,7 g", "17 g"),
+      saturatedFat: pair("3,5 g", "7,7 g"),
+      carbs: pair("15 g", "33 g"),
+      sugar: pair("1,5 g", "3,2 g"),
+      ballaststoffe: pair("5,7 g", "13 g"),
+      salz: pair("0,12 g", "0,28 g"),
+      polyole: pair("10 g", "23 g"),
+    },
+  },
+  {
+    name: "ahead Protein Bar - Dominostein",
+    marke: "ahead",
+    imageUrl:
+      "https://www.ahead-nutrition.com/cdn/shop/files/PDP_01_8_a44c9137-ce0c-47ba-b4f0-5539e7c08481.jpg?v=1760591146&width=160",
+    summaryPrice: "31,99 EUR",
+    detailPrice: "31,99 EUR / 14 x 45 g",
+    gewicht: "14 x 45 g",
+    servingLabel: "Riegel",
+    zutaten: officialBarDescription("ahead", "Protein Bar", "Dominostein"),
+    nutrition: {
+      energyKj: pair("769 kJ", "1708 kJ"),
+      kcal: pair("184 kcal", "409 kcal"),
+      protein: pair("12 g", "27 g"),
+      fat: pair("9,7 g", "22 g"),
+      saturatedFat: pair("4,2 g", "9,4 g"),
+      carbs: pair("15 g", "34 g"),
+      sugar: pair("1,7 g", "3,9 g"),
+      ballaststoffe: pair("3,5 g", "7,8 g"),
+      salz: pair("0,16 g", "0,35 g"),
+      polyole: pair("12 g", "26 g"),
+    },
+  },
+  {
+    name: "ahead Protein Bar - Lemon Cheesecake",
+    marke: "ahead",
+    imageUrl:
+      "https://www.ahead-nutrition.com/cdn/shop/files/PDP_01.png?v=1755874537&width=160",
+    summaryPrice: "31,99 EUR",
+    detailPrice: "31,99 EUR / 14 x 45 g",
+    gewicht: "14 x 45 g",
+    servingLabel: "Riegel",
+    zutaten: officialBarDescription("ahead", "Protein Bar", "Lemon Cheesecake"),
+    nutrition: {
+      energyKj: pair("700 kJ", "1555 kJ"),
+      kcal: pair("167 kcal", "372 kcal"),
+      protein: pair("12 g", "27 g"),
+      fat: pair("7,4 g", "16 g"),
+      saturatedFat: pair("3,3 g", "7,3 g"),
+      carbs: pair("15 g", "34 g"),
+      sugar: pair("1,6 g", "3,6 g"),
+      ballaststoffe: pair("5,6 g", "13 g"),
+      salz: pair("0,12 g", "0,28 g"),
+      polyole: pair("10 g", "23 g"),
+    },
+  },
+  {
+    name: "ahead Protein Bar - Linzer Cookie",
+    marke: "ahead",
+    imageUrl:
+      "https://www.ahead-nutrition.com/cdn/shop/files/PDP_01_d1a5ae28-06a9-4e31-8101-9edbcf20433a.png?v=1761581734&width=160",
+    summaryPrice: "31,99 EUR",
+    detailPrice: "31,99 EUR / 14 x 45 g",
+    gewicht: "14 x 45 g",
+    servingLabel: "Riegel",
+    zutaten: officialBarDescription("ahead", "Protein Bar", "Linzer Cookie"),
+    nutrition: {
+      energyKj: pair("769 kJ", "1710 kJ"),
+      kcal: pair("184 kcal", "408 kcal"),
+      protein: pair("12 g", "27 g"),
+      fat: pair("10 g", "22 g"),
+      saturatedFat: pair("4,4 g", "9,8 g"),
+      carbs: pair("15 g", "34 g"),
+      sugar: pair("1,6 g", "3,6 g"),
+      ballaststoffe: pair("3,5 g", "7,8 g"),
+      salz: pair("0,16 g", "0,35 g"),
+      polyole: pair("12 g", "26 g"),
+    },
+  },
+  {
+    name: "Sportness Proteinriegel 50% - White Chocolate",
+    marke: "dm / Sportness",
+    imageUrl:
+      "https://products.dm-static.com/images/f_auto%2Cq_auto%2Cc_fit%2Ch_440%2Cw_500/v1758007177/assets/pas/images/5919633b-a2ef-4c3e-9697-2e18333739d8/sportness-proteinriegel-50-prozent-crispy-white-chocolate-geschmack",
+    summaryPrice: "0,95 EUR",
+    detailPrice: "0,95 EUR / 45 g",
+    gewicht: "45 g",
+    servingLabel: "Riegel",
+    zutaten: officialBarDescription("dm / Sportness", "Proteinriegel 50%", "White Chocolate"),
+    nutrition: per100Nutrition({
+      servingWeightGrams: 45,
+      energyKj: 1535,
+      kcal: 367,
+      protein: 50,
+      fat: 11,
+      saturatedFat: 6.9,
+      carbs: 18,
+      sugar: 2.4,
+      ballaststoffe: 2.2,
+      salz: 0.8,
+      polyole: 15,
+    }),
+  },
+  {
+    name: "Sportness Proteinriegel 50% - Crispy Stracciatella",
+    marke: "dm / Sportness",
+    imageUrl:
+      "https://products.dm-static.com/images/f_auto%2Cq_auto%2Cc_fit%2Ch_440%2Cw_500/v1748243523/assets/pas/images/f37b6632-e72b-415b-8b61-01c43cb60d95/sportness-proteinriegel-50-prozent-crispy-stracciatella-geschmack",
+    summaryPrice: "0,95 EUR",
+    detailPrice: "0,95 EUR / 45 g",
+    gewicht: "45 g",
+    servingLabel: "Riegel",
+    zutaten: officialBarDescription("dm / Sportness", "Proteinriegel 50%", "Crispy Stracciatella"),
+    nutrition: per100Nutrition({
+      servingWeightGrams: 45,
+      energyKj: 1519,
+      kcal: 362,
+      protein: 50,
+      fat: 10,
+      saturatedFat: 6.3,
+      carbs: 18,
+      sugar: 2.3,
+      ballaststoffe: 2.6,
+      salz: 0.8,
+      polyole: 15,
+    }),
+  },
+  {
+    name: "Sportness Proteinriegel 50% - Orange Dark Chocolate Crisp",
+    marke: "dm / Sportness",
+    imageUrl:
+      "https://products.dm-static.com/images/f_auto%2Cq_auto%2Cc_fit%2Ch_440%2Cw_500/v1756193537/assets/pas/images/121207bb-6175-48df-a97d-4c59a35be426/sportness-proteinriegel-50-prozent-orange-dark-chocolate-crisp-geschmack",
+    summaryPrice: "1,45 EUR",
+    detailPrice: "1,45 EUR / 60 g",
+    gewicht: "60 g",
+    servingLabel: "Riegel",
+    zutaten:
+      officialBarDescription("dm / Sportness", "Proteinriegel 50%", "Orange Dark Chocolate Crisp"),
+    nutrition: per100Nutrition({
+      servingWeightGrams: 60,
+      energyKj: 1557,
+      kcal: 376,
+      protein: 50,
+      fat: 12,
+      saturatedFat: 6.2,
+      carbs: 20,
+      sugar: 3,
+      ballaststoffe: 1.4,
+      salz: 0.63,
+      polyole: 15,
+    }),
+  },
+  {
+    name: "Sportness Proteinriegel 60% - Caramel Toffee Crisp",
+    marke: "dm / Sportness",
+    imageUrl:
+      "https://products.dm-static.com/images/f_auto%2Cq_auto%2Cc_fit%2Ch_440%2Cw_500/v1754677430/assets/pas/images/0ac68db7-76d0-4ab0-aaff-cdf4a90bb911/sportness-proteinriegel-60-prozent-caramel-toffee-crisp-geschmack",
+    summaryPrice: "0,95 EUR",
+    detailPrice: "0,95 EUR / 45 g",
+    gewicht: "45 g",
+    servingLabel: "Riegel",
+    zutaten: officialBarDescription("dm / Sportness", "Proteinriegel 60%", "Caramel Toffee Crisp"),
+    nutrition: per100Nutrition({
+      servingWeightGrams: 45,
+      energyKj: 1438,
+      kcal: 343,
+      protein: 60,
+      fat: 7.5,
+      saturatedFat: 4.9,
+      carbs: 18,
+      sugar: 1.5,
+      ballaststoffe: 3.8,
+      salz: 0.82,
+      polyole: 11,
+    }),
+  },
+  {
+    name: "Sportness Proteinriegel 26% - Crunchy Brownie & Cream",
+    marke: "dm / Sportness",
+    imageUrl:
+      "https://products.dm-static.com/images/f_auto%2Cq_auto%2Cc_fit%2Ch_440%2Cw_500/v1759824442/assets/pas/images/bbaf0a47-cb9c-4ec9-a1dd-f55e89b6f852/sportness-proteinriegel-26-prozent-crunchy-brownie-und-cream-geschmack",
+    summaryPrice: "0,95 EUR",
+    detailPrice: "0,95 EUR / 40 g",
+    gewicht: "40 g",
+    servingLabel: "Riegel",
+    zutaten:
+      officialBarDescription("dm / Sportness", "Proteinriegel 26%", "Crunchy Brownie & Cream"),
+    nutrition: per100Nutrition({
+      servingWeightGrams: 40,
+      energyKj: 1743,
+      kcal: 418,
+      protein: 26,
+      fat: 18,
+      saturatedFat: 8.1,
+      carbs: 31,
+      sugar: 3.3,
+      ballaststoffe: 12,
+      salz: 0.61,
+      polyole: 23,
+    }),
   },
 ];
 
