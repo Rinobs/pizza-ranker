@@ -26,6 +26,7 @@ export default function ProductCardImage({
   eager = false,
 }: ProductCardImageProps) {
   const containerRef = React.useRef<HTMLDivElement | null>(null);
+  const imageRef = React.useRef<HTMLImageElement | null>(null);
   const primarySrc = React.useMemo(() => getProxyImageUrl(routeSlug), [routeSlug]);
   const normalizedFallbackSrc = fallbackSrc.trim() || DEFAULT_PRODUCT_IMAGE;
   const [shouldLoad, setShouldLoad] = React.useState(eager);
@@ -88,6 +89,14 @@ export default function ProductCardImage({
     setIsLoaded(false);
   }, [currentSrc]);
 
+  React.useEffect(() => {
+    const image = imageRef.current;
+
+    if (image && image.complete && image.naturalWidth > 0) {
+      setIsLoaded(true);
+    }
+  }, [currentSrc]);
+
   function handleError() {
     setLoadStage((currentStage) => {
       if (currentStage === 0 && normalizedFallbackSrc !== primarySrc) {
@@ -118,11 +127,10 @@ export default function ProductCardImage({
 
       {currentSrc ? (
         <img
+          ref={imageRef}
           src={currentSrc}
           alt={alt}
-          className={`${className} transition-[opacity,transform] duration-500 ${
-            isLoaded ? "opacity-100" : "opacity-0"
-          }`}
+          className={`${className} transition-transform duration-500`}
           loading={eager ? "eager" : "lazy"}
           fetchPriority={eager ? "high" : "low"}
           decoding="async"
