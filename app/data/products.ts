@@ -38,6 +38,50 @@ export function getProductImageUrl(product: {
   return imageUrl || DEFAULT_PRODUCT_IMAGE;
 }
 
+function optimizeAmazonImageUrl(imageUrl: string): string {
+  return imageUrl.replace(/_AC_(?:SX|SY|SL)\d+_/i, "_AC_SL640_");
+}
+
+function optimizeShopifyImageUrl(imageUrl: string): string {
+  try {
+    const url = new URL(imageUrl);
+
+    if (!url.searchParams.has("width")) {
+      url.searchParams.set("width", "960");
+    }
+
+    return url.toString();
+  } catch {
+    return imageUrl;
+  }
+}
+
+export function getProductImageFetchUrl(product: {
+  imageUrl?: string | null;
+}): string {
+  const imageUrl = getProductImageUrl(product);
+
+  if (imageUrl.startsWith("/")) {
+    return imageUrl;
+  }
+
+  try {
+    const hostname = new URL(imageUrl).hostname.toLowerCase();
+
+    if (hostname === "m.media-amazon.com") {
+      return optimizeAmazonImageUrl(imageUrl);
+    }
+
+    if (hostname.endsWith("shopify.com")) {
+      return optimizeShopifyImageUrl(imageUrl);
+    }
+  } catch {
+    return imageUrl;
+  }
+
+  return imageUrl;
+}
+
 export function getProductPriceValue(product: {
   price?: string | null;
 }): number | null {

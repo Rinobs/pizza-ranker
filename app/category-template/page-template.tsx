@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import BackButton from "../components/BackButton";
+import ProductCardImage from "../components/ProductCardImage";
 import ProductComparisonPanel, {
   COMPARE_LIMIT,
   type ComparableProduct,
@@ -284,7 +285,7 @@ export default function CategoryPage({
 
       {visibleProducts.length > 0 ? (
         <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5 md:gap-7">
-          {visibleProducts.map((product) => {
+          {visibleProducts.map((product, index) => {
             const isSelectedForCompare = selectedRouteSlugSet.has(product.routeSlug);
             const compareDisabled = compareLimitReached && !isSelectedForCompare;
 
@@ -300,7 +301,7 @@ export default function CategoryPage({
                 hover:-translate-y-1.5 hover:scale-[1.02]
                 transition-all duration-300 ease-out
               "
-                style={{ aspectRatio: "3 / 4" }}
+                style={{ aspectRatio: "3 / 4", contentVisibility: "auto" }}
               >
                 <button
                   type="button"
@@ -320,21 +321,12 @@ export default function CategoryPage({
                 </button>
 
                 <Link href={`/produkt/${product.routeSlug}`} className="block h-full w-full">
-                  <img
-                    src={`/api/product-image/${product.routeSlug}`}
+                  <ProductCardImage
+                    routeSlug={product.routeSlug}
                     alt={product.item.name}
+                    fallbackSrc={product.originalImageUrl}
+                    eager={index < 8}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    loading="lazy"
-                    decoding="async"
-                    onError={(event) => {
-                      const image = event.currentTarget;
-                      if (image.dataset.fallbackApplied === "1") {
-                        image.src = "/images/placeholders/product-default.svg";
-                        return;
-                      }
-                      image.dataset.fallbackApplied = "1";
-                      image.src = product.originalImageUrl;
-                    }}
                   />
 
                   <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent opacity-95 group-hover:opacity-100 transition-opacity" />
