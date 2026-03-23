@@ -1110,6 +1110,215 @@ const MORE_WAFER_BAR_VARIANTS: ProteinBarVariant[] = [
   },
 ];
 
+const ADDITIONAL_BRAND_PROTEIN_BAR_VARIANTS: ProteinBarVariant[] = [
+  {
+    name: "KoRo Protein Bar - Chocolate Caramel",
+    marke: "KoRo",
+    imageUrl:
+      "https://koro.imgix.net/media/f0/33/7b/1740441097/PROTEIN_060_MAIN.jpg?auto=format%2Ccompress&cs=srgb&fit=max&w=3000",
+    summaryPrice: "2,90 EUR",
+    detailPrice: "2,90 EUR / 60 g",
+    gewicht: "60 g",
+    servingLabel: "Riegel",
+    zutaten:
+      "Suessungsmittel: Maltit; Feuchthaltemittel: Glycerin; Calciumcaseinat, Molkeneiweissisolat, Fuellstoff: Polydextrose; Kakaobutter, Vollmilchpulver, Sojaproteinisolat, Wasser, Kollagenhydrolysat, Kakaomasse, Oligofructose, Dextrin (Weizen), Rapsoel, Mandeleiweiss, Kokosoel, natuerliches Aroma, Tapiokastaerke, Salz, Erbsenprotein, Emulgator: Sojalecithin, Mono- und Diglyceride von Speisefettsaeuren; modifizierte Maisstaerke, Stabilisator: Calciumcarbonat; natuerliches Vanillearoma, Saeureregulator: Natriumcitrat; Suessungsmittel: Sucralose.",
+    nutrition: {
+      energyKj: pair("917 kJ", "1528 kJ"),
+      kcal: pair("222 kcal", "367 kcal"),
+      protein: pair("18,6 g", "31 g"),
+      fat: pair("9,6 g", "16 g"),
+      saturatedFat: pair("5,1 g", "8,5 g"),
+      carbs: pair("17,4 g", "29 g"),
+      sugar: pair("1,9 g", "3,2 g"),
+      ballaststoffe: pair("6,0 g", "10 g"),
+      salz: pair("0,34 g", "0,56 g"),
+    },
+  },
+  {
+    name: "PowerBar 52% Protein+ - Cookies & Cream",
+    marke: "PowerBar",
+    imageUrl:
+      "https://www.powerbar.com/cdn/shop/files/e87662c21b1247eb8888433f11c7ce26_bb853776-9673-4018-b1b6-6b1b6d82b3ff.png?v=1760521897&width=3840",
+    summaryPrice: "11,95 EUR",
+    detailPrice: "11,95 EUR / 4 x 50 g",
+    gewicht: "4 x 50 g",
+    servingLabel: "Riegel",
+    zutaten:
+      "Milcheiweiss (Calciumcaseinat, Molkeneiweissisolat), Milchschokoladenkuvertuere mit Suessungsmittel (18 %) [Suessungsmittel (Maltit), Kakaobutter, Vollmilchpulver, Kakaomasse, Emulgator (Lecithine (Soja)), Aroma], Feuchthaltemittel (Glycerin), Kollagenhydrolysat, Sojaeiweiss, Wasser, Sojacrispies (5 %) (Sojaeiweiss, fettarmes Kakaopulver, Staerke), Aroma, Suessungsmittel (Sucralose), Emulgator [Lecithine (Soja)]. Kann enthalten: Weizen, Gerste, Hafer, Erdnuesse, Haselnuesse, Mandeln, Cashewnuesse, Pistazien.",
+    nutrition: {
+      energyKj: pair("693 kJ", "1386 kJ"),
+      kcal: pair("165 kcal", "330 kcal"),
+      protein: pair("26 g", "52 g"),
+      fat: pair("3,4 g", "6,8 g"),
+      saturatedFat: pair("2,0 g", "4,0 g"),
+      carbs: pair("12 g", "24 g"),
+      sugar: pair("0,7 g", "1,4 g"),
+      salz: pair("0,46 g", "0,91 g"),
+      polyole: pair("11 g", "22 g"),
+    },
+  },
+  {
+    name: "Barebells Protein Bar - Salty Caramel Crunch",
+    marke: "Barebells",
+    imageUrl: "https://barebells.de/wp-content/uploads/sites/3/2025/12/BB_Bars_Caramel_Crunch.png",
+    summaryPrice: "27,99 EUR",
+    detailPrice: "27,99 EUR / 12 x 55 g",
+    gewicht: "12 x 55 g",
+    servingLabel: "Riegel",
+    zutaten:
+      "Milcheiweiss, Kollagen-Hydrolysat, Feuchthaltemittel (Glycerin), Suessungsmittel (Maltit), Polydextrose, Kakaobutter, Vollmilchpulver, Sojaprotein, Wasser, Sonnenblumenoel, Kakaomasse, Maisstuecken, Salz, Aromen, Emulgator (Lecithine), Suessungsmittel (Sucralose). Kann Spuren von glutenhaltigem Getreide, Erdnussen und Schalenfruechten enthalten.",
+    nutrition: {
+      energyKj: pair("836 kJ", "1520 kJ"),
+      kcal: pair("200 kcal", "363 kcal"),
+      protein: pair("20 g", "37 g"),
+      fat: pair("7,5 g", "14 g"),
+      saturatedFat: pair("3,6 g", "6,6 g"),
+      carbs: pair("17 g", "31 g"),
+      sugar: pair("1,3 g", "2,4 g"),
+      ballaststoffe: pair("3,3 g", "5,9 g"),
+      salz: pair("0,71 g", "1,3 g"),
+    },
+  },
+  {
+    name: "Sportness Proteinriegel 50% - Fudgy Brownie",
+    marke: "dm / Sportness",
+    imageUrl:
+      "https://products.dm-static.com/images/f_auto%2Cq_auto%2Cc_fit%2Ch_440%2Cw_500/v1755093610/assets/pas/images/14beb9d5-59b0-43c0-9400-2be679f72f36/sportness-proteinriegel-50-prozent-fudgy-brownie-geschmack",
+    summaryPrice: "0,85 EUR",
+    detailPrice: "0,85 EUR / 45 g",
+    gewicht: "45 g",
+    servingLabel: "Riegel",
+    zutaten:
+      "Milcheiweiss, Kollagenhydrolysat, 18,9 % Maltit-Vollmilchschokolade mit Suessungsmittel (Suessungsmittel: Maltit; Kakaobutter, Vollmilchpulver, Kakaomasse, Emulgator: Sojalecithine; Aroma), Feuchthaltemittel: Glycerin; Wasser, kakaohaltige Sojaeiweiss-Crispies (Sojaeiweiss, fettarmes Kakaopulver, Tapiokastaerke), Sojaeiweissisolat, 1,6 % fettarmes Kakaopulver, Sojaoel, Aroma, Palmfett, Salz, Verdickungsmittel: Gummi arabicum; Emulgator: Sojalecithine; Suessungsmittel: Sucralose.",
+    nutrition: derivedNutrition({
+      servingWeightGrams: 45,
+      energyKj: 667.35,
+      kcal: 158.85,
+      protein: 22.5,
+      fat: 4.095,
+      saturatedFat: 2.475,
+      carbs: 11.7,
+      sugar: 1.125,
+      ballaststoffe: 0.54,
+      salz: 0.4365,
+      polyole: 10.125,
+    }),
+  },
+  {
+    name: "Bodylab Deluxe Protein Bar - Banana Chocolate",
+    marke: "Bodylab24",
+    imageUrl:
+      "https://cdn.shopify.com/s/files/1/0660/5412/7022/files/bodylab-deluxe-protein-bar-banana-chocolate.jpg?v=1739186135",
+    summaryPrice: "28,99 EUR",
+    detailPrice: "28,99 EUR / 12 x 50 g",
+    gewicht: "12 x 50 g",
+    servingLabel: "Riegel",
+    zutaten:
+      "22 % Vollmilchschokolade mit Suessungsmittel (Suessungsmittel: Maltit; Kakaobutter, Vollmilchpulver, Kakaomasse, Emulgator: Sojalecithine; Aroma), Schicht mit Schokoladenaroma (loesliche Maisfaser, Feuchthaltemittel: Glycerin; Milcheiweiss, Suessungsmittel: Maltit; Kakaobutter, Vollmilchpulver, Kakaomasse, Emulgator: Sojalecithine; Salz, Aroma), Milcheiweiss, Fuellstoff: Polydextrose; Suessungsmittel: Maltit, Sucralose; Feuchthaltemittel: Glycerin; hydrolysiertes Kollagen, Wasser, Sojaoel, Emulgator: Sojalecithine; Salz, Aroma, Farbstoff: Carotin.",
+    nutrition: {
+      energyKj: pair("719,65 kJ", "1439,3 kJ"),
+      kcal: pair("172 kcal", "344 kcal"),
+      protein: pair("11 g", "22 g"),
+      fat: pair("7,5 g", "15 g"),
+      saturatedFat: pair("3,4 g", "6,8 g"),
+      carbs: pair("17 g", "34 g"),
+      sugar: pair("1,8 g", "3,6 g"),
+      ballaststoffe: pair("6,2 g", "12,4 g"),
+      salz: pair("0,28 g", "0,56 g"),
+    },
+  },
+  {
+    name: "IronMaxx Zenith 50 Protein Bar - Brownie Chocolate Crisp",
+    marke: "IronMaxx",
+    imageUrl:
+      "https://www.ironmaxx.de/cdn/shop/files/IronMaxx_Zenith_50_Brownie_45g_copy_794e8238-abbc-4db1-ba2f-53c699954e18.png?v=1751902769&width=400",
+    summaryPrice: "1,99 EUR",
+    detailPrice: "1,99 EUR / 45 g",
+    gewicht: "45 g",
+    servingLabel: "Riegel",
+    zutaten:
+      "Milcheiweissmischung (Calciumcaseinat, Molkeneiweisskonzentrat, Molkeneiweissisolat), Feuchthaltemittel (Glycerin), Kollagenhydrolysat, Maltit-Vollmilchschokoladenkuvertuere (13 %) (Suessungsmittel (Maltit), Kakaobutter, Vollmilchpulver, Kakaomasse, Emulgator (Lecithin (Soja)), natuerliches Vanille-Aroma), Sojaeiweissisolat, Sojaeiweiss-Nuggets (5 %) (Sojaeiweissisolat, Kakao (10 %), Tapiokastaerke), Palmfett, Kakaopulver (2 %), Aroma, Inulin, Salz, Suessungsmittel (Sucralose), Emulgator (Lecithin), Antioxidationsmittel (DL-alpha-Tocopherol). Kann Spuren enthalten von Ei und Schalenfruechten.",
+    nutrition: {
+      energyKj: pair("690 kJ", "1534 kJ"),
+      kcal: pair("164 kcal", "365 kcal"),
+      protein: pair("23 g", "50 g"),
+      fat: pair("4,4 g", "9,9 g"),
+      saturatedFat: pair("2,6 g", "5,7 g"),
+      carbs: pair("13 g", "29 g"),
+      sugar: pair("0,6 g", "1,4 g"),
+      salz: pair("0,25 g", "0,56 g"),
+    },
+  },
+  {
+    name: "ahead Protein Bar - Peanut Caramel",
+    marke: "ahead",
+    imageUrl:
+      "https://www.ahead-nutrition.com/cdn/shop/files/Peanut_Caramel_front.png?v=1739277480&width=1200",
+    summaryPrice: "31,99 EUR",
+    detailPrice: "31,99 EUR / 14 x 45 g",
+    gewicht: "14 x 45 g",
+    servingLabel: "Riegel",
+    zutaten:
+      "Milchproteine, Suessungsmittel: Maltitol; Polydextrose, Feuchthaltemittel: Glycerin; Kakaobutter, 8,8 % geroestete Erdnussstuecke, Vollmilchpulver, Kollagenhydrolysat, Kakaomasse, Wasser, Sonnenblumenoel, Konzentrat (karamellisierte Karotte, Karotte, Apfel, schwarze Johannisbeere), Meersalz, Aroma, Emulgator: Lecithine, natuerliche Aromen. Kann enthalten sein: glutenhaltiges Getreide, Sojabohnen und Nuesse.",
+    nutrition: {
+      energyKj: pair("745 kJ", "1655 kJ"),
+      kcal: pair("179 kcal", "398 kcal"),
+      protein: pair("12 g", "27 g"),
+      fat: pair("9,3 g", "21 g"),
+      saturatedFat: pair("4,3 g", "9,5 g"),
+      carbs: pair("15 g", "33 g"),
+      sugar: pair("1,7 g", "3,7 g"),
+      ballaststoffe: pair("3,5 g", "7,8 g"),
+      salz: pair("0,17 g", "0,38 g"),
+      polyole: pair("12 g", "27 g"),
+    },
+  },
+  {
+    name: "PowerXSystem Whey Choc Bar - White Chocolate",
+    marke: "PowerXSystem",
+    imageUrl:
+      "https://power-system-shop.com/cdn/shop/files/Proteinriegel_Whey_Choc_f113573a-ba26-47cf-b532-b83d45c74c7d.jpg?v=1765200795&width=2100",
+    summaryPrice: "4,89 EUR",
+    detailPrice: "4,89 EUR / 12 x 35 g",
+    gewicht: "12 x 35 g",
+    servingLabel: "Riegel",
+    zutaten:
+      "Milcheiweissmischung (Milcheiweiss, Molkeneiweisskonzentrat), Suessungsmittel (Maltit), Feuchthaltemittel (Glycerin), Wasser, Kakaobutter, Vollmilchpulver, oligofructosereicher Sirup, hydrolysiertes Kollagen, Sojaeiweissisolat, Weizenknusper (Weizenmehl, Reismehl, Zuckersirup, Malzextrakt, Salz), Sonnenblumenoel, Magermilchpulver, Emulgator (Sojalecithine), Aroma, Suessungsmittel (Sucralose).",
+    nutrition: derivedNutrition({
+      servingWeightGrams: 35,
+      energyKj: 467.25,
+      kcal: 111.65,
+      protein: 10.5,
+      fat: 3.5,
+      saturatedFat: 1.82,
+      carbs: 13.3,
+      sugar: 0.63,
+      salz: 0.3325,
+    }),
+  },
+  {
+    name: "Snickers Hi Protein Crisp",
+    marke: "Mars / Snickers",
+    imageUrl: "https://usfoodz.eu/cdn/shop/products/Snickers-Hi-Protein-Crisp_1000x1000.jpg?v=1656094574",
+    summaryPrice: "1,99 EUR",
+    detailPrice: "1,99 EUR / 55 g",
+    gewicht: "55 g",
+    servingLabel: "Riegel",
+    zutaten:
+      "Milk chocolate (16 %) (sugar, cocoa butter, skimmed milk powder, cocoa mass, lactose and protein from whey (milk), palm fat, whey powder, milk fat, emulsifier (soy lecithin), natural vanilla flavor), milk protein, collagen hydrolysate, caramel layer (11 %) (glucose syrup, sugar, condensed milk, invert sugar syrup, cocoa butter, humectant (glycerol), emulsifier (mono- and diglycerides), flavor, salt, coloring (pure caramel)), peanuts (9 %), humectant (glycerol), water, oligofructose, soy protein, coconut fat, whey protein, soy crispies (2,5 %) (soy protein, rice flour, barley malt extract, salt), peanut paste, flavourings, color (regular caramel).",
+    nutrition: {
+      energyKj: pair("908 kJ", "1650 kJ"),
+      kcal: pair("217 kcal", "388 kcal"),
+      protein: pair("20 g", "37 g"),
+      fat: pair("8,2 g", "15 g"),
+      saturatedFat: pair("3,6 g", "6,5 g"),
+      carbs: pair("15 g", "28 g"),
+      sugar: pair("8,4 g", "15 g"),
+      salz: pair("0,26 g", "0,46 g"),
+    },
+  },
+];
+
 const OFFICIAL_PROTEIN_BAR_VARIANTS: ProteinBarVariant[] = [
   ...ESN_DESIGNER_BAR_VARIANTS,
   ...ESN_GOAT_BAR_VARIANTS,
@@ -1117,6 +1326,7 @@ const OFFICIAL_PROTEIN_BAR_VARIANTS: ProteinBarVariant[] = [
   ...MORE_PROTEIN_SATISBITES_VARIANTS,
   ...MORE_VEGAN_PROTEIN_BAR_VARIANTS,
   ...MORE_WAFER_BAR_VARIANTS,
+  ...ADDITIONAL_BRAND_PROTEIN_BAR_VARIANTS,
 ];
 
 export const OFFICIAL_PROTEINRIEGEL_PRODUCTS =
