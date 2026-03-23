@@ -325,7 +325,7 @@ export default function CategoryPage({
                     routeSlug={product.routeSlug}
                     alt={product.item.name}
                     fallbackSrc={product.originalImageUrl}
-                    eager={index < 4}
+                    eager={index < 3}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
 

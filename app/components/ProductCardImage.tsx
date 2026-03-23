@@ -4,7 +4,8 @@
 import React from "react";
 import { DEFAULT_PRODUCT_IMAGE } from "@/app/data/products";
 
-const VIEWPORT_PRELOAD_MARGIN = "400px 0px";
+const VIEWPORT_PRELOAD_MARGIN = "280px 0px";
+const CARD_IMAGE_WIDTH = "720";
 
 type ProductCardImageProps = {
   routeSlug: string;
@@ -29,9 +30,18 @@ function getPreferredImageUrl(imageUrl: string) {
 
   try {
     const url = new URL(imageUrl);
+    const hostname = url.hostname.toLowerCase();
 
-    if (url.hostname.toLowerCase().endsWith("shopify.com") && !url.searchParams.has("width")) {
-      url.searchParams.set("width", "960");
+    const isShopifyCdn =
+      hostname.endsWith("shopify.com") || url.pathname.includes("/cdn/shop/files/");
+
+    if (isShopifyCdn) {
+      const requestedWidth = Number.parseInt(url.searchParams.get("width") || "", 10);
+
+      if (!Number.isFinite(requestedWidth) || requestedWidth > Number.parseInt(CARD_IMAGE_WIDTH, 10)) {
+        url.searchParams.set("width", CARD_IMAGE_WIDTH);
+      }
+
       return url.toString();
     }
   } catch {
