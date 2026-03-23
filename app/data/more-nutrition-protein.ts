@@ -42,7 +42,7 @@ export const MORE_NUTRITION_PROTEINPULVER_PRODUCTS = [
   {
     name: "More Nutrition More Protein Iced Coffee",
     imageUrl:
-      "https://morenutrition.de/cdn/shop/files/More_Protein_Iced_Coffee_Latte_Macchiato_500g_1500x.png?v=1768122392",
+      "https://morenutrition.de/cdn/shop/files/More_Protein_Iced_Coffee_Salted_Caramel_Brownie_500g_4096x4096-n7j5TA0y_a26069aa-c5c4-4ead-91d1-b03795a9e383.png?v=1773213855",
     category: "Proteinpulver",
     slug: "proteinpulver",
     price: "31,99 €",
@@ -54,7 +54,7 @@ export const MORE_NUTRITION_PROTEINPULVER_PRODUCTS = [
   {
     name: "More Nutrition More Protein Iced Matcha Latte",
     imageUrl:
-      "https://morenutrition.de/cdn/shop/files/More_Protein_Iced_Matcha_Latte_Mango_Dream_500g_1600x.png?v=1768122394&width=160",
+      "https://morenutrition.de/cdn/shop/files/More_Protein_Iced_Matcha_Latte_Mango_Dream_500g_4096x4096-W8yzZCa9_7c4369e8-d397-4e82-a58c-6ec521c12092.png?v=1771850377",
     category: "Proteinpulver",
     slug: "proteinpulver",
     price: "32,99 €",
@@ -66,7 +66,7 @@ export const MORE_NUTRITION_PROTEINPULVER_PRODUCTS = [
   {
     name: "More Nutrition More Protein Sahne",
     imageUrl:
-      "https://morenutrition.de/cdn/shop/files/More_Protein_Sahne_600g_2048x.png?v=1769575850",
+      "https://morenutrition.de/cdn/shop/files/more_total_protein_600g_sahne-7a7_O1if_584de552-b173-47be-a7f7-1a283553932f.png?v=1755541797",
     category: "Proteinpulver",
     slug: "proteinpulver",
     price: "32,99 €",
@@ -78,7 +78,7 @@ export const MORE_NUTRITION_PROTEINPULVER_PRODUCTS = [
   {
     name: "More Nutrition More Protein",
     imageUrl:
-      "https://morenutrition.de/cdn/shop/files/More_Protein_Neutral_600g_2048x.png?v=1768122390&width=160",
+      "https://morenutrition.de/cdn/shop/files/More_Protein_Milkshake_Style_Choco_Coco_600g_4096x4096-TKKmhhU_40d63e2c-62a3-4524-b828-6e1b4745fad0.png?v=1772455224",
     category: "Proteinpulver",
     slug: "proteinpulver",
     price: "32,99 €",
@@ -90,7 +90,7 @@ export const MORE_NUTRITION_PROTEINPULVER_PRODUCTS = [
   {
     name: "More Nutrition More Clear Protein",
     imageUrl:
-      "https://morenutrition.de/cdn/shop/files/More_Clear_Protein_600g_Juice_Style_Pear_Cinnamon_2048x.png?v=1768122385",
+      "https://morenutrition.de/cdn/shop/files/Clear_Protein_Juice_Style_Pear_Cinnamon_600g_4096x4096-lzrOhzDw_55e3aad7-2627-491d-85b6-b234868c122c.png?v=1763982557",
     category: "Proteinpulver",
     slug: "proteinpulver",
     price: "36,99 €",
@@ -102,7 +102,7 @@ export const MORE_NUTRITION_PROTEINPULVER_PRODUCTS = [
   {
     name: "More Nutrition More Vegan Protein",
     imageUrl:
-      "https://morenutrition.de/cdn/shop/files/More_Vegan_Protein_600g_Neutral_2048x.png?v=1768122399&width=160",
+      "https://morenutrition.de/cdn/shop/files/more_total_protein_vegan_600g_cinnalicious-poY0AK6e_18ad7d5c-6adc-44cf-9de1-7bae9236bbae.png?v=1762526080",
     category: "Proteinpulver",
     slug: "proteinpulver",
     price: "32,99 €",
@@ -114,7 +114,7 @@ export const MORE_NUTRITION_PROTEINPULVER_PRODUCTS = [
   {
     name: "More Nutrition More Protein Milkyccino",
     imageUrl:
-      "https://morenutrition.de/cdn/shop/files/More_Protein_Milkyccino_500g_Mango_Coconut_2048x.png?v=1768122395&width=160",
+      "https://morenutrition.de/cdn/shop/files/More_Protein_Milkyccino_500g_Milk_Honey_4096x4096-dw3UDlrP_ebcc6071-22ad-4c93-a088-eb9891ba6d07.png?v=1760962170",
     category: "Proteinpulver",
     slug: "proteinpulver",
     price: "29,99 €",
@@ -126,7 +126,7 @@ export const MORE_NUTRITION_PROTEINPULVER_PRODUCTS = [
   {
     name: "More Nutrition More Protein Iced Chai Latte",
     imageUrl:
-      "https://morenutrition.de/cdn/shop/files/More_Protein_Iced_Chai_Latte_Maple_Walnut_500g_2048x.png?v=1768122389&width=160",
+      "https://morenutrition.de/cdn/shop/files/More_Protein_Iced_Chai_Latte_Maple_Walnut_500g_4096x4096-cXE7toF_2dd60993-a6c7-48bd-9cdd-c572b5d7475b.png?v=1772174348",
     category: "Proteinpulver",
     slug: "proteinpulver",
     price: "32,99 €",
