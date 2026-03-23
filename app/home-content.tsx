@@ -105,7 +105,7 @@ function ProductCard({ product }: { product: RankedProduct }) {
       style={{ aspectRatio: "3/4" }}
     >
       <img
-        src={`/api/product-image/${product.routeSlug}`}
+        src={product.imageUrl}
         alt={product.name}
         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         loading="lazy"
@@ -117,7 +117,7 @@ function ProductCard({ product }: { product: RankedProduct }) {
             return;
           }
           image.dataset.fallbackApplied = "1";
-          image.src = product.imageUrl;
+          image.src = `/api/product-image/${product.routeSlug}`;
         }}
       />
 

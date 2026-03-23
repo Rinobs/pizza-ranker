@@ -27,7 +27,7 @@ export default function ProductCardImage({
 }: ProductCardImageProps) {
   const containerRef = React.useRef<HTMLDivElement | null>(null);
   const imageRef = React.useRef<HTMLImageElement | null>(null);
-  const primarySrc = React.useMemo(() => getProxyImageUrl(routeSlug), [routeSlug]);
+  const proxySrc = React.useMemo(() => getProxyImageUrl(routeSlug), [routeSlug]);
   const normalizedFallbackSrc = fallbackSrc.trim() || DEFAULT_PRODUCT_IMAGE;
   const [shouldLoad, setShouldLoad] = React.useState(eager);
   const [loadStage, setLoadStage] = React.useState(0);
@@ -37,7 +37,7 @@ export default function ProductCardImage({
     setShouldLoad(eager);
     setLoadStage(0);
     setIsLoaded(false);
-  }, [eager, normalizedFallbackSrc, primarySrc]);
+  }, [eager, normalizedFallbackSrc, proxySrc]);
 
   React.useEffect(() => {
     if (eager || shouldLoad) {
@@ -75,15 +75,15 @@ export default function ProductCardImage({
     }
 
     if (loadStage === 0) {
-      return primarySrc;
-    }
-
-    if (loadStage === 1 && normalizedFallbackSrc !== primarySrc) {
       return normalizedFallbackSrc;
     }
 
+    if (loadStage === 1 && proxySrc !== normalizedFallbackSrc) {
+      return proxySrc;
+    }
+
     return DEFAULT_PRODUCT_IMAGE;
-  }, [loadStage, normalizedFallbackSrc, primarySrc, shouldLoad]);
+  }, [loadStage, normalizedFallbackSrc, proxySrc, shouldLoad]);
 
   React.useEffect(() => {
     setIsLoaded(false);
@@ -99,7 +99,7 @@ export default function ProductCardImage({
 
   function handleError() {
     setLoadStage((currentStage) => {
-      if (currentStage === 0 && normalizedFallbackSrc !== primarySrc) {
+      if (currentStage === 0 && proxySrc !== normalizedFallbackSrc) {
         return 1;
       }
 

@@ -204,7 +204,7 @@ export default function ProductComparisonPanel({
               <div className="flex items-start gap-3">
                 <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[#2D3A4B] bg-[#101822] p-1.5">
                   <img
-                    src={`/api/product-image/${product.routeSlug}`}
+                    src={product.originalImageUrl}
                     alt={product.name}
                     className="h-full w-full object-contain"
                     loading="lazy"
@@ -217,7 +217,7 @@ export default function ProductComparisonPanel({
                       }
 
                       image.dataset.fallbackApplied = "1";
-                      image.src = product.originalImageUrl;
+                      image.src = `/api/product-image/${product.routeSlug}`;
                     }}
                   />
                 </div>
