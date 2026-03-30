@@ -3,12 +3,14 @@
 import React from "react";
 import Link from "next/link";
 import BackButton from "../components/BackButton";
+import BuyButton from "../components/BuyButton";
 import ProductCardImage from "../components/ProductCardImage";
 import ProductComparisonPanel, {
   COMPARE_LIMIT,
   type ComparableProduct,
 } from "../components/ProductComparisonPanel";
 import {
+  getProductBuyLink,
   getProductImageUrl,
   getProductPriceValue,
   getProductRouteSlug,
@@ -35,6 +37,8 @@ type RatingSummaryResponse = {
 type CategoryProduct = ComparableProduct & {
   newIndex: number;
   priceValue: number | null;
+  buyUrl: string;
+  buySourceLabel: string;
 };
 
 type VisibleProduct = CategoryProduct & {
@@ -121,6 +125,7 @@ export default function CategoryPage({
     return products.map((item, index) => {
       const routeSlug = getProductRouteSlug(item);
       const stats = ratingStats[routeSlug];
+      const buyLink = getProductBuyLink(item);
       return {
         item,
         name: item.name,
@@ -130,6 +135,8 @@ export default function CategoryPage({
         ratingCount: stats?.ratingCount ?? 0,
         newIndex: index,
         priceValue: getProductPriceValue(item),
+        buyUrl: buyLink.url,
+        buySourceLabel: buyLink.sourceLabel,
       };
     });
   }, [products, ratingStats]);
@@ -322,39 +329,53 @@ export default function CategoryPage({
                       : "Vergleichen"}
                 </button>
 
-                <Link href={`/produkt/${product.routeSlug}`} className="block h-full w-full">
-                  <ProductCardImage
-                    routeSlug={product.routeSlug}
-                    alt={product.item.name}
-                    fallbackSrc={product.originalImageUrl}
-                    eager={index < 3}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
+                <Link
+                  href={`/produkt/${product.routeSlug}`}
+                  aria-label={`${product.item.name} öffnen`}
+                  className="absolute inset-0 z-10 block h-full w-full rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8AF5AC] focus-visible:ring-offset-2 focus-visible:ring-offset-[#101822]"
+                />
 
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent opacity-95 group-hover:opacity-100 transition-opacity" />
+                <ProductCardImage
+                  routeSlug={product.routeSlug}
+                  alt={product.item.name}
+                  fallbackSrc={product.originalImageUrl}
+                  eager={index < 3}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
 
-                  <div className="absolute bottom-0 left-0 w-full p-4">
-                    <h3 className="text-white text-sm sm:text-base font-semibold line-clamp-2">
-                      {product.item.name}
-                    </h3>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent opacity-95 transition-opacity group-hover:opacity-100" />
 
-                    {product.ratingAvg !== null && product.ratingCount > 0 ? (
-                      <p className="text-xs sm:text-sm text-yellow-300 mt-1.5">
-                        {"\u2B50"} {product.ratingAvg.toFixed(1)} ({product.ratingCount})
-                      </p>
-                    ) : (
-                      <p className="text-xs sm:text-sm text-[#8CA1B8] mt-1.5">
-                        Noch keine Bewertungen
-                      </p>
-                    )}
+                <div className="absolute bottom-0 left-0 z-20 w-full p-4 pointer-events-none">
+                  <h3 className="text-white text-sm sm:text-base font-semibold line-clamp-2">
+                    {product.item.name}
+                  </h3>
 
-                    <p className="text-[11px] text-[#BFD0E2] mt-2">
-                      {isSelectedForCompare
-                        ? "Im Vergleich. Über den Button oben rechts kannst du das Produkt wieder entfernen."
-                        : "Tippe auf das Produkt, um zu bewerten, zu kommentieren oder es dem Vergleich hinzuzufügen."}
+                  {product.ratingAvg !== null && product.ratingCount > 0 ? (
+                    <p className="text-xs sm:text-sm text-yellow-300 mt-1.5">
+                      {"\u2B50"} {product.ratingAvg.toFixed(1)} ({product.ratingCount})
                     </p>
+                  ) : (
+                    <p className="text-xs sm:text-sm text-[#8CA1B8] mt-1.5">
+                      Noch keine Bewertungen
+                    </p>
+                  )}
+
+                  <p className="mt-2 text-[11px] text-[#BFD0E2]">
+                    {isSelectedForCompare
+                      ? "Im Vergleich. Über den Button oben rechts kannst du das Produkt wieder entfernen."
+                      : "Öffnen zum Bewerten oder direkt extern kaufen."}
+                  </p>
+
+                  <div className="mt-3 flex justify-end">
+                    <BuyButton
+                      href={product.buyUrl}
+                      sourceLabel={product.buySourceLabel}
+                      productName={product.item.name}
+                      compact
+                      className="pointer-events-auto"
+                    />
                   </div>
-                </Link>
+                </div>
               </div>
             );
           })}

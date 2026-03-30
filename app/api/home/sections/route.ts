@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import {
   ALL_PRODUCTS,
   PIZZA_PRODUCTS,
+  getProductBuyLink,
   getProductImageUrl,
   getProductRouteSlug,
   type Product,
@@ -13,6 +14,8 @@ type RankedProduct = {
   category: string;
   routeSlug: string;
   imageUrl: string;
+  buyUrl: string;
+  buySourceLabel: string;
   ratingAvg: number | null;
   ratingCount: number;
   weekRatingAvg: number | null;
@@ -36,11 +39,15 @@ type Agg = {
 const LIMIT = 10;
 
 function toRankedProduct(product: Product): RankedProduct {
+  const buyLink = getProductBuyLink(product);
+
   return {
     name: product.name,
     category: product.category,
     routeSlug: getProductRouteSlug(product),
     imageUrl: getProductImageUrl(product),
+    buyUrl: buyLink.url,
+    buySourceLabel: buyLink.sourceLabel,
     ratingAvg: null,
     ratingCount: 0,
     weekRatingAvg: null,

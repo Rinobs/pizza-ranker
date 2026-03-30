@@ -19,7 +19,14 @@ export interface Product {
   protein?: number;
   fat?: number;
   carbs?: number;
+  buyUrl?: string;
+  buyLabel?: string;
 }
+
+export type ProductBuyLink = {
+  url: string;
+  sourceLabel: string;
+};
 function slugifyProductSegment(value: string): string {
   const slug = value
     .toLowerCase()
@@ -74,6 +81,118 @@ export function getProductPriceValue(product: {
   }
 
   return Math.min(...numericValues);
+}
+
+function normalizeBuyQuery(value: string) {
+  return value.replace(/\s+-\s+/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function toProductSearchKey(value: string) {
+  return value
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/ß/g, "ss")
+    .replace(/&/g, " and ")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function buildAmazonSearchUrl(query: string) {
+  return `https://www.amazon.de/s?k=${encodeURIComponent(query)}`;
+}
+
+function buildReweSearchUrl(query: string) {
+  return `https://shop.rewe.de/suche/${encodeURIComponent(query)}`;
+}
+
+function buildShopifySearchUrl(baseUrl: string, query: string) {
+  return `${baseUrl.replace(/\/+$/, "")}/search?q=${encodeURIComponent(query)}`;
+}
+
+function createBuyLink(url: string, sourceLabel: string): ProductBuyLink {
+  return {
+    url,
+    sourceLabel,
+  };
+}
+
+function hasKeyword(searchKey: string, keywords: string[]) {
+  return keywords.some(
+    (keyword) => searchKey.startsWith(keyword) || searchKey.includes(` ${keyword} `)
+  );
+}
+
+export function getProductBuyLink(
+  product: Pick<Product, "name" | "slug" | "buyUrl" | "buyLabel">
+): ProductBuyLink {
+  const explicitUrl = product.buyUrl?.trim();
+  if (explicitUrl) {
+    return createBuyLink(explicitUrl, product.buyLabel?.trim() || "Shop");
+  }
+
+  const query = normalizeBuyQuery(product.name);
+  const searchKey = ` ${toProductSearchKey(query)} `;
+
+  if (searchKey.includes(" ruhl24 whey protein konzentrat ")) {
+    return createBuyLink(
+      "https://www.ruehl24.de/de/ruehls-bestes-whey-protein-konzentrat.html",
+      "Rühl24"
+    );
+  }
+
+  if (searchKey.includes(" more nutrition ")) {
+    return createBuyLink(buildShopifySearchUrl("https://morenutrition.de", query), "More");
+  }
+
+  if (searchKey.includes(" neosupps ")) {
+    return createBuyLink(buildShopifySearchUrl("https://neosupps.com", query), "NeoSupps");
+  }
+
+  if (searchKey.includes(" aldi sports gefullter proteinriegel ")) {
+    return createBuyLink(
+      "https://www.aldi-nord.de/produkt/gefuellter-riegel-1019997-0-0.article.html#/sortiment/neu",
+      "ALDI"
+    );
+  }
+
+  if (searchKey.includes(" aldi sports high protein riegel vegan ")) {
+    return createBuyLink("https://www.aldi-nord.de/", "ALDI");
+  }
+
+  if (hasKeyword(searchKey, ["aldi", "grandessa", "casa romana", "gigante"])) {
+    return createBuyLink("https://www.aldi-nord.de/", "ALDI");
+  }
+
+  if (hasKeyword(searchKey, ["lidl", "sportness", "sondey", "gelatelli", "trattoria alfredo"])) {
+    return createBuyLink("https://www.lidl.de/", "Lidl");
+  }
+
+  if (searchKey.includes(" rewe ") || searchKey.includes(" rewe beste wahl ")) {
+    return createBuyLink(buildReweSearchUrl(query), "REWE");
+  }
+
+  if (searchKey.includes(" edeka ") || searchKey.includes(" g g ")) {
+    return createBuyLink("https://www.edeka.de/", "EDEKA");
+  }
+
+  if (searchKey.includes(" penny ") || searchKey.includes(" san fabio ")) {
+    return createBuyLink("https://www.penny.de/", "PENNY");
+  }
+
+  if (searchKey.includes(" netto ") || searchKey.includes(" tanta emma ")) {
+    return createBuyLink("https://www.netto-online.de/", "Netto");
+  }
+
+  if (searchKey.includes(" k classic ")) {
+    return createBuyLink("https://www.kaufland.de/", "Kaufland");
+  }
+
+  if (product.slug === "pizza" || product.slug === "chips" || product.slug === "eis") {
+    return createBuyLink(buildReweSearchUrl(query), "REWE");
+  }
+
+  return createBuyLink(buildAmazonSearchUrl(query), "Amazon");
 }
 
 function mergeProducts(...groups: Product[][]): Product[] {

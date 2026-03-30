@@ -16,11 +16,13 @@ import ProductCardImage from "./components/ProductCardImage";
 import {
   ALL_PRODUCTS,
   PIZZA_PRODUCTS,
+  getProductBuyLink,
   getProductImageUrl,
   getProductPriceValue,
   getProductRouteSlug,
   type Product,
 } from "./data/products";
+import BuyButton from "./components/BuyButton";
 import {
   CATEGORY_NAV_ITEMS,
   DEFAULT_DISCOVER_SORT,
@@ -39,6 +41,8 @@ type RankedProduct = {
   category: string;
   routeSlug: string;
   imageUrl: string;
+  buyUrl: string;
+  buySourceLabel: string;
   ratingAvg: number | null;
   ratingCount: number;
   weekRatingAvg: number | null;
@@ -124,11 +128,15 @@ const ABSOLUTE_DATE_FORMATTER = new Intl.DateTimeFormat("de-DE", {
 });
 
 function toRankedProduct(product: Product): RankedProduct {
+  const buyLink = getProductBuyLink(product);
+
   return {
     name: product.name,
     category: product.category,
     routeSlug: getProductRouteSlug(product),
     imageUrl: getProductImageUrl(product),
+    buyUrl: buyLink.url,
+    buySourceLabel: buyLink.sourceLabel,
     ratingAvg: null,
     ratingCount: 0,
     weekRatingAvg: null,
@@ -248,11 +256,16 @@ function ProductCard({
   eager?: boolean;
 }) {
   return (
-    <Link
-      href={`/produkt/${product.routeSlug}`}
+    <div
       className="group relative overflow-hidden rounded-[24px] border border-[#2D3A4B] bg-[#131B26] shadow-[0_14px_34px_rgba(0,0,0,0.3)] transition-all duration-300 hover:-translate-y-1.5 hover:border-[#5EE287] hover:shadow-[0_20px_44px_rgba(34,197,94,0.18)]"
       style={{ aspectRatio: "0.72" }}
     >
+      <Link
+        href={`/produkt/${product.routeSlug}`}
+        aria-label={`${product.name} öffnen`}
+        className="absolute inset-0 z-10 rounded-[24px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8AF5AC] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0F151E]"
+      />
+
       <ProductCardImage
         routeSlug={product.routeSlug}
         alt={product.name}
@@ -267,7 +280,7 @@ function ProductCard({
         {product.category}
       </div>
 
-      <div className="absolute inset-x-0 bottom-0 p-4">
+      <div className="absolute inset-x-0 bottom-0 z-20 p-4 pointer-events-none">
         <h3 className="line-clamp-2 text-sm font-semibold text-white sm:text-base">
           {product.name}
         </h3>
@@ -287,8 +300,18 @@ function ProductCard({
               : "Sei die erste Meinung"}
           </span>
         </div>
+        <div className="mt-3 flex items-center justify-between gap-2">
+          <span className="text-[11px] text-[#BFD0E2]">Zum Bewerten öffnen</span>
+          <BuyButton
+            href={product.buyUrl}
+            sourceLabel={product.buySourceLabel}
+            productName={product.name}
+            compact
+            className="pointer-events-auto"
+          />
+        </div>
       </div>
-    </Link>
+    </div>
   );
 }
 

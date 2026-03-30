@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { type Product } from "@/app/data/products";
+import BuyButton from "@/app/components/BuyButton";
+import { getProductBuyLink, type Product } from "@/app/data/products";
 
 export type ComparableProduct = {
   item: Product;
@@ -195,6 +196,7 @@ export default function ProductComparisonPanel({
       <div className="mt-5 grid gap-3 lg:grid-cols-2 xl:grid-cols-3">
         {products.map((product) => {
           const quickFacts = getQuickFacts(product);
+          const buyLink = getProductBuyLink(product.item);
 
           return (
             <article
@@ -243,13 +245,21 @@ export default function ProductComparisonPanel({
                 </div>
               </div>
 
-              <div className="mt-4 flex items-center justify-between gap-2">
-                <Link
-                  href={`/produkt/${product.routeSlug}`}
-                  className="text-sm font-semibold text-[#8AF5AC] transition-colors hover:text-[#CFFFE0]"
-                >
-                  Zum Produkt
-                </Link>
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Link
+                    href={`/produkt/${product.routeSlug}`}
+                    className="text-sm font-semibold text-[#8AF5AC] transition-colors hover:text-[#CFFFE0]"
+                  >
+                    Zum Produkt
+                  </Link>
+                  <BuyButton
+                    href={buyLink.url}
+                    sourceLabel={buyLink.sourceLabel}
+                    productName={product.name}
+                    compact
+                  />
+                </div>
                 <button
                   type="button"
                   onClick={() => onRemove(product.routeSlug)}

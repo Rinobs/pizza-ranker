@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="1600" viewBox="0 0 1200 1600" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="shadow" x="112" y="64" width="976" height="1432" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="34" stdDeviation="28" flood-color="#06111F" flood-opacity="0.28"/>
+    </filter>
+    <linearGradient id="bagBody" x1="202" y1="156" x2="996" y2="1386" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#D7AF72"/>
+      <stop offset="1" stop-color="#875B2F"/>
+    </linearGradient>
+    <linearGradient id="gloss" x1="244" y1="172" x2="918" y2="1268" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.38"/>
+      <stop offset="0.24" stop-color="#FFFFFF" stop-opacity="0.12"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="labelFade" x1="324" y1="432" x2="876" y2="1044" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="rgba(255,255,255,0.18)"/>
+      <stop offset="1" stop-color="rgba(255,255,255,0.04)"/>
+    </linearGradient>
+    <linearGradient id="scoopPowder" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F7F0E6"/>
+      <stop offset="1" stop-color="#F1D9B8"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="602" cy="1424" rx="284" ry="74" fill="#06101C" opacity="0.16"/>
+  <g filter="url(#shadow)">
+    <path d="M238 188C312 126 890 126 964 188L1016 1176C1020 1268 948 1350 856 1380C764 1410 440 1410 348 1380C256 1350 184 1268 188 1176L238 188Z" fill="url(#bagBody)"/>
+    <path d="M258 204C326 150 876 150 944 204L988 1168C991 1242 930 1308 852 1330C760 1356 444 1356 350 1330C272 1308 211 1242 214 1168L258 204Z" fill="rgba(255,255,255,0.12)"/>
+    <path d="M240 196C310 134 892 134 962 196" stroke="rgba(255,255,255,0.22)" stroke-width="16" stroke-linecap="round"/>
+    <path d="M204 1168C312 1280 890 1280 998 1168" stroke="rgba(8,18,32,0.14)" stroke-width="22" stroke-linecap="round"/>
+    <path d="M242 190C318 126 886 126 962 190L938 1262C924 1324 872 1362 810 1378C714 1402 490 1402 392 1378C330 1362 278 1324 264 1262L242 190Z" fill="url(#gloss)"/>
+
+    <rect x="270" y="230" width="660" height="132" rx="40" fill="rgba(8,18,32,0.22)"/>
+    <text x="600" y="314" text-anchor="middle" fill="#FFFFFF" font-family="&quot;Arial Black&quot;, &quot;Segoe UI&quot;, sans-serif" font-size="72" font-weight="900" letter-spacing="0.08em">RÜHL24</text>
+
+    <rect x="328" y="424" width="544" height="540" rx="72" fill="rgba(9,17,27,0.24)"/>
+    <rect x="348" y="446" width="504" height="496" rx="58" fill="rgba(255,255,255,0.1)"/>
+    <rect x="348" y="446" width="504" height="496" rx="58" fill="url(#labelFade)" opacity="0.5"/>
+
+    <text x="600" y="548" text-anchor="middle" fill="#FFFFFF" font-family="&quot;Segoe UI&quot;, Arial, sans-serif" font-size="48" font-weight="800" letter-spacing="0.16em">WHEY PROTEIN</text>
+    <text x="600" y="602" text-anchor="middle" fill="rgba(255,255,255,0.86)" font-family="&quot;Segoe UI&quot;, Arial, sans-serif" font-size="34" font-weight="700" letter-spacing="0.22em">KONZENTRAT</text>
+
+    <text x="600" y="700" text-anchor="middle" fill="#FFFFFF" font-family="&quot;Segoe UI&quot;, Arial, sans-serif" font-size="76" font-weight="800" letter-spacing="-0.02em"><tspan x="600" dy="0">Apfel</tspan><tspan x="600" dy="72">strudel</tspan></text>
+
+    <rect x="390" y="842" width="420" height="70" rx="28" fill="#B84031" opacity="0.96"/>
+    <text x="600" y="886" text-anchor="middle" fill="#FFFFFF" font-family="&quot;Segoe UI&quot;, Arial, sans-serif" font-size="30" font-weight="800" letter-spacing="0.18em">1 KG • MADE IN GERMANY</text>
+
+    <circle cx="836" cy="490" r="92" fill="#B84031" opacity="0.28"/>
+    <circle cx="382" cy="1038" r="124" fill="#B84031" opacity="0.18"/>
+
+    <g transform="translate(664 1010)">
+      <rect x="86" y="60" width="152" height="34" rx="17" fill="#B84031" transform="rotate(-22 86 60)"/>
+      <ellipse cx="86" cy="84" rx="110" ry="62" fill="url(#scoopPowder)"/>
+      <ellipse cx="66" cy="62" rx="48" ry="22" fill="#FFFFFF" opacity="0.42"/>
+      <circle cx="176" cy="42" r="12" fill="#FFFFFF" opacity="0.4"/>
+      <circle cx="206" cy="74" r="8" fill="#FFFFFF" opacity="0.28"/>
+    </g>
+
+    <rect x="272" y="1126" width="656" height="126" rx="42" fill="rgba(8,18,32,0.2)"/>
+    <text x="600" y="1188" text-anchor="middle" fill="#FFFFFF" font-family="&quot;Segoe UI&quot;, Arial, sans-serif" font-size="34" font-weight="800" letter-spacing="0.18em">RÜHL24 WHEY</text>
+    <text x="600" y="1234" text-anchor="middle" fill="rgba(255,255,255,0.86)" font-family="&quot;Segoe UI&quot;, Arial, sans-serif" font-size="28" font-weight="700">Lokales, schnelles Packshot für FoodRanker</text>
+  </g>
+</svg>

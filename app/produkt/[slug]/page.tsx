@@ -5,8 +5,10 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import Star from "@/app/components/Star";
 import BackButton from "@/app/components/BackButton";
+import BuyButton from "@/app/components/BuyButton";
 import {
   ALL_PRODUCTS,
+  getProductBuyLink,
   getProductImageUrl,
   getProductRouteSlug,
   type Product,
@@ -261,6 +263,7 @@ export default function ProductPage() {
   const wantToTryActive = isWantToTry(routeSlug);
 
   const originalImageUrl = getProductImageUrl(product);
+  const buyLink = getProductBuyLink(product);
   const cachedImageUrl = `/api/product-image/${routeSlug}`;
   const fallback = createFallbackDetails(product);
   const mergedDetails = mergeDetails(fallback, details);
@@ -334,9 +337,12 @@ export default function ProductPage() {
       <BackButton />
 
       <div className="rounded-3xl border border-[#2D3A4B] bg-[#1B222D]/95 p-5 sm:p-8 shadow-[0_14px_34px_rgba(0,0,0,0.28)]">
-        <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-7 text-[#E8F6ED]">
-          {product.name}
-        </h1>
+        <div className="mb-7 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#E8F6ED]">
+            {product.name}
+          </h1>
+          <BuyButton href={buyLink.url} sourceLabel={buyLink.sourceLabel} productName={product.name} />
+        </div>
 
         <div className="grid gap-8 lg:grid-cols-[1.1fr_1fr] lg:items-start">
           <div className="group lg:sticky lg:top-28 lg:self-start">

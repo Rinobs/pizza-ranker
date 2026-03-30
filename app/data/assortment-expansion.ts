@@ -10,6 +10,10 @@ type ProductSeed = {
   carbs?: number;
 };
 
+type ProductNutritionProfile = Required<
+  Pick<ProductSeed, "price" | "kcal" | "protein" | "fat" | "carbs">
+>;
+
 export const ADDITIONAL_PIZZA_PRODUCTS: ProductSeed[] = [
   {
     name: "Italpizza Margherita Classica",
@@ -175,29 +179,175 @@ export const PROTEINSNACK_PRODUCTS: ProductSeed[] = [
   },
 ];
 
-export const ADDITIONAL_PROTEINPULVER_PRODUCTS: ProductSeed[] = [
-  {
-    name: "Rühls Best Whey Protein Vanille",
-    imageUrl: "/images/generated/ruehls-best-whey-protein-vanille.svg",
-    category: "Proteinpulver",
-    slug: "proteinpulver",
-    price: "34,90 € / 900 g",
-    kcal: 389,
-    protein: 77,
-    fat: 6.3,
-    carbs: 8.1,
-  },
-  {
-    name: "Rühls Best Whey Protein Schokolade",
-    imageUrl: "/images/generated/ruehls-best-whey-protein-schokolade.svg",
-    category: "Proteinpulver",
-    slug: "proteinpulver",
-    price: "34,90 € / 900 g",
-    kcal: 384,
+const RUEHL24_WHEY_NUTRITION: Record<
+  "standard" | "milchschokolade" | "pur",
+  ProductNutritionProfile
+> = {
+  // Rühl24 nennt für die meisten Geschmacksrichtungen gemeinsame Standardwerte;
+  // "Pur ohne alles" und "Milchschokolade" haben eigene Angaben.
+  standard: {
+    price: "21,95 € / 1 kg",
+    kcal: 378,
     protein: 75,
-    fat: 6.4,
-    carbs: 8.5,
+    fat: 5.9,
+    carbs: 5.9,
   },
+  milchschokolade: {
+    price: "21,95 € / 1 kg",
+    kcal: 371,
+    protein: 74,
+    fat: 6.2,
+    carbs: 6.6,
+  },
+  pur: {
+    price: "21,95 € / 1 kg",
+    kcal: 386,
+    protein: 78.2,
+    fat: 6.9,
+    carbs: 5.6,
+  },
+};
+
+const RUEHL24_WHEY_FLAVORS: Array<{
+  name: string;
+  imageFile: string;
+  profile: keyof typeof RUEHL24_WHEY_NUTRITION;
+}> = [
+  {
+    name: "Vanillekipferl",
+    imageFile: "ruehl24-whey-protein-konzentrat-vanillekipferl.svg",
+    profile: "standard",
+  },
+  {
+    name: "Lebkuchen",
+    imageFile: "ruehl24-whey-protein-konzentrat-lebkuchen.svg",
+    profile: "standard",
+  },
+  {
+    name: "Milchschokolade",
+    imageFile: "ruehl24-whey-protein-konzentrat-milchschokolade.svg",
+    profile: "milchschokolade",
+  },
+  {
+    name: "Vanille",
+    imageFile: "ruehl24-whey-protein-konzentrat-vanille.svg",
+    profile: "standard",
+  },
+  {
+    name: "Cookies and Cream",
+    imageFile: "ruehl24-whey-protein-konzentrat-cookies-and-cream.svg",
+    profile: "standard",
+  },
+  {
+    name: "Zitronenkuchen",
+    imageFile: "ruehl24-whey-protein-konzentrat-zitronenkuchen.svg",
+    profile: "standard",
+  },
+  {
+    name: "Haselnuss",
+    imageFile: "ruehl24-whey-protein-konzentrat-haselnuss.svg",
+    profile: "standard",
+  },
+  {
+    name: "Orange-Maracuja",
+    imageFile: "ruehl24-whey-protein-konzentrat-orange-maracuja.svg",
+    profile: "standard",
+  },
+  {
+    name: "Apfelstrudel",
+    imageFile: "ruehl24-whey-protein-konzentrat-apfelstrudel.svg",
+    profile: "standard",
+  },
+  {
+    name: "Milchreis-Zimt",
+    imageFile: "ruehl24-whey-protein-konzentrat-milchreis-zimt.svg",
+    profile: "standard",
+  },
+  {
+    name: "Joghurt",
+    imageFile: "ruehl24-whey-protein-konzentrat-joghurt.svg",
+    profile: "standard",
+  },
+  {
+    name: "Kirsche",
+    imageFile: "ruehl24-whey-protein-konzentrat-kirsche.svg",
+    profile: "standard",
+  },
+  {
+    name: "Cookies",
+    imageFile: "ruehl24-whey-protein-konzentrat-cookies.svg",
+    profile: "standard",
+  },
+  {
+    name: "Pur ohne alles",
+    imageFile: "ruehl24-whey-protein-konzentrat-pur-ohne-alles.svg",
+    profile: "pur",
+  },
+  {
+    name: "Mango",
+    imageFile: "ruehl24-whey-protein-konzentrat-mango.svg",
+    profile: "standard",
+  },
+  {
+    name: "Karamell",
+    imageFile: "ruehl24-whey-protein-konzentrat-karamell.svg",
+    profile: "standard",
+  },
+  {
+    name: "Banane",
+    imageFile: "ruehl24-whey-protein-konzentrat-banane.svg",
+    profile: "standard",
+  },
+  {
+    name: "Weiße Schokolade",
+    imageFile: "ruehl24-whey-protein-konzentrat-weisse-schokolade.svg",
+    profile: "standard",
+  },
+  {
+    name: "Bananensplit",
+    imageFile: "ruehl24-whey-protein-konzentrat-bananensplit.svg",
+    profile: "standard",
+  },
+  {
+    name: "Gebrannte Mandeln",
+    imageFile: "ruehl24-whey-protein-konzentrat-gebrannte-mandeln.svg",
+    profile: "standard",
+  },
+  {
+    name: "Erdbeere",
+    imageFile: "ruehl24-whey-protein-konzentrat-erdbeere.svg",
+    profile: "standard",
+  },
+  {
+    name: "Erdnussbutter",
+    imageFile: "ruehl24-whey-protein-konzentrat-erdnussbutter.svg",
+    profile: "standard",
+  },
+  {
+    name: "Kokosnuss",
+    imageFile: "ruehl24-whey-protein-konzentrat-kokosnuss.svg",
+    profile: "standard",
+  },
+  {
+    name: "Pistazien-Eis",
+    imageFile: "ruehl24-whey-protein-konzentrat-pistazien-eis.svg",
+    profile: "standard",
+  },
+  {
+    name: "Crème Brûlée",
+    imageFile: "ruehl24-whey-protein-konzentrat-creme-brulee.svg",
+    profile: "standard",
+  },
+];
+
+export const ADDITIONAL_PROTEINPULVER_PRODUCTS: ProductSeed[] = [
+  ...RUEHL24_WHEY_FLAVORS.map((flavor) => ({
+    name: `Rühl24 Whey Protein Konzentrat ${flavor.name}`,
+    imageUrl: `/images/generated/${flavor.imageFile}`,
+    category: "Proteinpulver",
+    slug: "proteinpulver",
+    ...RUEHL24_WHEY_NUTRITION[flavor.profile],
+  })),
   {
     name: "MyProtein Impact Whey Strawberry Cream",
     imageUrl: "https://static.myprotein.com/cms/images/mp/products/10530943/strawberry-cream.png",
