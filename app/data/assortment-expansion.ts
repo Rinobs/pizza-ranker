@@ -49,7 +49,7 @@ export const ADDITIONAL_PIZZA_PRODUCTS: ProductSeed[] = [
 export const ADDITIONAL_PROTEINRIEGEL_PRODUCTS: ProductSeed[] = [
   {
     name: "ALDI SPORTS Gefüllter Proteinriegel Peanut-Caramel",
-    imageUrl: "/images/generated/aldi-sports-gefuellter-proteinriegel-peanut-caramel.svg",
+    imageUrl: "/images/generated/aldi-sports-gefuellter-proteinriegel-peanut-caramel.svg?v=2",
     category: "Proteinriegel",
     slug: "proteinriegel",
     price: "1,19 € / 45 g",
@@ -60,7 +60,7 @@ export const ADDITIONAL_PROTEINRIEGEL_PRODUCTS: ProductSeed[] = [
   },
   {
     name: "ALDI SPORTS Gefüllter Proteinriegel Chocolate-Brownie",
-    imageUrl: "/images/generated/aldi-sports-gefuellter-proteinriegel-chocolate-brownie.svg",
+    imageUrl: "/images/generated/aldi-sports-gefuellter-proteinriegel-chocolate-brownie.svg?v=2",
     category: "Proteinriegel",
     slug: "proteinriegel",
     price: "1,19 € / 45 g",
@@ -71,7 +71,7 @@ export const ADDITIONAL_PROTEINRIEGEL_PRODUCTS: ProductSeed[] = [
   },
   {
     name: "ALDI SPORTS High Protein Riegel vegan Cookies & Cream",
-    imageUrl: "/images/generated/aldi-sports-high-protein-riegel-vegan-cookies-cream.svg",
+    imageUrl: "/images/generated/aldi-sports-high-protein-riegel-vegan-cookies-cream.svg?v=2",
     category: "Proteinriegel",
     slug: "proteinriegel",
     price: "1,29 € / 55 g",
@@ -82,7 +82,7 @@ export const ADDITIONAL_PROTEINRIEGEL_PRODUCTS: ProductSeed[] = [
   },
   {
     name: "ALDI SPORTS High Protein Riegel vegan Lemon Cake",
-    imageUrl: "/images/generated/aldi-sports-high-protein-riegel-vegan-lemon-cake.svg",
+    imageUrl: "/images/generated/aldi-sports-high-protein-riegel-vegan-lemon-cake.svg?v=2",
     category: "Proteinriegel",
     slug: "proteinriegel",
     price: "1,29 € / 55 g",
@@ -271,8 +271,7 @@ export const ADDITIONAL_PROTEINPULVER_PRODUCTS: ProductSeed[] = [
 export const EXPANDED_CHIPS_PRODUCTS: ProductSeed[] = [
   {
     name: "Lay's Classic Gesalzen",
-    imageUrl:
-      "https://www.lays.de/prod/s3fs-public/2025-11/lays_2025-packshots-nutriscore-update-lays-gesalzen-clean-150g_01.png",
+    imageUrl: "/images/generated/lays-classic-gesalzen.svg",
     category: "Chips",
     slug: "chips",
     price: "1,99 € / 150 g",
@@ -283,8 +282,7 @@ export const EXPANDED_CHIPS_PRODUCTS: ProductSeed[] = [
   },
   {
     name: "Lay's Classic Red Paprika",
-    imageUrl:
-      "https://www.lays.de/prod/s3fs-public/2025-04/lays_2025-3D-red-paprika-150g_01-clean%201.png",
+    imageUrl: "/images/generated/lays-classic-red-paprika.svg",
     category: "Chips",
     slug: "chips",
     price: "1,99 € / 150 g",
@@ -295,8 +293,7 @@ export const EXPANDED_CHIPS_PRODUCTS: ProductSeed[] = [
   },
   {
     name: "Lay's Classic Sour Cream & Onion",
-    imageUrl:
-      "https://www.lays.de/prod/s3fs-public/2025-11/restoration_image_20251117_152417.png",
+    imageUrl: "/images/generated/lays-classic-sour-cream-onion.svg",
     category: "Chips",
     slug: "chips",
     price: "1,99 € / 150 g",
@@ -307,8 +304,7 @@ export const EXPANDED_CHIPS_PRODUCTS: ProductSeed[] = [
   },
   {
     name: "funny-frisch Chipsfrisch Ungarisch",
-    imageUrl:
-      "https://www.funny-frisch.de/files/produkte/packshots/chipsfrisch/CF_ungarisch_packshot.png",
+    imageUrl: "/images/generated/funny-frisch-chipsfrisch-ungarisch.svg",
     category: "Chips",
     slug: "chips",
     price: "1,99 € / 150 g",
@@ -319,8 +315,7 @@ export const EXPANDED_CHIPS_PRODUCTS: ProductSeed[] = [
   },
   {
     name: "funny-frisch Chipsfrisch Oriental",
-    imageUrl:
-      "https://www.funny-frisch.de/files/produkte/packshots/chipsfrisch/CF_oriental_packshot.png",
+    imageUrl: "/images/generated/funny-frisch-chipsfrisch-oriental.svg",
     category: "Chips",
     slug: "chips",
     price: "1,99 € / 150 g",
@@ -331,8 +326,7 @@ export const EXPANDED_CHIPS_PRODUCTS: ProductSeed[] = [
   },
   {
     name: "funny-frisch Chipsfrisch Gesalzen",
-    imageUrl:
-      "https://www.funny-frisch.de/files/produkte/packshots/chipsfrisch/CF_gesalzen_packshot.png",
+    imageUrl: "/images/generated/funny-frisch-chipsfrisch-gesalzen.svg",
     category: "Chips",
     slug: "chips",
     price: "1,99 € / 150 g",
@@ -379,7 +373,7 @@ export const EXPANDED_CHIPS_PRODUCTS: ProductSeed[] = [
   },
   {
     name: "Pringles Paprika",
-    imageUrl: "/images/generated/pringles-paprika.svg",
+    imageUrl: "/images/generated/pringles-paprika.svg?v=2",
     category: "Chips",
     slug: "chips",
     price: "2,49 € / 165 g",
@@ -390,7 +384,7 @@ export const EXPANDED_CHIPS_PRODUCTS: ProductSeed[] = [
   },
   {
     name: "Pringles Sour Cream & Onion",
-    imageUrl: "/images/generated/pringles-sour-cream-onion.svg",
+    imageUrl: "/images/generated/pringles-sour-cream-onion.svg?v=2",
     category: "Chips",
     slug: "chips",
     price: "2,49 € / 165 g",
@@ -401,7 +395,7 @@ export const EXPANDED_CHIPS_PRODUCTS: ProductSeed[] = [
   },
   {
     name: "Pringles Original",
-    imageUrl: "/images/generated/pringles-original.svg",
+    imageUrl: "/images/generated/pringles-original.svg?v=2",
     category: "Chips",
     slug: "chips",
     price: "2,49 € / 165 g",

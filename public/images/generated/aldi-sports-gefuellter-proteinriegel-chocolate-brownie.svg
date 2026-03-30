@@ -1,17 +1,58 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="1200" height="1600" viewBox="0 0 1200 1600" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="1200" height="1600" rx="72" fill="#f5efea"/>
-  <rect x="54" y="54" width="1092" height="1492" rx="56" fill="white"/>
-  <rect x="72" y="72" width="1056" height="1456" rx="48" fill="#f5efea"/>
-  <circle cx="970" cy="220" r="180" fill="#3f2a22" fill-opacity="0.14"/>
-  <circle cx="220" cy="1320" r="240" fill="#3f2a22" fill-opacity="0.10"/>
-  <rect x="72" y="72" width="1056" height="320" rx="48" fill="#3f2a22"/>
-  <text x="72" y="172" fill="white" font-family="Arial, Helvetica, sans-serif" font-size="56" font-weight="700">ALDI SPORTS</text>
-  <text x="72" y="262" fill="rgba(255,255,255,0.88)" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="600">FoodRanker Local Pack Card</text>
-  <rect x="72" y="462" width="1056" height="680" rx="42" fill="white" fill-opacity="0.88"/>
-  <text x="72" y="616" fill="#111827" font-family="Arial, Helvetica, sans-serif" font-size="78" font-weight="800"><tspan x="72" dy="0">Gef?llter</tspan><tspan x="72" dy="48">Proteinriegel</tspan><tspan x="72" dy="48">Chocolate Brownie</tspan></text>
-  <rect x="72" y="1216" width="320" height="132" rx="28" fill="#3f2a22"/>
-  <text x="118" y="1296" fill="white" font-family="Arial, Helvetica, sans-serif" font-size="44" font-weight="700">NEU IM</text>
-  <text x="118" y="1344" fill="white" font-family="Arial, Helvetica, sans-serif" font-size="44" font-weight="700">SORTIMENT</text>
-  <text x="72" y="1460" fill="#4B5563" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="600">Lokale SVG-Karte f?r schnelle Ladezeiten, wenn offizielle Packshots schwer erreichbar sind.</text>
+  <defs>
+    <filter id="shadow" x="80" y="40" width="1040" height="1500" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="34" stdDeviation="30" flood-color="#06111F" flood-opacity="0.28"/>
+    </filter>
+    <linearGradient id="gloss" x1="260" y1="140" x2="940" y2="1320" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.34"/>
+      <stop offset="0.25" stop-color="#FFFFFF" stop-opacity="0.14"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="chip" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFF0C8"/>
+      <stop offset="1" stop-color="#E6B96F"/>
+    </linearGradient>
+  </defs>
+  
+    <ellipse cx="614" cy="1380" rx="292" ry="74" fill="#07111D" opacity="0.16"/>
+    <g filter="url(#shadow)">
+      <g transform="rotate(-11 602 736)">
+        <rect x="176" y="468" width="852" height="472" rx="82" fill="url(#wrapperBody)"/>
+        <path d="M176 612C138 598 122 548 150 516C156 510 164 506 176 504V904C161 900 152 892 146 882C118 850 132 800 176 792V612Z" fill="rgba(255,255,255,0.12)"/>
+        <path d="M1028 612C1066 598 1082 548 1054 516C1048 510 1040 506 1028 504V904C1043 900 1052 892 1058 882C1086 850 1072 800 1028 792V612Z" fill="rgba(8,18,32,0.12)"/>
+        <rect x="256" y="548" width="548" height="304" rx="58" fill="#6A3D28" opacity="0.96"/>
+        <rect x="256" y="876" width="300" height="76" rx="28" fill="#B57745" opacity="0.96"/>
+        <text x="406" y="926" text-anchor="middle" fill="#FFFFFF" font-family="&quot;Segoe UI&quot;, Arial, sans-serif" font-size="34" font-weight="800" letter-spacing="0.12em">SOFT FILLED</text>
+        <rect x="258" y="500" width="240" height="74" rx="26" fill="#B57745"/>
+        <text x="378" y="548" text-anchor="middle" fill="#FFFFFF" font-family="&quot;Segoe UI&quot;, Arial, sans-serif" font-size="34" font-weight="900" letter-spacing="0.12em">ALDI SPORTS</text>
+        <text x="300" y="650" fill="#FFFFFF" font-family="&quot;Segoe UI&quot;, Arial, sans-serif" font-size="66" font-weight="800" letter-spacing="-0.02em"><tspan x="300" dy="0">Gef&#252;llter</tspan><tspan x="300" dy="62">Proteinriegel</tspan><tspan x="300" dy="62">Chocolate-Brownie</tspan></text>
+        <circle cx="876" cy="728" r="100" fill="rgba(255,255,255,0.12)"/>
+        <text x="876" y="716" text-anchor="middle" fill="#FFFFFF" font-family="&quot;Segoe UI&quot;, Arial, sans-serif" font-size="70" font-weight="900">20</text>
+        <text x="876" y="774" text-anchor="middle" fill="#FFFFFF" font-family="&quot;Segoe UI&quot;, Arial, sans-serif" font-size="30" font-weight="800" letter-spacing="0.12em">PROTEIN</text>
+        <path d="M186 480C248 422 956 422 1018 480" stroke="rgba(255,255,255,0.18)" stroke-width="16" stroke-linecap="round"/>
+        <path d="M184 928C258 988 946 988 1020 928" stroke="rgba(8,18,32,0.14)" stroke-width="18" stroke-linecap="round"/>
+      </g>
+      <g transform="translate(574 1018)">
+        <rect x="0" y="0" width="310" height="126" rx="38" fill="#5D3625"/>
+        <rect x="18" y="18" width="274" height="90" rx="28" fill="#7B482E"/>
+        <rect x="78" y="0" width="70" height="126" rx="20" fill="#EED1AB"/>
+        <rect x="162" y="0" width="66" height="126" rx="20" fill="#E9BE79"/>
+        <rect x="244" y="0" width="66" height="126" rx="20" fill="#5D3625"/>
+      </g>
+      
+    <rect x="774" y="1025" width="136" height="112" rx="24" fill="#5F311F"/>
+    <rect x="790" y="1041" width="104" height="80" rx="20" fill="#7A4127"/>
+    <path d="M778 1171C821 1126 887 1124 936 1168" stroke="#8B4A2C" stroke-width="30" stroke-linecap="round"/>
+    <path d="M792 1070C818 1094 851 1093 876 1069" stroke="#B6825A" stroke-width="10" stroke-linecap="round"/>
+  
+      <text x="600" y="1340" text-anchor="middle" fill="#0E1725" font-family="&quot;Segoe UI&quot;, Arial, sans-serif" font-size="36" font-weight="800">Lokales, schnelles Packshot</text>
+    </g>
+    <defs>
+      <linearGradient id="wrapperBody" x1="176" y1="468" x2="1028" y2="940" gradientUnits="userSpaceOnUse">
+        <stop offset="0" stop-color="#1A202A"/>
+        <stop offset="1" stop-color="#0D121A"/>
+      </linearGradient>
+    </defs>
+  
 </svg>
