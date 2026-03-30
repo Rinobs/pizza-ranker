@@ -686,13 +686,13 @@ const BASE_PIZZA_PRODUCTS: Product[] = [
     slug: "pizza",
   },
   {
-    name: "Rewe Beste Wahl ZiegenkÃ¤se",
+    name: "Rewe Beste Wahl Ziegenkäse",
     imageUrl: "https://img.rewe-static.de/8196324/28584137_digital-image.png?imwidth=840&impolicy=pdp",
     category: "Pizza",
     slug: "pizza",
   },
 
-  // --- Edeka GUT & GÃœNSTIG ---
+  // --- Edeka GUT & GÜNSTIG ---
   {
     name: "Edeka G&G Salami",
     imageUrl: "https://cdn.produkte.edeka/d110001/derivates/17/288/812/$v2/DV019_4311501658185_PER.png",
@@ -758,7 +758,7 @@ const BASE_PIZZA_PRODUCTS: Product[] = [
     slug: "pizza",
   },
   {
-    name: "Netto Tanta Emma Pizza 4-KÃ¤se",
+    name: "Netto Tanta Emma Pizza 4-Käse",
     imageUrl: "https://www.netto-online.de/media/artikel/a/a6/-5878/images/em_MondoItalianoTKKPizza4Kaese.jpg",
     category: "Pizza",
     slug: "pizza",
@@ -900,13 +900,13 @@ const BASE_PIZZA_PRODUCTS: Product[] = [
 
 const BASE_PROTEINPULVER_PRODUCTS: Product[] = [
   {
-    name: "ESN Designer Whey â€“ Vanilla",
+    name: "ESN Designer Whey - Vanilla",
     imageUrl: "https://assets.esn.com/products/Designer-Whey/Vanilla.png",
     category: "Proteinpulver",
     slug: "proteinpulver",
   },
   {
-    name: "ESN Designer Whey â€“ Chocolate",
+    name: "ESN Designer Whey - Chocolate",
     imageUrl: "https://assets.esn.com/products/Designer-Whey/Chocolate.png",
     category: "Proteinpulver",
     slug: "proteinpulver",
@@ -1113,91 +1113,91 @@ const BASE_PROTEINPULVER_PRODUCTS: Product[] = [
     carbs: 9.1,
   },
   {
-    name: "ESN Designer Whey â€“ Strawberry",
+    name: "ESN Designer Whey - Strawberry",
     imageUrl: "https://assets.esn.com/products/Designer-Whey/Strawberry.png",
     category: "Proteinpulver",
     slug: "proteinpulver",
   },
   {
-    name: "ESN Isoclear Whey Isolate â€“ Lemon Ice Tea",
+    name: "ESN Isoclear Whey Isolate - Lemon Ice Tea",
     imageUrl: "https://assets.esn.com/products/IsoClear/Lemon-Ice-Tea.png",
     category: "Proteinpulver",
     slug: "proteinpulver",
   },
   {
-    name: "ESN Isoclear Whey Isolate â€“ Peach Ice Tea",
+    name: "ESN Isoclear Whey Isolate - Peach Ice Tea",
     imageUrl: "https://assets.esn.com/products/IsoClear/Peach-Ice-Tea.png",
     category: "Proteinpulver",
     slug: "proteinpulver",
   },
   {
-    name: "MyProtein Impact Whey â€“ Vanilla",
+    name: "MyProtein Impact Whey - Vanilla",
     imageUrl: "https://static.myprotein.com/cms/images/mp/products/10530943/vanilla.png",
     category: "Proteinpulver",
     slug: "proteinpulver",
   },
   {
-    name: "MyProtein Impact Whey â€“ Chocolate Smooth",
+    name: "MyProtein Impact Whey - Chocolate Smooth",
     imageUrl: "https://static.myprotein.com/cms/images/mp/products/10530943/chocolate-smooth.png",
     category: "Proteinpulver",
     slug: "proteinpulver",
   },
   {
-    name: "MyProtein Clear Whey â€“ Orange Mango",
+    name: "MyProtein Clear Whey - Orange Mango",
     imageUrl: "https://static.myprotein.com/cms/images/mp/products/12081327/orange-mango.png",
     category: "Proteinpulver",
     slug: "proteinpulver",
   },
   {
-    name: "MyProtein Clear Whey â€“ Peach Tea",
+    name: "MyProtein Clear Whey - Peach Tea",
     imageUrl: "https://static.myprotein.com/cms/images/mp/products/12081327/peach-tea.png",
     category: "Proteinpulver",
     slug: "proteinpulver",
   },
   {
-    name: "Optimum Nutrition Gold Standard Whey â€“ Vanilla",
+    name: "Optimum Nutrition Gold Standard Whey - Vanilla",
     imageUrl: "https://m.media-amazon.com/images/I/71nFh88opnL._AC_SL1500_.jpg",
     category: "Proteinpulver",
     slug: "proteinpulver",
   },
   {
-    name: "Optimum Nutrition Gold Standard Whey â€“ Chocolate",
+    name: "Optimum Nutrition Gold Standard Whey - Chocolate",
     imageUrl: "https://m.media-amazon.com/images/I/71g-HlGMvCL._AC_SL1500_.jpg",
     category: "Proteinpulver",
     slug: "proteinpulver",
   },
   {
-    name: "Dymatize ISO100 â€“ Birthday Cake",
+    name: "Dymatize ISO100 - Birthday Cake",
     imageUrl: "https://m.media-amazon.com/images/I/71Q8k4GXmGL._AC_SL1500_.jpg",
     category: "Proteinpulver",
     slug: "proteinpulver",
   },
   {
-    name: "Dymatize ISO100 â€“ Chocolate Peanut",
+    name: "Dymatize ISO100 - Chocolate Peanut",
     imageUrl: "https://m.media-amazon.com/images/I/71N99nN1xLL._AC_SL1500_.jpg",
     category: "Proteinpulver",
     slug: "proteinpulver",
   },
   {
-    name: "Foodspring Whey Protein â€“ Vanilla",
+    name: "Foodspring Whey Protein - Vanilla",
     imageUrl: "https://cdn.foodspring.com/media/catalog/product/w/h/whey_protein_vanilla_450g_600x600.png",
     category: "Proteinpulver",
     slug: "proteinpulver",
   },
   {
-    name: "Foodspring Whey Protein â€“ Chocolate",
+    name: "Foodspring Whey Protein - Chocolate",
     imageUrl: "https://cdn.foodspring.com/media/catalog/product/w/h/whey_protein_chocolate_450g_600x600.png",
     category: "Proteinpulver",
     slug: "proteinpulver",
   },
   {
-    name: "Rocka Whey Isolate â€“ Vanilla Sky",
+    name: "Rocka Whey Isolate - Vanilla Sky",
     imageUrl: "https://rockanutrition.de/cdn/shop/products/VanillaSky.png?v=1668504635",
     category: "Proteinpulver",
     slug: "proteinpulver",
   },
   {
-    name: "Rocka Whey Isolate â€“ Hazelnut Nougat",
+    name: "Rocka Whey Isolate - Hazelnut Nougat",
     imageUrl: "https://rockanutrition.de/cdn/shop/products/HazelnutNougat.png?v=1668504635",
     category: "Proteinpulver",
     slug: "proteinpulver",

@@ -549,7 +549,7 @@ function FeedPanel({
     <Panel
       eyebrow="Following Feed"
       title="Was dein Netzwerk zuletzt probiert hat"
-      description="Wenn du Profilen folgst, wird die Startseite zu deinem persoenlichen Food-Diary mit Reviews, Ratings und Listen-Aktivitaet."
+      description="Wenn du Profilen folgst, wird die Startseite zu deinem persönlichen Food-Diary mit Reviews, Ratings und Listen-Aktivität."
       action={
         feedData.viewerAuthenticated && feedData.followingCount > 0 ? (
           <div className="flex items-center gap-3">
@@ -575,7 +575,7 @@ function FeedPanel({
           <div>
             <h3 className="text-xl font-semibold text-white">Logge dich ein und baue dir deinen Feed</h3>
             <p className="mt-3 text-sm leading-relaxed text-[#AFC1D3]">
-              Folge anderen Food-Profilen und sieh hier sofort, welche Tiefkuehlpizza,
+              Folge anderen Food-Profilen und sieh hier sofort, welche Tiefkühlpizza,
               Proteinriegel oder Snacks zuletzt bewertet, kommentiert oder gemerkt wurden.
             </p>
           </div>
@@ -583,7 +583,7 @@ function FeedPanel({
             <FeatureTile
               icon={<FiStar size={18} />}
               title="Ratings"
-              description="Sterne zeigen schnell, was wirklich ueberzeugt."
+              description="Sterne zeigen schnell, was wirklich überzeugt."
             />
             <FeatureTile
               icon={<FiMessageSquare size={18} />}
@@ -593,7 +593,7 @@ function FeedPanel({
             <FeatureTile
               icon={<FiUsers size={18} />}
               title="Netzwerk"
-              description="Mit Follows wird die Startseite persoenlich und lebendig."
+              description="Mit Follows wird die Startseite persönlich und lebendig."
             />
           </div>
         </div>
@@ -614,7 +614,7 @@ function FeedPanel({
         </div>
       ) : !hasActivities ? (
         <div className="rounded-[28px] border border-[#2A394B] bg-[#101822] p-6">
-          <p className="text-lg font-semibold text-white">Dein Feed wartet auf neue Aktivitaet</p>
+          <p className="text-lg font-semibold text-white">Dein Feed wartet auf neue Aktivität</p>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#AFC1D3]">
             Deine gefolgten Profile waren zuletzt ruhig. Sobald sie Produkte bewerten, Reviews
             schreiben oder Listen aktualisieren, taucht das hier automatisch auf.
@@ -636,12 +636,12 @@ function NetworkPanel({ feedData }: { feedData: HomeFeedData }) {
     <Panel
       eyebrow="Netzwerk"
       title="Deine Community"
-      description="FoodRanker wird mit Follows am spannendsten. Dann bekommst du statt einer statischen Startseite echte Aktivitaet aus deinem Kreis."
+      description="FoodRanker wird mit Follows am spannendsten. Dann bekommst du statt einer statischen Startseite echte Aktivität aus deinem Kreis."
     >
       {!feedData.viewerAuthenticated ? (
         <div className="rounded-[24px] border border-[#2A394B] bg-[#101822] p-4 text-sm leading-relaxed text-[#AFC1D3]">
           Nach dem Login kannst du andere Profile finden, ihnen folgen und dir so einen
-          persoenlichen Startseiten-Feed aufbauen.
+          persönlichen Startseiten-Feed aufbauen.
         </div>
       ) : feedData.followingCount === 0 ? (
         <div className="rounded-[24px] border border-dashed border-[#35503D] bg-[#111925] p-4">
@@ -694,7 +694,7 @@ function CategoryPanel() {
     <Panel
       eyebrow="Kategorien"
       title="Lebensmittel statt nur Produktlisten"
-      description="Die Homepage zeigt schon direkt, dass es hier um bewertbare Lebensmittel geht: von Tiefkuehlpizza bis Proteinpulver."
+      description="Die Homepage zeigt schon direkt, dass es hier um bewertbare Lebensmittel geht: von Tiefkühlpizza bis Proteinpulver."
     >
       <div className="grid gap-3">
         {CATEGORY_NAV_ITEMS.map((category) => (
@@ -737,15 +737,15 @@ function HomeHero({
       <div className="grid gap-8 xl:grid-cols-[1.1fr_0.9fr] xl:items-start">
         <div>
           <p className="text-xs uppercase tracking-[0.26em] text-[#9CC9AE]">
-            Das Food-Diary fuer Ratings und Reviews
+            Das Food-Diary für Ratings und Reviews
           </p>
           <h1 className="mt-4 max-w-3xl text-4xl font-black tracking-tight text-[#F6FFF8] sm:text-5xl lg:text-6xl">
-            Bewerte Lebensmittel, fuehre Listen und sieh sofort, was dein Netzwerk zuletzt
+            Bewerte Lebensmittel, führe Listen und sieh sofort, was dein Netzwerk zuletzt
             probiert hat.
           </h1>
           <p className="mt-5 max-w-3xl text-base leading-relaxed text-[#C9D8E7] sm:text-lg">
-            FoodRanker positioniert sich jetzt klar als Bewertungsseite fuer Lebensmittel:
-            Tiefkuehlpizza, Chips, Eis, Proteinriegel und mehr. Denk eher an Letterboxd fuer
+            FoodRanker positioniert sich jetzt klar als Bewertungsseite für Lebensmittel:
+            Tiefkühlpizza, Chips, Eis, Proteinriegel und mehr. Denk eher an Letterboxd für
             Supermarktregale als an einen simplen Produktkatalog.
           </p>
 
@@ -794,12 +794,12 @@ function HomeHero({
             <FeatureTile
               icon={<FiHeart size={18} />}
               title="Listen"
-              description="Baue Favoriten und Watchlist wie in einem persoenlichen Food-Journal."
+              description="Baue Favoriten und Watchlist wie in einem persönlichen Food-Journal."
             />
             <FeatureTile
               icon={<FiUsers size={18} />}
               title="Folgen"
-              description="Die Home startet mit Aktivitaet von Leuten, deren Geschmack du spannend findest."
+              description="Die Home startet mit Aktivität von Leuten, deren Geschmack du spannend findest."
             />
           </div>
 
@@ -807,8 +807,8 @@ function HomeHero({
             {isLoading
               ? "Highlights werden geladen..."
               : hasLiveRatings
-                ? `${formatCompactCount(totalRatingCount)} Live-Bewertungen praegen die aktuellen Highlights.`
-                : "Sobald mehr Live-Bewertungen vorhanden sind, werden die Highlights noch persoenlicher."}
+                ? `${formatCompactCount(totalRatingCount)} Live-Bewertungen prägen die aktuellen Highlights.`
+                : "Sobald mehr Live-Bewertungen vorhanden sind, werden die Highlights noch persönlicher."}
           </p>
         </div>
 
@@ -1048,10 +1048,10 @@ export default function HomeContent() {
                 Lebensmittel entdecken
               </p>
               <h1 className="mt-3 text-3xl font-black tracking-tight text-[#F3FFF6] sm:text-4xl">
-                Finde Produkte, die du als Naechstes bewerten willst.
+                Finde Produkte, die du als Nächstes bewerten willst.
               </h1>
               <p className="mt-4 max-w-3xl text-sm leading-relaxed text-[#C9D8E7] sm:text-base">
-                FoodRanker ist jetzt klar als Bewertungsseite fuer Lebensmittel inszeniert:
+                FoodRanker ist jetzt klar als Bewertungsseite für Lebensmittel inszeniert:
                 Suche gezielt nach Produkten, filtere nach Kategorie und sortiere wie in einem
                 echten Food-Discovery-Feed.
               </p>
@@ -1083,7 +1083,7 @@ export default function HomeContent() {
                     Ergebnisse
                   </p>
                   <h2 className="mt-2 text-2xl font-black tracking-tight text-[#F3FFF6] sm:text-3xl">
-                    {searchQuery ? `Treffer fuer "${searchQuery}"` : "Gefilterte Produkte"}
+                    {searchQuery ? `Treffer für "${searchQuery}"` : "Gefilterte Produkte"}
                   </h2>
                   <p className="mt-2 text-sm text-[#AFC1D3]">
                     {activeCategory
@@ -1111,7 +1111,7 @@ export default function HomeContent() {
               ) : (
                 <div className="rounded-[28px] border border-[#2A394B] bg-[#111925]/90 p-6 text-[#C4D0DE]">
                   Keine Treffer gefunden. Versuche andere Begriffe wie Pizza, Salami, Vanille,
-                  Protein oder waehle eine andere Kategorie.
+                  Protein oder wähle eine andere Kategorie.
                 </div>
               )}
             </section>
@@ -1139,14 +1139,14 @@ export default function HomeContent() {
                   <ProductShelf
                     eyebrow="Community Favoriten"
                     title="Beste Bewertungen der Woche"
-                    description="Produkte mit den staerksten aktuellen Scores und Momentum."
+                    description="Produkte mit den stärksten aktuellen Scores und Momentum."
                     products={sections.bestThisWeek.slice(0, 4)}
                     actionHref="/?sort=best"
                   />
                   <ProductShelf
                     eyebrow="Momentum"
                     title="Trendet gerade"
-                    description="Das bespricht und bewertet die Community momentan besonders haeufig."
+                    description="Das bespricht und bewertet die Community momentan besonders häufig."
                     products={sections.trending.slice(0, 4)}
                     actionHref="/?sort=popular"
                   />
@@ -1155,15 +1155,15 @@ export default function HomeContent() {
                 <div className="grid gap-6 lg:grid-cols-2">
                   <ProductShelf
                     eyebrow="Neu im Katalog"
-                    title="Frisch hinzugefuegt"
+                    title="Frisch hinzugefügt"
                     description="Neue Lebensmittel, die auf ihre ersten Reviews und Rankings warten."
                     products={sections.newlyAdded.slice(0, 4)}
                     actionHref="/?sort=new"
                   />
                   <ProductShelf
                     eyebrow="Hall of Fame"
-                    title="Starke Tiefkuehlpizzen"
-                    description="Ein klarer Callout fuer Pizza, ohne dass die Homepage nur noch Pizza ist."
+                    title="Starke Tiefkühlpizzen"
+                    description="Ein klarer Callout für Pizza, ohne dass die Homepage nur noch Pizza ist."
                     products={sections.topPizza.slice(0, 4)}
                     actionHref="/?category=pizza&sort=best"
                   />
@@ -1182,7 +1182,7 @@ export default function HomeContent() {
           {isDiscoverMode
             ? `${browseProducts.length} Lebensmittel passen aktuell zu deiner Suche oder deinen Filtern.`
             : sections.hasLiveRatings
-              ? "Highlights und Startseiten-Shelves greifen auf vorhandene Community-Bewertungen zurueck."
+              ? "Highlights und Startseiten-Shelves greifen auf vorhandene Community-Bewertungen zurück."
               : "Solange noch wenige Live-Bewertungen vorliegen, mischt die Homepage kuratierte Standard-Highlights mit Community-Signalen."}
         </p>
       </div>
