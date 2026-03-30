@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="1600" viewBox="0 0 1200 1600" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="1600" rx="72" fill="#fff8e4"/>
+  <rect x="54" y="54" width="1092" height="1492" rx="56" fill="white"/>
+  <rect x="72" y="72" width="1056" height="1456" rx="48" fill="#fff8e4"/>
+  <circle cx="970" cy="220" r="180" fill="#d3a429" fill-opacity="0.14"/>
+  <circle cx="220" cy="1320" r="240" fill="#d3a429" fill-opacity="0.10"/>
+  <rect x="72" y="72" width="1056" height="320" rx="48" fill="#d3a429"/>
+  <text x="72" y="172" fill="white" font-family="Arial, Helvetica, sans-serif" font-size="56" font-weight="700">PRINGLES</text>
+  <text x="72" y="262" fill="rgba(255,255,255,0.88)" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="600">FoodRanker Local Pack Card</text>
+  <rect x="72" y="462" width="1056" height="680" rx="42" fill="white" fill-opacity="0.88"/>
+  <text x="72" y="616" fill="#111827" font-family="Arial, Helvetica, sans-serif" font-size="78" font-weight="800"><tspan x="72" dy="0">Original</tspan></text>
+  <rect x="72" y="1216" width="320" height="132" rx="28" fill="#d3a429"/>
+  <text x="118" y="1296" fill="white" font-family="Arial, Helvetica, sans-serif" font-size="44" font-weight="700">NEU IM</text>
+  <text x="118" y="1344" fill="white" font-family="Arial, Helvetica, sans-serif" font-size="44" font-weight="700">SORTIMENT</text>
+  <text x="72" y="1460" fill="#4B5563" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="600">Lokale SVG-Karte fuer schnelle Ladezeiten, wenn offizielle Packshots schwer erreichbar sind.</text>
+</svg>

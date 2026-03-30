@@ -1,5 +1,13 @@
 import { MORE_NUTRITION_PROTEINPULVER_PRODUCTS } from "./more-nutrition-protein";
 import { OFFICIAL_PROTEINRIEGEL_PRODUCTS } from "./official-protein-bars";
+import {
+  ADDITIONAL_PIZZA_PRODUCTS,
+  ADDITIONAL_PROTEINPULVER_PRODUCTS,
+  ADDITIONAL_PROTEINRIEGEL_PRODUCTS,
+  EXPANDED_CHIPS_PRODUCTS,
+  EXPANDED_EIS_PRODUCTS,
+  PROTEINSNACK_PRODUCTS as EXPANDED_PROTEINSNACK_PRODUCTS,
+} from "./assortment-expansion";
 
 export interface Product {
   name: string;
@@ -68,7 +76,19 @@ export function getProductPriceValue(product: {
   return Math.min(...numericValues);
 }
 
-export const PIZZA_PRODUCTS: Product[] = [
+function mergeProducts(...groups: Product[][]): Product[] {
+  const merged = new Map<string, Product>();
+
+  for (const group of groups) {
+    for (const product of group) {
+      merged.set(`${product.category}::${product.name}`, product);
+    }
+  }
+
+  return Array.from(merged.values());
+}
+
+const BASE_PIZZA_PRODUCTS: Product[] = [
   // --- Dr. Oetker Ristorante ---
   {
     name: "Dr. Oetker Ristorante Mozzarella",
@@ -780,7 +800,7 @@ export const PIZZA_PRODUCTS: Product[] = [
     /*           PROTEINRIEGEL               */
     /* -------------------------------------- */
 
-  export const PROTEINRIEGEL_PRODUCTS: Product[] = [
+  const BASE_PROTEINRIEGEL_PRODUCTS: Product[] = [
   // --- Proteinriegel (Protein Bars) ---
   {
     name: "Barebells Salty Peanut",
@@ -878,7 +898,7 @@ export const PIZZA_PRODUCTS: Product[] = [
   ...OFFICIAL_PROTEINRIEGEL_PRODUCTS,
 ];
 
-export const PROTEINPULVER_PRODUCTS: Product[] = [
+const BASE_PROTEINPULVER_PRODUCTS: Product[] = [
   {
     name: "ESN Designer Whey â€“ Vanilla",
     imageUrl: "https://assets.esn.com/products/Designer-Whey/Vanilla.png",
@@ -1184,71 +1204,27 @@ export const PROTEINPULVER_PRODUCTS: Product[] = [
   },
   ...MORE_NUTRITION_PROTEINPULVER_PRODUCTS,
 ];
-export const Eis_PRODUCTS: Product[] = [
-  {
-    name: "Ben & Jerry",
-    imageUrl: "https://rockanutrition.de/cdn/shop/products/HazelnutNougat.png?v=1668504635",
-    category: "Eis",
-    slug: "eis",
-  },
-];
 
-export const CHIPS_PRODUCTS: Product[] = [
-  {
-    name: "Pringles Paprika",
-    imageUrl: "",
-    category: "Chips",
-    slug: "chips",
-  },
-  {
-    name: "Pringles Sour Cream",
-    imageUrl: "",
-    category: "Chips",
-    slug: "chips",
-  },
-  {
-    name: "Funny Frisch Ungarisch",
-    imageUrl: "",
-    category: "Chips",
-    slug: "chips",
-  },
-  {
-    name: "Funny Frisch Chipsfrisch Paprika",
-    imageUrl: "",
-    category: "Chips",
-    slug: "chips",
-  },
-  {
-    name: "Chio Tortillas",
-    imageUrl: "",
-    category: "Chips",
-    slug: "chips",
-  },
-  {
-    name: "Lorenz Crunchips Paprika",
-    imageUrl: "",
-    category: "Chips",
-    slug: "chips",
-  },
-  {
-    name: "Kettle Chips Sea Salt",
-    imageUrl: "",
-    category: "Chips",
-    slug: "chips",
-  },
-  {
-    name: "Kettle Chips Balsamic Vinegar",
-    imageUrl: "",
-    category: "Chips",
-    slug: "chips",
-  },
-  {
-    name: "Lays Classic",
-    imageUrl: "",
-    category: "Chips",
-    slug: "chips",
-  },
-];
+export const PIZZA_PRODUCTS = mergeProducts(
+  BASE_PIZZA_PRODUCTS,
+  ADDITIONAL_PIZZA_PRODUCTS
+);
+
+export const PROTEINRIEGEL_PRODUCTS = mergeProducts(
+  BASE_PROTEINRIEGEL_PRODUCTS,
+  ADDITIONAL_PROTEINRIEGEL_PRODUCTS
+);
+
+export const PROTEINSNACKS_PRODUCTS = mergeProducts(EXPANDED_PROTEINSNACK_PRODUCTS);
+
+export const PROTEINPULVER_PRODUCTS = mergeProducts(
+  BASE_PROTEINPULVER_PRODUCTS,
+  ADDITIONAL_PROTEINPULVER_PRODUCTS
+);
+
+export const Eis_PRODUCTS = mergeProducts(EXPANDED_EIS_PRODUCTS);
+
+export const CHIPS_PRODUCTS = mergeProducts(EXPANDED_CHIPS_PRODUCTS);
 
 /* -------------------------------------- */
 /*           ALLE PRODUKTE               */
@@ -1257,6 +1233,7 @@ export const CHIPS_PRODUCTS: Product[] = [
 export const ALL_PRODUCTS: Product[] = [
   ...PIZZA_PRODUCTS,
   ...PROTEINRIEGEL_PRODUCTS,
+  ...PROTEINSNACKS_PRODUCTS,
   ...PROTEINPULVER_PRODUCTS,
   ...Eis_PRODUCTS,
   ...CHIPS_PRODUCTS,

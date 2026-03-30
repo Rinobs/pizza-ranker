@@ -111,11 +111,11 @@ export default function ProductCardImage({
     }
 
     if (loadStage === 0) {
-      return normalizedFallbackSrc;
+      return proxySrc;
     }
 
     if (loadStage === 1 && proxySrc !== normalizedFallbackSrc) {
-      return proxySrc;
+      return normalizedFallbackSrc;
     }
 
     return DEFAULT_PRODUCT_IMAGE;

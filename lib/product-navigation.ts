@@ -69,6 +69,16 @@ export const CATEGORY_NAV_ITEMS: CategoryNavigationItem[] = [
     description: "Snacks mit Score",
     aliases: ["proteinriegel", "riegel", "bar", "schokolade", "caramel"],
   },
+  {
+    slug: "proteinsnacks",
+    name: "Proteinsnacks",
+    shortName: "Proteinsnacks",
+    category: "Proteinsnacks",
+    icon: "\u{1F96E}",
+    href: "/proteinsnacks",
+    description: "Cookies, Wafer & Snack-Favoriten",
+    aliases: ["proteinsnacks", "protein snack", "cookie", "wafer", "balls", "bites"],
+  },
 ];
 
 export const DEFAULT_DISCOVER_SORT: DiscoverSortMode = "popular";

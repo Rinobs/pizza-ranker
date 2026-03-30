@@ -261,6 +261,7 @@ export default function ProductPage() {
   const wantToTryActive = isWantToTry(routeSlug);
 
   const originalImageUrl = getProductImageUrl(product);
+  const cachedImageUrl = `/api/product-image/${routeSlug}`;
   const fallback = createFallbackDetails(product);
   const mergedDetails = mergeDetails(fallback, details);
   const hasOwnRating = (ratings[routeSlug] || 0) > 0;
@@ -341,7 +342,7 @@ export default function ProductPage() {
           <div className="group lg:sticky lg:top-28 lg:self-start">
             <div className="flex min-h-[320px] items-center justify-center px-2 py-2 sm:min-h-[440px] sm:px-4 lg:min-h-[calc(100vh-9rem)] lg:py-6">
               <img
-                src={originalImageUrl}
+                src={cachedImageUrl}
                 className="h-[260px] w-auto max-w-full object-contain drop-shadow-[0_20px_42px_rgba(0,0,0,0.38)] transition-transform duration-500 group-hover:scale-[1.04] sm:h-[360px] lg:h-auto lg:max-h-[72vh]"
                 alt={product.name}
                 decoding="async"
@@ -352,7 +353,7 @@ export default function ProductPage() {
                     return;
                   }
                   image.dataset.fallbackApplied = "1";
-                  image.src = `/api/product-image/${routeSlug}`;
+                  image.src = originalImageUrl;
                 }}
               />
             </div>
