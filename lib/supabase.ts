@@ -10,6 +10,13 @@ export const USER_PRODUCT_LISTS_TABLE =
   process.env.SUPABASE_USER_PRODUCT_LISTS_TABLE?.trim() || "user_product_lists";
 export const USER_FOLLOWS_TABLE =
   process.env.SUPABASE_USER_FOLLOWS_TABLE?.trim() || "user_follows";
+export const USER_CUSTOM_LISTS_TABLE =
+  process.env.SUPABASE_USER_CUSTOM_LISTS_TABLE?.trim() || "user_custom_lists";
+export const USER_CUSTOM_LIST_ITEMS_TABLE =
+  process.env.SUPABASE_USER_CUSTOM_LIST_ITEMS_TABLE?.trim() ||
+  "user_custom_list_items";
+export const REVIEW_LIKES_TABLE =
+  process.env.SUPABASE_REVIEW_LIKES_TABLE?.trim() || "review_likes";
 
 function createSupabaseAdminClient() {
   const supabaseUrl = process.env.SUPABASE_URL;

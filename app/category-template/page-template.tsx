@@ -2,26 +2,22 @@
 
 import React from "react";
 import Link from "next/link";
+import { FiChevronDown } from "react-icons/fi";
 import BackButton from "../components/BackButton";
-import BuyButton from "../components/BuyButton";
 import ProductCardImage from "../components/ProductCardImage";
 import ProductComparisonPanel, {
   COMPARE_LIMIT,
   type ComparableProduct,
 } from "../components/ProductComparisonPanel";
 import {
-  getProductBuyLink,
   getProductImageUrl,
   getProductPriceValue,
   getProductRouteSlug,
   type Product,
 } from "@/app/data/products";
 import {
-  DEFAULT_DISCOVER_SORT,
-  DISCOVER_SORT_OPTIONS,
   compareByDiscoverSort,
   getProductSearchScore,
-  type DiscoverSortMode,
 } from "@/lib/product-navigation";
 
 type RatingStat = {
@@ -37,24 +33,36 @@ type RatingSummaryResponse = {
 type CategoryProduct = ComparableProduct & {
   newIndex: number;
   priceValue: number | null;
-  buyUrl: string;
-  buySourceLabel: string;
 };
 
 type VisibleProduct = CategoryProduct & {
   searchScore: number;
 };
 
-const SORT_OPTIONS: Array<{ value: DiscoverSortMode; label: string; hint: string }> =
-  DISCOVER_SORT_OPTIONS;
+type CategorySortMode = "best" | "price" | "new" | "name";
 
-function getChipClass(active: boolean) {
-  return `rounded-full border px-4 py-2 text-sm font-semibold transition-all duration-200 ${
-    active
-      ? "border-[#5EE287] bg-[#173023] text-[#D9FFE6] shadow-[0_10px_24px_rgba(34,197,94,0.16)]"
-      : "border-[#2D3A4B] bg-[#141C27] text-[#B7C4D3] hover:border-[#5EE287] hover:text-white"
-  }`;
-}
+const SORT_OPTIONS: Array<{ value: CategorySortMode; label: string; hint: string }> = [
+  {
+    value: "best",
+    label: "Bewertung",
+    hint: "Höchste Bewertung zuerst",
+  },
+  {
+    value: "price",
+    label: "Preis",
+    hint: "Günstigste zuerst",
+  },
+  {
+    value: "new",
+    label: "Neueste",
+    hint: "Zuletzt hinzugefügt zuerst",
+  },
+  {
+    value: "name",
+    label: "A-Z",
+    hint: "Alphabetisch sortiert",
+  },
+];
 
 function getCompareChipClass(active: boolean, disabled: boolean) {
   if (active) {
@@ -68,6 +76,23 @@ function getCompareChipClass(active: boolean, disabled: boolean) {
   return "border-[#2D3A4B] bg-[#111923]/95 text-[#E8F6ED] hover:border-[#5EE287] hover:text-white";
 }
 
+function compareByCategorySort(
+  left: CategoryProduct,
+  right: CategoryProduct,
+  sortMode: CategorySortMode
+) {
+  if (sortMode === "name") {
+    const byName = left.name.localeCompare(right.name, "de");
+    if (byName !== 0) {
+      return byName;
+    }
+
+    return compareByDiscoverSort(left, right, "best");
+  }
+
+  return compareByDiscoverSort(left, right, sortMode);
+}
+
 export default function CategoryPage({
   title,
   icon,
@@ -77,7 +102,7 @@ export default function CategoryPage({
   icon: string;
   products: Product[];
 }) {
-  const [sortMode, setSortMode] = React.useState<DiscoverSortMode>(DEFAULT_DISCOVER_SORT);
+  const [sortMode, setSortMode] = React.useState<CategorySortMode>("best");
   const [searchQuery, setSearchQuery] = React.useState("");
   const deferredSearchQuery = React.useDeferredValue(searchQuery);
   const [ratingStats, setRatingStats] = React.useState<Record<string, RatingStat>>({});
@@ -125,7 +150,6 @@ export default function CategoryPage({
     return products.map((item, index) => {
       const routeSlug = getProductRouteSlug(item);
       const stats = ratingStats[routeSlug];
-      const buyLink = getProductBuyLink(item);
       return {
         item,
         name: item.name,
@@ -135,8 +159,6 @@ export default function CategoryPage({
         ratingCount: stats?.ratingCount ?? 0,
         newIndex: index,
         priceValue: getProductPriceValue(item),
-        buyUrl: buyLink.url,
-        buySourceLabel: buyLink.sourceLabel,
       };
     });
   }, [products, ratingStats]);
@@ -158,11 +180,16 @@ export default function CategoryPage({
     }
 
     result.sort((left, right) => {
+      const sortedByMode = compareByCategorySort(left, right, sortMode);
+      if (sortedByMode !== 0) {
+        return sortedByMode;
+      }
+
       if (activeSearchQuery && left.searchScore !== right.searchScore) {
         return right.searchScore - left.searchScore;
       }
 
-      return compareByDiscoverSort(left, right, sortMode);
+      return 0;
     });
 
     return result;
@@ -210,78 +237,82 @@ export default function CategoryPage({
             {title}
           </h1>
           <p className="mt-2 text-[#B7C4D3] text-sm sm:text-base">
-            Suche innerhalb der Kategorie, sortiere nach Relevanz und stelle Produkte direkt
+            Suche innerhalb der Kategorie, sortiere direkt auf der Seite und stelle Produkte
             nebeneinander.
           </p>
         </div>
       </div>
 
       <section className="mb-8 rounded-[28px] border border-[#2D3A4B] bg-[linear-gradient(135deg,rgba(21,31,43,0.96),rgba(14,20,30,0.98))] p-5 sm:p-6 shadow-[0_18px_42px_rgba(0,0,0,0.22)]">
-        <div className="grid gap-5 lg:grid-cols-[1.2fr_0.9fr]">
-          <div>
-            <p className="text-xs uppercase tracking-[0.22em] text-[#8CA1B8]">
-              Suche in {title}
-            </p>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder={`In ${title} suchen, z. B. Salami oder Vanille`}
-              className="mt-3 min-h-12 w-full rounded-2xl border border-[#2D3A4B] bg-[#101822]/90 px-4 text-white outline-none transition-colors placeholder:text-[#70839A] focus:border-[#5EE287]"
-            />
-            <p className="mt-3 text-sm text-[#8CA1B8]">
-              Suche nach Produktnamen, Marken oder typischen Begriffen und kombiniere das mit der
-              Sortierung oder dem Direktvergleich.
-            </p>
-          </div>
-
-          <div>
-            <p className="text-xs uppercase tracking-[0.22em] text-[#8CA1B8]">
-              Sortieren nach
-            </p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {SORT_OPTIONS.map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => setSortMode(option.value)}
-                  className={getChipClass(sortMode === option.value)}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-            <p className="mt-3 text-sm text-[#8CA1B8]">
-              Aktuell: <span className="text-[#E8F6ED]">{activeSort?.hint ?? "Sortierung aktiv"}</span>
-            </p>
-          </div>
-        </div>
+        <p className="text-xs uppercase tracking-[0.22em] text-[#8CA1B8]">
+          Suche in {title}
+        </p>
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(event) => setSearchQuery(event.target.value)}
+          placeholder={`In ${title} suchen, z. B. Salami oder Vanille`}
+          className="mt-3 min-h-12 w-full rounded-2xl border border-[#2D3A4B] bg-[#101822]/90 px-4 text-white outline-none transition-colors placeholder:text-[#70839A] focus:border-[#5EE287]"
+        />
+        <p className="mt-3 text-sm text-[#8CA1B8]">
+          Suche nach Produktnamen, Marken oder typischen Begriffen. Die Sortierung findest du
+          direkt über den Kacheln per Dropdown.
+        </p>
       </section>
 
       {!statsLoaded && <p className="text-[#8CA1B8] text-center mb-8">Lade Bewertungen...</p>}
 
-      <div className="mb-6 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em]">
-        <span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1.5 text-[#BFD0E2]">
-          {visibleProducts.length} Produkte
-        </span>
-        <span className="rounded-full border border-[#35506D] bg-[#122233] px-3 py-1.5 text-[#D9ECFF]">
-          Vergleich {comparedProducts.length}/{COMPARE_LIMIT}
-        </span>
-        {activeSearchQuery && (
-          <span className="rounded-full border border-[#3F5C7A] bg-[#122233] px-3 py-1.5 text-[#D9ECFF]">
-            Suche aktiv
+      <div className="mb-6 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em]">
+          <span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1.5 text-[#BFD0E2]">
+            {visibleProducts.length} Produkte
           </span>
-        )}
-        {comparedProducts.length >= 2 && (
-          <span className="rounded-full border border-[#2D5C3D] bg-[#102116] px-3 py-1.5 text-[#BFF2CF]">
-            Direktvergleich bereit
+          <span className="rounded-full border border-[#35506D] bg-[#122233] px-3 py-1.5 text-[#D9ECFF]">
+            Vergleich {comparedProducts.length}/{COMPARE_LIMIT}
           </span>
-        )}
-        {compareLimitReached && (
-          <span className="rounded-full border border-[#5A4630] bg-[#2C2115] px-3 py-1.5 text-[#F5D69A]">
-            Maximal {COMPARE_LIMIT} Produkte gleichzeitig
-          </span>
-        )}
+          {activeSearchQuery && (
+            <span className="rounded-full border border-[#3F5C7A] bg-[#122233] px-3 py-1.5 text-[#D9ECFF]">
+              Suche aktiv
+            </span>
+          )}
+          {comparedProducts.length >= 2 && (
+            <span className="rounded-full border border-[#2D5C3D] bg-[#102116] px-3 py-1.5 text-[#BFF2CF]">
+              Direktvergleich bereit
+            </span>
+          )}
+          {compareLimitReached && (
+            <span className="rounded-full border border-[#5A4630] bg-[#2C2115] px-3 py-1.5 text-[#F5D69A]">
+              Maximal {COMPARE_LIMIT} Produkte gleichzeitig
+            </span>
+          )}
+        </div>
+
+        <div className="w-full max-w-[240px]">
+          <label className="block text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8CA1B8]">
+            Sortieren
+          </label>
+          <div className="relative mt-2">
+            <select
+              value={sortMode}
+              onChange={(event) => setSortMode(event.target.value as CategorySortMode)}
+              aria-label="Produkte sortieren"
+              className="min-h-11 w-full appearance-none rounded-2xl border border-[#2D3A4B] bg-[#141C27] px-4 pr-11 text-sm font-semibold text-white outline-none transition-colors focus:border-[#5EE287]"
+            >
+              {SORT_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <FiChevronDown
+              size={18}
+              className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#8CA1B8]"
+            />
+          </div>
+          <p className="mt-2 text-xs text-[#8CA1B8]">
+            {activeSort?.hint ?? "Sortierung aktiv"}
+          </p>
+        </div>
       </div>
 
       <ProductComparisonPanel
@@ -351,30 +382,10 @@ export default function CategoryPage({
                   </h3>
 
                   {product.ratingAvg !== null && product.ratingCount > 0 ? (
-                    <p className="text-xs sm:text-sm text-yellow-300 mt-1.5">
-                      {"\u2B50"} {product.ratingAvg.toFixed(1)} ({product.ratingCount})
+                    <p className="mt-1.5 text-xs font-semibold text-yellow-300 sm:text-sm">
+                      {product.ratingAvg.toFixed(1)} / 5
                     </p>
-                  ) : (
-                    <p className="text-xs sm:text-sm text-[#8CA1B8] mt-1.5">
-                      Noch keine Bewertungen
-                    </p>
-                  )}
-
-                  <p className="mt-2 text-[11px] text-[#BFD0E2]">
-                    {isSelectedForCompare
-                      ? "Im Vergleich. Über den Button oben rechts kannst du das Produkt wieder entfernen."
-                      : "Öffnen zum Bewerten oder direkt extern kaufen."}
-                  </p>
-
-                  <div className="mt-3 flex justify-end">
-                    <BuyButton
-                      href={product.buyUrl}
-                      sourceLabel={product.buySourceLabel}
-                      productName={product.item.name}
-                      compact
-                      className="pointer-events-auto"
-                    />
-                  </div>
+                  ) : null}
                 </div>
               </div>
             );

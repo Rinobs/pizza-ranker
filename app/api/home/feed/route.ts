@@ -7,7 +7,22 @@ import {
   getProductRouteSlug,
 } from "@/app/data/products";
 import {
+  isCustomListSchemaMissingError,
+  normalizeCustomListName,
+  type CustomListItemRow,
+  type CustomListRow,
+} from "@/lib/custom-lists";
+import {
+  buildReviewLikeKey,
+  buildReviewLikeStateMap,
+  isReviewLikesSchemaMissingError,
+  type ReviewLikeRow,
+} from "@/lib/review-likes";
+import {
   RATINGS_TABLE,
+  REVIEW_LIKES_TABLE,
+  USER_CUSTOM_LIST_ITEMS_TABLE,
+  USER_CUSTOM_LISTS_TABLE,
   USER_FOLLOWS_TABLE,
   USER_PRODUCT_LISTS_TABLE,
   USER_PROFILES_TABLE,
@@ -21,6 +36,8 @@ const FOLLOWING_PREVIEW_LIMIT = 6;
 const FEED_LIMIT = 14;
 const RATING_FETCH_LIMIT = 60;
 const LIST_FETCH_LIMIT = 40;
+const CUSTOM_LIST_FETCH_LIMIT = 36;
+const CUSTOM_LIST_ITEM_FETCH_LIMIT = 60;
 
 type FollowRow = {
   following_user_id: string | null;
@@ -55,10 +72,14 @@ type ProfileSummary = {
 
 type FeedActivity = {
   id: string;
-  kind: "rating" | "review" | "favorite" | "want_to_try";
+  kind: "rating" | "review" | "favorite" | "want_to_try" | "custom_list";
   userId: string;
   username: string;
   avatarUrl: string | null;
+  listName: string | null;
+  reviewUserId: string | null;
+  likeCount: number;
+  viewerLiked: boolean;
   product: {
     routeSlug: string;
     name: string;
@@ -225,21 +246,28 @@ export async function GET() {
     new Set(followingRows.map((row) => row.following_user_id))
   );
 
-  const [profilesResult, ratingsResult, productListsResult] = await Promise.all([
-    loadProfiles(supabase, followedUserIds),
-    supabase
-      .from(RATINGS_TABLE)
-      .select("user_id, product_slug, rating, comment, updated_at")
-      .in("user_id", followedUserIds)
-      .order("updated_at", { ascending: false })
-      .limit(RATING_FETCH_LIMIT),
-    supabase
-      .from(USER_PRODUCT_LISTS_TABLE)
-      .select("user_id, product_slug, list_type, updated_at")
-      .in("user_id", followedUserIds)
-      .order("updated_at", { ascending: false })
-      .limit(LIST_FETCH_LIMIT),
-  ]);
+  const [profilesResult, ratingsResult, productListsResult, customListsResult] =
+    await Promise.all([
+      loadProfiles(supabase, followedUserIds),
+      supabase
+        .from(RATINGS_TABLE)
+        .select("user_id, product_slug, rating, comment, updated_at")
+        .in("user_id", followedUserIds)
+        .order("updated_at", { ascending: false })
+        .limit(RATING_FETCH_LIMIT),
+      supabase
+        .from(USER_PRODUCT_LISTS_TABLE)
+        .select("user_id, product_slug, list_type, updated_at")
+        .in("user_id", followedUserIds)
+        .order("updated_at", { ascending: false })
+        .limit(LIST_FETCH_LIMIT),
+      supabase
+        .from(USER_CUSTOM_LISTS_TABLE)
+        .select("id, user_id, name, inserted_at, updated_at")
+        .in("user_id", followedUserIds)
+        .order("updated_at", { ascending: false })
+        .limit(CUSTOM_LIST_FETCH_LIMIT),
+    ]);
 
   if (profilesResult.error) {
     return NextResponse.json(
@@ -262,7 +290,59 @@ export async function GET() {
     );
   }
 
+  if (
+    customListsResult.error &&
+    !isCustomListSchemaMissingError(customListsResult.error.message)
+  ) {
+    return NextResponse.json(
+      { success: false, error: customListsResult.error.message },
+      { status: 400 }
+    );
+  }
+
   const profileByUserId = buildProfileByUserId(profilesResult.rows);
+  const customListRows = (customListsResult.data ?? []) as CustomListRow[];
+
+  const ratingRows = (ratingsResult.data ?? []) as RatingRow[];
+  const reviewRows = ratingRows.filter(
+    (row): row is RatingRow & { product_slug: string } =>
+      typeof row.product_slug === "string" &&
+      typeof row.comment === "string" &&
+      row.comment.trim().length > 0
+  );
+
+  let reviewLikeState = new Map<string, { likeCount: number; viewerLiked: boolean }>();
+
+  if (reviewRows.length > 0) {
+    const reviewLikesResult = await supabase
+      .from(REVIEW_LIKES_TABLE)
+      .select("user_id, review_user_id, product_slug, inserted_at, updated_at")
+      .in(
+        "review_user_id",
+        Array.from(new Set(reviewRows.map((row) => row.user_id)))
+      )
+      .in(
+        "product_slug",
+        Array.from(new Set(reviewRows.map((row) => row.product_slug)))
+      );
+
+    if (
+      reviewLikesResult.error &&
+      !isReviewLikesSchemaMissingError(reviewLikesResult.error.message)
+    ) {
+      return NextResponse.json(
+        { success: false, error: reviewLikesResult.error.message },
+        { status: 400 }
+      );
+    }
+
+    if (!reviewLikesResult.error && Array.isArray(reviewLikesResult.data)) {
+      reviewLikeState = buildReviewLikeStateMap(
+        reviewLikesResult.data as ReviewLikeRow[],
+        viewerUserId
+      );
+    }
+  }
 
   const followingPreview = followingRows.slice(0, FOLLOWING_PREVIEW_LIMIT).map((row) => {
     const profile = profileByUserId.get(row.following_user_id);
@@ -275,7 +355,7 @@ export async function GET() {
     };
   });
 
-  const ratingActivities = ((ratingsResult.data ?? []) as RatingRow[])
+  const ratingActivities = ratingRows
     .map((row) => {
       if (!row.product_slug) return null;
 
@@ -287,10 +367,19 @@ export async function GET() {
         return null;
       }
 
+      const reviewLike =
+        comment.length > 0
+          ? reviewLikeState.get(buildReviewLikeKey(row.user_id, row.product_slug))
+          : null;
+
       return buildFeedActivity(profileByUserId.get(row.user_id), {
         id: `rating-${row.user_id}-${row.product_slug}-${row.updated_at ?? "unknown"}`,
         kind: comment.length > 0 ? "review" : "rating",
         userId: row.user_id,
+        listName: null,
+        reviewUserId: comment.length > 0 ? row.user_id : null,
+        likeCount: reviewLike?.likeCount ?? 0,
+        viewerLiked: reviewLike?.viewerLiked ?? false,
         product: mapProductBase(row.product_slug),
         rating,
         comment: comment || null,
@@ -310,6 +399,10 @@ export async function GET() {
         id: `list-${row.list_type}-${row.user_id}-${row.product_slug}-${row.updated_at ?? "unknown"}`,
         kind: row.list_type === "favorites" ? "favorite" : "want_to_try",
         userId: row.user_id,
+        listName: null,
+        reviewUserId: null,
+        likeCount: 0,
+        viewerLiked: false,
         product: mapProductBase(row.product_slug),
         rating: null,
         comment: null,
@@ -318,7 +411,59 @@ export async function GET() {
     })
     .filter((activity): activity is FeedActivity => activity !== null);
 
-  const activities = [...ratingActivities, ...listActivities]
+  let customListActivities: FeedActivity[] = [];
+
+  if (customListRows.length > 0) {
+    const customListItemsResult = await supabase
+      .from(USER_CUSTOM_LIST_ITEMS_TABLE)
+      .select("list_id, product_slug, inserted_at, updated_at")
+      .in(
+        "list_id",
+        customListRows.map((row) => row.id)
+      )
+      .order("updated_at", { ascending: false })
+      .limit(CUSTOM_LIST_ITEM_FETCH_LIMIT);
+
+    if (
+      customListItemsResult.error &&
+      !isCustomListSchemaMissingError(customListItemsResult.error.message)
+    ) {
+      return NextResponse.json(
+        { success: false, error: customListItemsResult.error.message },
+        { status: 400 }
+      );
+    }
+
+    const customListById = new Map(customListRows.map((row) => [row.id, row] as const));
+
+    customListActivities = ((customListItemsResult.data ?? []) as CustomListItemRow[])
+      .map((row) => {
+        if (!row.product_slug) return null;
+
+        const customList = customListById.get(row.list_id);
+        if (!customList) return null;
+
+        const listName = normalizeCustomListName(customList.name ?? "");
+        if (!listName) return null;
+
+        return buildFeedActivity(profileByUserId.get(customList.user_id), {
+          id: `custom-list-${customList.id}-${row.product_slug}-${row.updated_at ?? "unknown"}`,
+          kind: "custom_list",
+          userId: customList.user_id,
+          listName,
+          reviewUserId: null,
+          likeCount: 0,
+          viewerLiked: false,
+          product: mapProductBase(row.product_slug),
+          rating: null,
+          comment: null,
+          createdAt: row.updated_at,
+        });
+      })
+      .filter((activity): activity is FeedActivity => activity !== null);
+  }
+
+  const activities = [...ratingActivities, ...listActivities, ...customListActivities]
     .sort(
       (left, right) =>
         getTimestampValue(right.createdAt) - getTimestampValue(left.createdAt)

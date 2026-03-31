@@ -1,16 +1,23 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1800" viewBox="0 0 1200 1800" role="img" aria-label="Produktbild Platzhalter">
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1800" viewBox="0 0 1200 1800" role="img" aria-label="Noch kein Produktbild verfügbar">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#1f2937" />
-      <stop offset="100%" stop-color="#111827" />
+      <stop offset="0%" stop-color="#111822" />
+      <stop offset="100%" stop-color="#0b1017" />
+    </linearGradient>
+    <linearGradient id="card" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1a2533" />
+      <stop offset="100%" stop-color="#121b27" />
     </linearGradient>
   </defs>
   <rect width="1200" height="1800" fill="url(#bg)" />
-  <g fill="#9ca3af" font-family="Arial, sans-serif" text-anchor="middle">
-    <rect x="300" y="520" width="600" height="600" rx="40" fill="#374151" />
-    <circle cx="600" cy="770" r="110" fill="#6b7280" />
-    <path d="M350 1060l170-170 120 120 95-95 115 115" stroke="#9ca3af" stroke-width="36" fill="none" stroke-linecap="round" stroke-linejoin="round" />
-    <text x="600" y="1310" font-size="68" font-weight="700">Kein Produktbild</text>
-    <text x="600" y="1390" font-size="44" fill="#d1d5db">Bild wird nachgetragen</text>
+  <g transform="translate(180 305)">
+    <rect width="840" height="1190" rx="56" fill="url(#card)" stroke="#2b3d52" stroke-width="8" />
+    <rect x="116" y="120" width="608" height="608" rx="42" fill="#182331" stroke="#31475f" stroke-width="6" />
+    <circle cx="420" cy="345" r="88" fill="#32485f" />
+    <path d="M182 640l160-156 121 116 98-96 97 94 98-99" stroke="#7f97ad" stroke-width="32" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+    <text x="420" y="878" fill="#f4f8fb" font-family="Arial, sans-serif" font-size="72" font-weight="700" text-anchor="middle">Noch kein Bild</text>
+    <text x="420" y="958" fill="#c4d0dc" font-family="Arial, sans-serif" font-size="46" text-anchor="middle">verfügbar</text>
+    <text x="420" y="1080" fill="#8ea4b9" font-family="Arial, sans-serif" font-size="36" text-anchor="middle">Sobald wir ein echtes Produktfoto haben,</text>
+    <text x="420" y="1134" fill="#8ea4b9" font-family="Arial, sans-serif" font-size="36" text-anchor="middle">ersetzen wir diesen Platzhalter.</text>
   </g>
 </svg>

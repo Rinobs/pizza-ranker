@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -9,6 +9,7 @@ import BackButton from "@/app/components/BackButton";
 import ProfileAvatar from "@/app/components/ProfileAvatar";
 import { buildProfileBadges, buildProfileCompletion } from "@/lib/profile-features";
 import { calculateProfilePoints, getProfileLevelInfo } from "@/lib/profile-gamification";
+import type { CustomList } from "@/lib/custom-lists";
 import { BadgeCard, EmptyPanel, MetricCard, SectionShell } from "@/app/profil/profile-ui";
 
 type PublicProfileData = {
@@ -42,6 +43,7 @@ type PublicProfileData = {
     category: string;
     insertedAt: string | null;
   }>;
+  customLists: CustomList[];
 };
 
 type PublicProfileResponse = {
@@ -251,7 +253,7 @@ export default function PublicProfilePage() {
         <SectionShell eyebrow="Snapshot" title="Schneller Eindruck" description="Ein kompakter Blick auf Level, Aktivität und Sammler-Stil.">
           <div className="grid gap-4 sm:grid-cols-2">
             <MetricCard icon={FiAward} label="Level" value={summary.levelInfo.currentLevelName} hint={summary.levelInfo.nextLevelName ? `${summary.levelInfo.pointsToNextLevel} Punkte bis ${summary.levelInfo.nextLevelName}` : "Top-Level erreicht"} />
-            <MetricCard icon={FiHeart} label="Favoriten" value={String(profileData.favorites.length)} hint={profileData.wantToTry.length > 0 ? `${profileData.wantToTry.length} Produkte auf der Watchlist` : "Noch keine Watchlist sichtbar"} />
+            <MetricCard icon={FiHeart} label="Favoriten" value={String(profileData.favorites.length)} hint={profileData.customLists.length > 0 ? `${profileData.customLists.length} eigene Listen sichtbar` : profileData.wantToTry.length > 0 ? `${profileData.wantToTry.length} Produkte auf der Watchlist` : "Noch keine Watchlist sichtbar"} />
           </div>
         </SectionShell>
       </div>
@@ -267,6 +269,54 @@ export default function PublicProfilePage() {
 
         <SectionShell eyebrow="Watchlist" title="Was noch getestet werden soll">
           {profileData.wantToTry.length === 0 ? <EmptyPanel icon={FiBookmark} title="Watchlist ist leer" description="Aktuell wurden noch keine Produkte für später gespeichert." /> : <ul className="grid gap-3">{profileData.wantToTry.slice(0, 6).map((item) => <li key={`want-${item.productSlug}`} className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4"><Link href={`/produkt/${item.productSlug}`} className="font-semibold text-white transition-colors hover:text-[#8AF5AC]">{item.name}</Link><p className="mt-1 text-sm text-[#8CA1B8]">{item.category}</p></li>)}</ul>}
+        </SectionShell>
+      </div>
+
+      <div className="mt-8">
+        <SectionShell eyebrow="Eigene Listen" title={`Kuratiert von ${profileData.profile.username}`} description="Benannte Listen zeigen schneller, wie dieser User Produkte thematisch sammelt und ordnet.">
+          {profileData.customLists.length === 0 ? (
+            <EmptyPanel icon={FiBookmark} title="Noch keine eigenen Listen" description="Dieses Profil hat bisher noch keine benannten Listen veröffentlicht." />
+          ) : (
+            <div className="grid gap-4 lg:grid-cols-2">
+              {profileData.customLists.map((list) => (
+                <div
+                  key={list.id}
+                  id={`custom-list-${list.id}`}
+                  className="rounded-[26px] border border-[#2A394B] bg-[#111925]/88 p-5"
+                >
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="text-lg font-semibold text-white">{list.name}</h3>
+                    <span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#D6E2EF]">
+                      {list.itemCount} Produkte
+                    </span>
+                  </div>
+
+                  {list.items.length === 0 ? (
+                    <p className="mt-4 rounded-[20px] border border-dashed border-[#35503D] bg-[#0F1722] px-4 py-3 text-sm text-[#AFC1D3]">
+                      Diese Liste ist aktuell noch leer.
+                    </p>
+                  ) : (
+                    <ul className="mt-4 grid gap-3">
+                      {list.items.slice(0, 6).map((item) => (
+                        <li
+                          key={`${list.id}-${item.productSlug}`}
+                          className="rounded-[20px] border border-[#2D3A4B] bg-[#101822] px-4 py-3"
+                        >
+                          <Link
+                            href={`/produkt/${item.routeSlug}`}
+                            className="font-semibold text-white transition-colors hover:text-[#8AF5AC]"
+                          >
+                            {item.name}
+                          </Link>
+                          <p className="mt-1 text-sm text-[#8CA1B8]">{item.category}</p>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </SectionShell>
       </div>
     </div>

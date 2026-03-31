@@ -46,11 +46,21 @@ export function getProductRouteSlug(
 
 export const DEFAULT_PRODUCT_IMAGE = "/images/placeholders/product-default.svg";
 
+function isGeneratedPlaceholderImage(imageUrl: string) {
+  const normalizedPath = imageUrl.split("?")[0].trim().toLowerCase();
+  return normalizedPath.startsWith("/images/generated/");
+}
+
 export function getProductImageUrl(product: {
   imageUrl?: string | null;
 }): string {
   const imageUrl = product.imageUrl?.trim();
-  return imageUrl || DEFAULT_PRODUCT_IMAGE;
+
+  if (!imageUrl || isGeneratedPlaceholderImage(imageUrl)) {
+    return DEFAULT_PRODUCT_IMAGE;
+  }
+
+  return imageUrl;
 }
 
 export function getProductPriceValue(product: {
@@ -98,16 +108,16 @@ function toProductSearchKey(value: string) {
     .trim();
 }
 
-function buildAmazonSearchUrl(query: string) {
-  return `https://www.amazon.de/s?k=${encodeURIComponent(query)}`;
-}
-
 function buildReweSearchUrl(query: string) {
   return `https://shop.rewe.de/suche/${encodeURIComponent(query)}`;
 }
 
 function buildShopifySearchUrl(baseUrl: string, query: string) {
   return `${baseUrl.replace(/\/+$/, "")}/search?q=${encodeURIComponent(query)}`;
+}
+
+function buildMyProteinSearchUrl(query: string) {
+  return `https://de.myprotein.com/search/?search=${encodeURIComponent(query)}`;
 }
 
 function createBuyLink(url: string, sourceLabel: string): ProductBuyLink {
@@ -117,15 +127,9 @@ function createBuyLink(url: string, sourceLabel: string): ProductBuyLink {
   };
 }
 
-function hasKeyword(searchKey: string, keywords: string[]) {
-  return keywords.some(
-    (keyword) => searchKey.startsWith(keyword) || searchKey.includes(` ${keyword} `)
-  );
-}
-
 export function getProductBuyLink(
   product: Pick<Product, "name" | "slug" | "buyUrl" | "buyLabel">
-): ProductBuyLink {
+): ProductBuyLink | null {
   const explicitUrl = product.buyUrl?.trim();
   if (explicitUrl) {
     return createBuyLink(explicitUrl, product.buyLabel?.trim() || "Shop");
@@ -141,6 +145,26 @@ export function getProductBuyLink(
     );
   }
 
+  if (searchKey.includes(" esn designer whey ")) {
+    return createBuyLink("https://www.esn.com/products/esn-designer-whey-protein", "ESN");
+  }
+
+  if (searchKey.includes(" esn isoclear whey isolate ")) {
+    return createBuyLink("https://www.esn.com/products/esn-isoclear-whey-isolate", "ESN");
+  }
+
+  if (searchKey.includes(" esn designer bar ")) {
+    return createBuyLink("https://www.esn.com/products/designer-bar", "ESN");
+  }
+
+  if (searchKey.includes(" esn goat bar ")) {
+    return createBuyLink("https://www.esn.com/products/goat-bar", "ESN");
+  }
+
+  if (searchKey.includes(" esn ")) {
+    return createBuyLink(buildShopifySearchUrl("https://www.esn.com", query), "ESN");
+  }
+
   if (searchKey.includes(" more nutrition ")) {
     return createBuyLink(buildShopifySearchUrl("https://morenutrition.de", query), "More");
   }
@@ -149,50 +173,23 @@ export function getProductBuyLink(
     return createBuyLink(buildShopifySearchUrl("https://neosupps.com", query), "NeoSupps");
   }
 
-  if (searchKey.includes(" aldi sports gefullter proteinriegel ")) {
-    return createBuyLink(
-      "https://www.aldi-nord.de/produkt/gefuellter-riegel-1019997-0-0.article.html#/sortiment/neu",
-      "ALDI"
-    );
+  if (searchKey.includes(" myprotein ")) {
+    return createBuyLink(buildMyProteinSearchUrl(query), "MyProtein");
   }
 
-  if (searchKey.includes(" aldi sports high protein riegel vegan ")) {
-    return createBuyLink("https://www.aldi-nord.de/", "ALDI");
+  if (searchKey.includes(" rocka ")) {
+    return createBuyLink(buildShopifySearchUrl("https://www.rockanutrition.de", query), "Rocka");
   }
 
-  if (hasKeyword(searchKey, ["aldi", "grandessa", "casa romana", "gigante"])) {
-    return createBuyLink("https://www.aldi-nord.de/", "ALDI");
-  }
-
-  if (hasKeyword(searchKey, ["lidl", "sportness", "sondey", "gelatelli", "trattoria alfredo"])) {
-    return createBuyLink("https://www.lidl.de/", "Lidl");
+  if (searchKey.includes(" bodylab ")) {
+    return createBuyLink(buildShopifySearchUrl("https://www.bodylab24.de", query), "Bodylab24");
   }
 
   if (searchKey.includes(" rewe ") || searchKey.includes(" rewe beste wahl ")) {
     return createBuyLink(buildReweSearchUrl(query), "REWE");
   }
 
-  if (searchKey.includes(" edeka ") || searchKey.includes(" g g ")) {
-    return createBuyLink("https://www.edeka.de/", "EDEKA");
-  }
-
-  if (searchKey.includes(" penny ") || searchKey.includes(" san fabio ")) {
-    return createBuyLink("https://www.penny.de/", "PENNY");
-  }
-
-  if (searchKey.includes(" netto ") || searchKey.includes(" tanta emma ")) {
-    return createBuyLink("https://www.netto-online.de/", "Netto");
-  }
-
-  if (searchKey.includes(" k classic ")) {
-    return createBuyLink("https://www.kaufland.de/", "Kaufland");
-  }
-
-  if (product.slug === "pizza" || product.slug === "chips" || product.slug === "eis") {
-    return createBuyLink(buildReweSearchUrl(query), "REWE");
-  }
-
-  return createBuyLink(buildAmazonSearchUrl(query), "Amazon");
+  return null;
 }
 
 function mergeProducts(...groups: Product[][]): Product[] {

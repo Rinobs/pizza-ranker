@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -13,11 +13,13 @@ import {
   FiHeart,
   FiImage,
   FiMessageCircle,
+  FiPlus,
   FiSearch,
   FiSliders,
   FiStar,
   FiTarget,
   FiTrendingUp,
+  FiTrash2,
   FiUploadCloud,
   FiUsers,
   FiZap,
@@ -25,6 +27,7 @@ import {
 import BackButton from "@/app/components/BackButton";
 import ProfileAvatar from "@/app/components/ProfileAvatar";
 import { ALL_PRODUCTS, getProductRouteSlug } from "@/app/data/products";
+import { useUserCustomLists } from "@/app/hooks/useUserCustomLists";
 import { useUserRatings } from "@/app/hooks/useUserRatings";
 import { useUserProductLists } from "@/app/hooks/useUserProductLists";
 import {
@@ -161,6 +164,20 @@ type ProfileTab = "overview" | "social" | "collection" | "activity";
 
 type NoticeTone = "success" | "info";
 
+const SHORT_DATE_FORMATTER = new Intl.DateTimeFormat("de-DE", {
+  day: "2-digit",
+  month: "short",
+});
+
+function formatShortDate(value: string | null) {
+  if (!value) return "Gerade eben";
+
+  const parsed = Date.parse(value);
+  if (Number.isNaN(parsed)) return "Gerade eben";
+
+  return SHORT_DATE_FORMATTER.format(new Date(parsed));
+}
+
 const TAB_ITEMS: TabItem<ProfileTab>[] = [
   { id: "overview", label: "Übersicht", icon: FiGrid },
   { id: "social", label: "Social", icon: FiUsers },
@@ -188,11 +205,24 @@ export default function ProfilPage() {
     usernameLimits,
     profileLimits,
   } = useUserRatings();
-  const { favoriteSlugs, wantToTrySlugs, loaded: listsLoaded } = useUserProductLists();
+  const { favoriteSlugs, wantToTrySlugs, triedSlugs, loaded: listsLoaded } =
+    useUserProductLists();
+  const {
+    customLists,
+    loaded: customListsLoaded,
+    creatingList,
+    deletingListId,
+    error: customListsError,
+    createCustomList,
+    deleteCustomList,
+    customListItemCount,
+  } = useUserCustomLists();
 
   const [activeTab, setActiveTab] = useState<ProfileTab>("overview");
   const [usernameInput, setUsernameInput] = useState("");
   const [bioInput, setBioInput] = useState("");
+  const [customListInput, setCustomListInput] = useState("");
+  const [customListMessage, setCustomListMessage] = useState<string | null>(null);
   const [profileNotice, setProfileNotice] = useState<{ tone: NoticeTone; text: string } | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
@@ -296,6 +326,15 @@ export default function ProfilPage() {
       .sort((left, right) => left.name.localeCompare(right.name, "de"));
   }, [productBySlug, wantToTrySlugs]);
 
+  const triedProducts = useMemo(() => {
+    return triedSlugs
+      .map((slug) => {
+        const product = productBySlug.get(slug);
+        return { slug, name: product?.name ?? slug, category: product?.category ?? "Unbekannt" };
+      })
+      .sort((left, right) => left.name.localeCompare(right.name, "de"));
+  }, [productBySlug, triedSlugs]);
+
   const ratingCount = ratedProducts.filter((product) => product.rating > 0).length;
   const commentCount = ratedProducts.filter((product) => product.comment.length > 0).length;
   const averageRating = ratingCount > 0
@@ -309,6 +348,11 @@ export default function ProfilPage() {
   const followingCount = followingProfiles.length;
   const followersCount = followerProfiles.length;
   const socialReach = followingCount + followersCount;
+  const collectionCount =
+    favoriteProducts.length +
+    wantToTryProducts.length +
+    triedProducts.length +
+    customListItemCount;
   const basePoints = calculateProfilePoints({ ratingCount, commentCount, favoriteCount: favoriteProducts.length, followerCount: followersCount });
   const profilePoints = friendGameData?.viewer.points ?? basePoints;
   const levelInfo = getProfileLevelInfo(profilePoints);
@@ -519,6 +563,31 @@ export default function ProfilPage() {
     }
   }
 
+  async function handleCreateCustomList() {
+    const response = await createCustomList(customListInput);
+
+    if (!response.success || !response.data) {
+      return;
+    }
+
+    setCustomListInput("");
+    setCustomListMessage(`Liste "${response.data.name}" wurde erstellt.`);
+  }
+
+  async function handleDeleteCustomListEntry(listId: string, name: string) {
+    if (!window.confirm(`Liste "${name}" wirklich löschen?`)) {
+      return;
+    }
+
+    const response = await deleteCustomList(listId);
+
+    if (!response.success) {
+      return;
+    }
+
+    setCustomListMessage(`Liste "${name}" wurde gelöscht.`);
+  }
+
   if (!profileLoaded) {
     return (
       <div className="mx-auto max-w-7xl px-4 pb-24 text-white sm:px-8 lg:px-12">
@@ -651,7 +720,7 @@ export default function ProfilPage() {
             key={item.id}
             item={item}
             active={activeTab === item.id}
-            count={item.id === "overview" ? profileBadges.filter((badge) => badge.unlocked).length : item.id === "social" ? socialReach : item.id === "collection" ? favoriteProducts.length + wantToTryProducts.length : ratedProducts.length}
+            count={item.id === "overview" ? profileBadges.filter((badge) => badge.unlocked).length : item.id === "social" ? socialReach : item.id === "collection" ? collectionCount : ratedProducts.length}
             onClick={() => setActiveTab(item.id)}
           />
         ))}
@@ -884,19 +953,132 @@ export default function ProfilPage() {
 
         {activeTab === "collection" && (
           <>
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
               <MetricCard icon={FiHeart} label="Favoriten" value={String(favoriteProducts.length)} hint={favoriteProducts.length > 0 ? "Deine persönliche Best-of-Liste" : "Füge Produkte als Favorit hinzu"} />
               <MetricCard icon={FiBookmark} label="Want to Try" value={String(wantToTryProducts.length)} hint={wantToTryProducts.length > 0 ? "Produkte für später gespeichert" : "Baue dir eine Watchlist auf"} />
-              <MetricCard icon={FiGrid} label="Sammlung gesamt" value={String(favoriteProducts.length + wantToTryProducts.length)} hint="Alle Listenplätze zusammen" />
+              <MetricCard icon={FiCheckCircle} label="Probiert" value={String(triedProducts.length)} hint={triedProducts.length > 0 ? "Schon getestet, auch ohne Sterne" : "Markiere Produkte als probiert"} />
+              <MetricCard icon={FiGrid} label="Sammlung gesamt" value={String(collectionCount)} hint="Favoriten, Watchlist, probiert und eigene Listen zusammen" />
             </div>
 
-            <div className="grid gap-6 xl:grid-cols-2">
+            <SectionShell eyebrow="Eigene Listen" title="Deine benannten Sammlungen" description="Erstelle Listen mit eigenem Namen und baue dir kleine Themenwelten wie Protein-Favoriten, Date-Night-Pizzen oder Guilty Pleasures.">
+              <div className="rounded-[26px] border border-[#2A394B] bg-[#111925]/88 p-4">
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-white">Neue Liste anlegen</p>
+                    <p className="mt-2 text-sm text-[#9EB0C3]">Der Name ist frei wählbar. Produkte fügst du danach direkt auf den Produktseiten hinzu.</p>
+                  </div>
+
+                  <div className="flex w-full flex-col gap-2 sm:flex-row lg:w-auto">
+                    <input
+                      type="text"
+                      value={customListInput}
+                      maxLength={40}
+                      onChange={(event) => {
+                        setCustomListInput(event.target.value);
+                        setCustomListMessage(null);
+                      }}
+                      placeholder="Zum Beispiel Protein-Favoriten"
+                      className="min-h-11 w-full min-w-[260px] rounded-2xl border border-[#2D3A4B] bg-[#0F1621] px-4 py-3 text-white outline-none transition-colors placeholder:text-[#7F93A8] focus:border-[#5EE287]"
+                    />
+                    <button
+                      type="button"
+                      disabled={creatingList}
+                      onClick={() => {
+                        void handleCreateCustomList();
+                      }}
+                      className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-[#5EE287] px-5 py-3 font-semibold text-[#0C1910] transition-colors hover:bg-[#79F29C] disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      <FiPlus size={16} />
+                      {creatingList ? "Erstelle..." : "Liste anlegen"}
+                    </button>
+                  </div>
+                </div>
+
+                {(customListsError || customListMessage) && (
+                  <div className={`mt-4 rounded-2xl border px-4 py-3 text-sm ${customListsError ? "border-[#6A3434] bg-[#2A1313] text-red-100" : "border-[#2D5B41] bg-[#173023] text-[#D9FFE6]"}`}>
+                    {customListsError || customListMessage}
+                  </div>
+                )}
+              </div>
+
+              {!customListsLoaded ? (
+                <div className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4 text-sm text-[#9EB0C3]">
+                  Eigene Listen werden geladen...
+                </div>
+              ) : customLists.length === 0 ? (
+                <EmptyPanel icon={FiGrid} title="Noch keine eigenen Listen" description="Lege hier deine erste benannte Liste an. Danach kannst du Produkte direkt auf den Produktseiten zuordnen." />
+              ) : (
+                <div className="grid gap-4 lg:grid-cols-2">
+                  {customLists.map((list) => (
+                    <div
+                      key={list.id}
+                      className="rounded-[26px] border border-[#2A394B] bg-[#111925]/88 p-5 transition-all duration-300 hover:-translate-y-1 hover:border-[#5EE287]/25"
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h3 className="text-lg font-semibold text-white">{list.name}</h3>
+                            <span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#D6E2EF]">
+                              {list.itemCount} Produkte
+                            </span>
+                          </div>
+                          <p className="mt-2 text-sm text-[#8CA1B8]">
+                            Zuletzt aktiv {formatShortDate(list.updatedAt || list.insertedAt)}
+                          </p>
+                        </div>
+
+                        <button
+                          type="button"
+                          disabled={deletingListId === list.id}
+                          onClick={() => {
+                            void handleDeleteCustomListEntry(list.id, list.name);
+                          }}
+                          className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[#5A2A2A] bg-[#2A1111] text-red-200 transition-colors hover:bg-[#3A1717] disabled:cursor-not-allowed disabled:opacity-60"
+                          aria-label={`Liste ${list.name} löschen`}
+                        >
+                          <FiTrash2 size={16} />
+                        </button>
+                      </div>
+
+                      {list.items.length === 0 ? (
+                        <p className="mt-4 rounded-[20px] border border-dashed border-[#35503D] bg-[#0F1722] px-4 py-3 text-sm text-[#AFC1D3]">
+                          Die Liste ist noch leer. Füge Produkte direkt auf deren Detailseiten hinzu.
+                        </p>
+                      ) : (
+                        <ul className="mt-4 grid gap-3">
+                          {list.items.slice(0, 6).map((item) => (
+                            <li
+                              key={`${list.id}-${item.productSlug}`}
+                              className="rounded-[20px] border border-[#2D3A4B] bg-[#101822] px-4 py-3"
+                            >
+                              <Link
+                                href={`/produkt/${item.routeSlug}`}
+                                className="font-semibold text-white transition-colors hover:text-[#8AF5AC]"
+                              >
+                                {item.name}
+                              </Link>
+                              <p className="mt-1 text-sm text-[#8CA1B8]">{item.category}</p>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </SectionShell>
+
+            <div className="grid gap-6 xl:grid-cols-3">
               <SectionShell eyebrow="Favoriten" title="Deine Hall of Fame" description="Die Produkte, die du immer wieder empfehlen würdest.">
                 {!listsLoaded ? <div className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4 text-sm text-[#9EB0C3]">Favoriten werden geladen...</div> : favoriteProducts.length === 0 ? <EmptyPanel icon={FiHeart} title="Noch keine Favoriten" description="Sobald du auf Produktseiten Favoriten speicherst, entsteht hier deine persönliche Food Hall of Fame." /> : <ul className="grid gap-3">{favoriteProducts.map((item) => <li key={`favorite-${item.slug}`} className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4 transition-all duration-300 hover:-translate-y-1 hover:border-[#5EE287]/25"><Link href={`/produkt/${item.slug}`} className="font-semibold text-white transition-colors hover:text-[#8AF5AC]">{item.name}</Link><p className="mt-1 text-sm text-[#8CA1B8]">{item.category}</p></li>)}</ul>}
               </SectionShell>
 
               <SectionShell eyebrow="Watchlist" title="Produkte für später" description="Hier landen die Dinge, die du als Nächstes testen möchtest.">
                 {!listsLoaded ? <div className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4 text-sm text-[#9EB0C3]">Watchlist wird geladen...</div> : wantToTryProducts.length === 0 ? <EmptyPanel icon={FiBookmark} title="Noch keine Watchlist" description="Speichere Produkte auf deiner Probieren-Liste, damit dein Profil mehr Tiefe und Zukunftspläne zeigt." /> : <ul className="grid gap-3">{wantToTryProducts.map((item) => <li key={`want-to-try-${item.slug}`} className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4 transition-all duration-300 hover:-translate-y-1 hover:border-[#5EE287]/25"><Link href={`/produkt/${item.slug}`} className="font-semibold text-white transition-colors hover:text-[#8AF5AC]">{item.name}</Link><p className="mt-1 text-sm text-[#8CA1B8]">{item.category}</p></li>)}</ul>}
+              </SectionShell>
+
+              <SectionShell eyebrow="Probiert" title="Bereits getestet" description="Produkte, die du schon probiert hast, auch wenn du noch keine Sterne vergeben willst.">
+                {!listsLoaded ? <div className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4 text-sm text-[#9EB0C3]">Probiert-Liste wird geladen...</div> : triedProducts.length === 0 ? <EmptyPanel icon={FiCheckCircle} title="Noch nichts als probiert markiert" description="Auf Produktseiten kannst du Lebensmittel einfach als bereits probiert abhaken, ohne direkt ein Rating abzugeben." /> : <ul className="grid gap-3">{triedProducts.map((item) => <li key={`tried-${item.slug}`} className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4 transition-all duration-300 hover:-translate-y-1 hover:border-[#7CC8FF]/35"><Link href={`/produkt/${item.slug}`} className="font-semibold text-white transition-colors hover:text-[#BDE4FF]">{item.name}</Link><p className="mt-1 text-sm text-[#8CA1B8]">{item.category}</p></li>)}</ul>}
               </SectionShell>
             </div>
           </>

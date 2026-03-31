@@ -5,24 +5,25 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useSession } from "next-auth/react";
+import ReviewLikeButton from "./components/ReviewLikeButton";
 import {
   FiArrowRight,
+  FiBookmark,
   FiHeart,
   FiMessageSquare,
   FiStar,
   FiUsers,
 } from "react-icons/fi";
 import ProductCardImage from "./components/ProductCardImage";
+import { useReviewLikes } from "./hooks/useReviewLikes";
 import {
   ALL_PRODUCTS,
   PIZZA_PRODUCTS,
-  getProductBuyLink,
   getProductImageUrl,
   getProductPriceValue,
   getProductRouteSlug,
   type Product,
 } from "./data/products";
-import BuyButton from "./components/BuyButton";
 import {
   CATEGORY_NAV_ITEMS,
   DEFAULT_DISCOVER_SORT,
@@ -41,8 +42,6 @@ type RankedProduct = {
   category: string;
   routeSlug: string;
   imageUrl: string;
-  buyUrl: string;
-  buySourceLabel: string;
   ratingAvg: number | null;
   ratingCount: number;
   weekRatingAvg: number | null;
@@ -84,10 +83,14 @@ type FollowingPreview = {
 
 type FeedActivity = {
   id: string;
-  kind: "rating" | "review" | "favorite" | "want_to_try";
+  kind: "rating" | "review" | "favorite" | "want_to_try" | "custom_list";
   userId: string;
   username: string;
   avatarUrl: string | null;
+  listName: string | null;
+  reviewUserId: string | null;
+  likeCount: number;
+  viewerLiked: boolean;
   product: {
     routeSlug: string;
     name: string;
@@ -113,6 +116,34 @@ type HomeFeedResponse = {
   error?: string;
 };
 
+type TopListSummary = {
+  id: string;
+  userId: string;
+  username: string;
+  avatarUrl: string | null;
+  name: string;
+  itemCount: number;
+  updatedAt: string | null;
+  items: Array<{
+    productSlug: string;
+    routeSlug: string;
+    name: string;
+    category: string;
+    imageUrl: string;
+  }>;
+};
+
+type TopListsData = {
+  lists: TopListSummary[];
+  generatedAt: string;
+};
+
+type TopListsResponse = {
+  success: boolean;
+  data?: TopListsData;
+  error?: string;
+};
+
 const COMPACT_NUMBER_FORMATTER = new Intl.NumberFormat("de-DE", {
   notation: "compact",
   maximumFractionDigits: 1,
@@ -128,15 +159,11 @@ const ABSOLUTE_DATE_FORMATTER = new Intl.DateTimeFormat("de-DE", {
 });
 
 function toRankedProduct(product: Product): RankedProduct {
-  const buyLink = getProductBuyLink(product);
-
   return {
     name: product.name,
     category: product.category,
     routeSlug: getProductRouteSlug(product),
     imageUrl: getProductImageUrl(product),
-    buyUrl: buyLink.url,
-    buySourceLabel: buyLink.sourceLabel,
     ratingAvg: null,
     ratingCount: 0,
     weekRatingAvg: null,
@@ -166,6 +193,13 @@ function emptyFeedData(viewerAuthenticated: boolean): HomeFeedData {
     followingCount: 0,
     followingPreview: [],
     activities: [],
+    generatedAt: new Date().toISOString(),
+  };
+}
+
+function emptyTopListsData(): TopListsData {
+  return {
+    lists: [],
     generatedAt: new Date().toISOString(),
   };
 }
@@ -284,32 +318,11 @@ function ProductCard({
         <h3 className="line-clamp-2 text-sm font-semibold text-white sm:text-base">
           {product.name}
         </h3>
-        <div className="mt-2 flex items-center gap-2 text-xs sm:text-sm">
-          {product.ratingAvg !== null ? (
-            <span className="rounded-full border border-[#5A4B1A] bg-[#271F0E]/88 px-2.5 py-1 font-semibold text-[#FFD86C]">
-              {formatRatingValue(product.ratingAvg)} / 5
-            </span>
-          ) : (
-            <span className="rounded-full border border-[#2D3A4B] bg-[#121A26]/88 px-2.5 py-1 font-semibold text-[#BFD0E2]">
-              Noch kein Score
-            </span>
-          )}
-          <span className="text-[#D0DCE7]">
-            {product.ratingCount > 0
-              ? `${product.ratingCount} Bewertungen`
-              : "Sei die erste Meinung"}
-          </span>
-        </div>
-        <div className="mt-3 flex items-center justify-between gap-2">
-          <span className="text-[11px] text-[#BFD0E2]">Zum Bewerten öffnen</span>
-          <BuyButton
-            href={product.buyUrl}
-            sourceLabel={product.buySourceLabel}
-            productName={product.name}
-            compact
-            className="pointer-events-auto"
-          />
-        </div>
+        {product.ratingAvg !== null ? (
+          <p className="mt-2 text-xs font-semibold text-[#FFD86C] sm:text-sm">
+            {formatRatingValue(product.ratingAvg)} / 5
+          </p>
+        ) : null}
       </div>
     </div>
   );
@@ -424,10 +437,105 @@ function FollowPreviewCluster({ previews }: { previews: FollowingPreview[] }) {
   );
 }
 
-function ActivityCard({ activity }: { activity: FeedActivity }) {
+function TopListCard({ list }: { list: TopListSummary }) {
+  return (
+    <li className="rounded-[26px] border border-[#2A394B] bg-[linear-gradient(145deg,rgba(19,27,38,0.96),rgba(12,18,27,0.98))] p-4 transition-all duration-300 hover:-translate-y-1 hover:border-[#5EE287]/30">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <Link href={`/profil/${list.userId}`}>
+            <MiniAvatar src={list.avatarUrl} name={list.username} />
+          </Link>
+
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="truncate text-lg font-semibold text-white">{list.name}</h3>
+              <span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#D6E2EF]">
+                {list.itemCount} Produkte
+              </span>
+            </div>
+
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-[#8CA1B8]">
+              <Link
+                href={`/profil/${list.userId}`}
+                className="font-semibold text-[#D7E2EC] transition-colors hover:text-[#8AF5AC]"
+              >
+                {list.username}
+              </Link>
+              <span>aktualisiert {formatRelativeTime(list.updatedAt)}</span>
+            </div>
+          </div>
+        </div>
+
+        <FiBookmark className="shrink-0 text-[#8CA1B8]" size={18} />
+      </div>
+
+      {list.items.length > 0 ? (
+        <>
+          <div className="mt-4 grid grid-cols-3 gap-3">
+            {list.items.slice(0, 3).map((item) => (
+              <Link
+                key={`${list.id}-${item.productSlug}-cover`}
+                href={`/produkt/${item.routeSlug}`}
+                className="group"
+              >
+                <div className="relative overflow-hidden rounded-[18px] border border-[#2D3A4B] bg-[#101822]" style={{ aspectRatio: "0.72" }}>
+                  <ProductCardImage
+                    routeSlug={item.routeSlug}
+                    alt={item.name}
+                    fallbackSrc={item.imageUrl}
+                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
+                </div>
+                <p className="mt-2 line-clamp-2 text-sm font-semibold text-white transition-colors group-hover:text-[#8AF5AC]">
+                  {item.name}
+                </p>
+              </Link>
+            ))}
+          </div>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            {list.items.slice(0, 4).map((item) => (
+              <Link
+                key={`${list.id}-${item.productSlug}-tag`}
+                href={`/produkt/${item.routeSlug}`}
+                className="rounded-full border border-[#2D3A4B] bg-[#101822] px-3 py-1.5 text-xs font-semibold text-[#D6E2EF] transition-colors hover:border-[#5EE287] hover:text-[#D9FFE6]"
+              >
+                {item.name}
+              </Link>
+            ))}
+          </div>
+        </>
+      ) : null}
+    </li>
+  );
+}
+
+function ActivityCard({
+  activity,
+  canLikeReviews,
+  onToggleReviewLike,
+  getReviewLikeState,
+  isUpdatingReviewLike,
+}: {
+  activity: FeedActivity;
+  canLikeReviews: boolean;
+  onToggleReviewLike: (reviewUserId: string, productSlug: string) => void;
+  getReviewLikeState: (
+    reviewUserId: string,
+    productSlug: string
+  ) => { likeCount: number; viewerLiked: boolean };
+  isUpdatingReviewLike: (reviewUserId: string, productSlug: string) => boolean;
+}) {
   const productHref = `/produkt/${activity.product.routeSlug}`;
   const profileHref = `/profil/${activity.userId}`;
   const ratingLabel = formatRatingValue(activity.rating);
+  const reviewLikeState =
+    activity.kind === "review" && activity.reviewUserId
+      ? getReviewLikeState(activity.reviewUserId, activity.product.routeSlug)
+      : {
+          likeCount: activity.likeCount,
+          viewerLiked: activity.viewerLiked,
+        };
 
   const badge =
     activity.kind === "review"
@@ -445,10 +553,15 @@ function ActivityCard({ activity }: { activity: FeedActivity }) {
               label: "Favorit",
               className: "border-[#60424F] bg-[#231720] text-[#FFDCEB]",
             }
-          : {
+          : activity.kind === "want_to_try"
+            ? {
               label: "Watchlist",
               className: "border-[#37506A] bg-[#132132] text-[#D9ECFF]",
-            };
+            }
+            : {
+                label: "Liste",
+                className: "border-[#35503D] bg-[#122619] text-[#D9FFE6]",
+              };
 
   return (
     <li className="rounded-[26px] border border-[#2A394B] bg-[linear-gradient(145deg,rgba(19,27,38,0.96),rgba(12,18,27,0.98))] p-4 transition-all duration-300 hover:-translate-y-1 hover:border-[#5EE287]/30">
@@ -509,7 +622,7 @@ function ActivityCard({ activity }: { activity: FeedActivity }) {
                 </Link>{" "}
                 zu den Favoriten gelegt.
               </>
-            ) : (
+            ) : activity.kind === "want_to_try" ? (
               <>
                 hat{" "}
                 <Link
@@ -519,6 +632,21 @@ function ActivityCard({ activity }: { activity: FeedActivity }) {
                   {activity.product.name}
                 </Link>{" "}
                 auf die Watchlist gesetzt.
+              </>
+            ) : (
+              <>
+                hat{" "}
+                <Link
+                  href={productHref}
+                  className="font-semibold text-white transition-colors hover:text-[#8AF5AC]"
+                >
+                  {activity.product.name}
+                </Link>{" "}
+                zur Liste{" "}
+                <span className="font-semibold text-white">
+                  {activity.listName || "Eigene Liste"}
+                </span>{" "}
+                hinzugefügt.
               </>
             )}
           </p>
@@ -537,6 +665,23 @@ function ActivityCard({ activity }: { activity: FeedActivity }) {
           {activity.comment ? (
             <div className="mt-4 rounded-[20px] border border-[#2D3A4B] bg-[#0F1722]/92 p-4 text-sm leading-relaxed text-[#D3DFEB]">
               <p className="line-clamp-4">{activity.comment}</p>
+            </div>
+          ) : null}
+
+          {activity.kind === "review" && activity.reviewUserId ? (
+            <div className="mt-3">
+              <ReviewLikeButton
+                compact
+                active={reviewLikeState.viewerLiked}
+                count={reviewLikeState.likeCount}
+                disabled={
+                  !canLikeReviews ||
+                  isUpdatingReviewLike(activity.reviewUserId, activity.product.routeSlug)
+                }
+                onClick={() => {
+                  onToggleReviewLike(activity.reviewUserId!, activity.product.routeSlug);
+                }}
+              />
             </div>
           ) : null}
         </div>
@@ -567,6 +712,30 @@ function FeedPanel({
   feedError: string | null;
 }) {
   const hasActivities = feedData.activities.length > 0;
+  const initialReviewLikes = useMemo(
+    () =>
+      feedData.activities
+        .filter(
+          (activity): activity is FeedActivity & { reviewUserId: string } =>
+            activity.kind === "review" &&
+            typeof activity.reviewUserId === "string" &&
+            activity.reviewUserId.length > 0
+        )
+        .map((activity) => ({
+          reviewUserId: activity.reviewUserId,
+          productSlug: activity.product.routeSlug,
+          likeCount: activity.likeCount,
+          viewerLiked: activity.viewerLiked,
+        })),
+    [feedData.activities]
+  );
+  const {
+    user: reviewLikesUser,
+    error: reviewLikesError,
+    getReviewLikeState,
+    toggleReviewLike,
+    isUpdating: isUpdatingReviewLike,
+  } = useReviewLikes(initialReviewLikes);
 
   return (
     <Panel
@@ -646,10 +815,84 @@ function FeedPanel({
       ) : (
         <ul className="grid gap-4">
           {feedData.activities.map((activity) => (
-            <ActivityCard key={activity.id} activity={activity} />
+            <ActivityCard
+              key={activity.id}
+              activity={activity}
+              canLikeReviews={Boolean(reviewLikesUser)}
+              getReviewLikeState={getReviewLikeState}
+              isUpdatingReviewLike={isUpdatingReviewLike}
+              onToggleReviewLike={(reviewUserId, productSlug) => {
+                if (!reviewLikesUser) {
+                  return;
+                }
+
+                void toggleReviewLike(reviewUserId, productSlug);
+              }}
+            />
           ))}
         </ul>
       )}
+
+      {reviewLikesError ? (
+        <p className="mt-4 text-xs text-red-300">{reviewLikesError}</p>
+      ) : null}
+    </Panel>
+  );
+}
+
+function TopListsPanel({
+  topListsData,
+  topListsLoading,
+  topListsError,
+}: {
+  topListsData: TopListsData;
+  topListsLoading: boolean;
+  topListsError: string | null;
+}) {
+  return (
+    <Panel
+      eyebrow="Top-Listen"
+      title="Die stärksten Community-Listen"
+      description="Benannte User-Listen bringen Charakter in die Startseite. Hier siehst du die aktuell größten und aktivsten Sammlungen."
+      action={
+        topListsData.lists.length > 0 ? (
+          <span className="rounded-full border border-[#2D3A4B] bg-[#111925] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#D6E2EF]">
+            {topListsData.lists.length} Listen
+          </span>
+        ) : null
+      }
+      className="overflow-hidden"
+    >
+      {topListsLoading ? (
+        <div className="rounded-[26px] border border-[#2A394B] bg-[#101822] p-5 text-sm text-[#9EB0C3]">
+          Top-Listen werden geladen...
+        </div>
+      ) : topListsError ? (
+        <div className="rounded-[26px] border border-[#5E3340] bg-[#24131A] p-5 text-sm text-[#FFD8E1]">
+          Die Top-Listen konnten gerade nicht geladen werden: {topListsError}
+        </div>
+      ) : topListsData.lists.length === 0 ? (
+        <div className="rounded-[28px] border border-dashed border-[#35503D] bg-[#111925]/85 p-6">
+          <p className="text-lg font-semibold text-white">Noch keine Community-Listen</p>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#AFC1D3]">
+            Sobald Nutzer eigene Listen anlegen und mit Produkten füllen, tauchen hier die spannendsten Sammlungen auf.
+          </p>
+        </div>
+      ) : (
+        <ul className="grid gap-4">
+          {topListsData.lists.map((list) => (
+            <TopListCard key={list.id} list={list} />
+          ))}
+        </ul>
+      )}
+
+      <Link
+        href="/profil"
+        className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#8AF5AC] transition-colors hover:text-[#B7FFD0]"
+      >
+        Eigene Listen erstellen
+        <FiArrowRight size={16} />
+      </Link>
     </Panel>
   );
 }
@@ -874,6 +1117,10 @@ export default function HomeContent() {
   const [feedData, setFeedData] = useState<HomeFeedData>(() => emptyFeedData(false));
   const [feedLoading, setFeedLoading] = useState(true);
   const [feedError, setFeedError] = useState<string | null>(null);
+  const [topListsData, setTopListsData] = useState<TopListsData>(() => emptyTopListsData());
+  const [topListsLoading, setTopListsLoading] = useState(true);
+  const [topListsError, setTopListsError] = useState<string | null>(null);
+  const [communityTab, setCommunityTab] = useState<"feed" | "top-lists">("feed");
 
   useEffect(() => {
     let cancelled = false;
@@ -986,6 +1233,45 @@ export default function HomeContent() {
       cancelled = true;
     };
   }, [sessionStatus, sessionUserEmail]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadTopLists() {
+      setTopListsLoading(true);
+      setTopListsError(null);
+
+      try {
+        const response = await fetch("/api/home/top-lists", { cache: "no-store" });
+        const json = (await response.json()) as TopListsResponse;
+
+        if (cancelled) return;
+
+        if (!response.ok || !json.success || !json.data) {
+          setTopListsError(json.error || "Top-Listen konnten nicht geladen werden.");
+          setTopListsData(emptyTopListsData());
+          return;
+        }
+
+        setTopListsData(json.data);
+      } catch {
+        if (!cancelled) {
+          setTopListsError("Top-Listen konnten nicht geladen werden.");
+          setTopListsData(emptyTopListsData());
+        }
+      } finally {
+        if (!cancelled) {
+          setTopListsLoading(false);
+        }
+      }
+    }
+
+    void loadTopLists();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const browseProducts = useMemo(() => {
     const items: BrowseProduct[] = [];
@@ -1152,11 +1438,46 @@ export default function HomeContent() {
 
             <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.8fr)]">
               <div className="space-y-6">
-                <FeedPanel
-                  feedData={feedData}
-                  feedLoading={feedLoading}
-                  feedError={feedError}
-                />
+                <div className="space-y-3">
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setCommunityTab("feed")}
+                      className={`rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
+                        communityTab === "feed"
+                          ? "border-[#5EE287] bg-[#173023] text-[#D9FFE6]"
+                          : "border-[#2D3A4B] bg-[#121B27] text-white hover:border-[#5EE287]"
+                      }`}
+                    >
+                      Following Feed
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCommunityTab("top-lists")}
+                      className={`rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
+                        communityTab === "top-lists"
+                          ? "border-[#5EE287] bg-[#173023] text-[#D9FFE6]"
+                          : "border-[#2D3A4B] bg-[#121B27] text-white hover:border-[#5EE287]"
+                      }`}
+                    >
+                      Top-Listen
+                    </button>
+                  </div>
+
+                  {communityTab === "feed" ? (
+                    <FeedPanel
+                      feedData={feedData}
+                      feedLoading={feedLoading}
+                      feedError={feedError}
+                    />
+                  ) : (
+                    <TopListsPanel
+                      topListsData={topListsData}
+                      topListsLoading={topListsLoading}
+                      topListsError={topListsError}
+                    />
+                  )}
+                </div>
 
                 <div className="grid gap-6 lg:grid-cols-2">
                   <ProductShelf

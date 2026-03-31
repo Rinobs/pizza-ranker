@@ -1,11 +1,12 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import Star from "@/app/components/Star";
 import BackButton from "@/app/components/BackButton";
 import BuyButton from "@/app/components/BuyButton";
+import ReviewLikeButton from "@/app/components/ReviewLikeButton";
 import {
   ALL_PRODUCTS,
   getProductBuyLink,
@@ -13,6 +14,8 @@ import {
   getProductRouteSlug,
   type Product,
 } from "@/app/data/products";
+import { useUserCustomLists } from "@/app/hooks/useUserCustomLists";
+import { useReviewLikes } from "@/app/hooks/useReviewLikes";
 import { useUserRatings } from "@/app/hooks/useUserRatings";
 import { useUserProductLists } from "@/app/hooks/useUserProductLists";
 
@@ -21,15 +24,45 @@ const PLACEHOLDER_NUMBER = 9999;
 const COMMENT_FALLBACK_USERNAME = "Anonym";
 
 type ProductComment = {
+  reviewUserId: string | null;
   username: string;
   text: string;
   updatedAt: string | null;
   isOwnComment: boolean;
+  likeCount: number;
+  viewerLiked: boolean;
 };
 
 type AminoAcidEntry = {
   name: string;
   amount: string;
+};
+
+type PriceOption = {
+  id: string;
+  label: string;
+  value: string;
+};
+
+type ProductNutritionValues = {
+  energyKj?: number | string;
+  kcal: number | string;
+  protein: number | string;
+  fat: number | string;
+  saturatedFat?: number | string;
+  carbs: number | string;
+  sugar?: number | string;
+  ballaststoffe?: number | string;
+  salz?: number | string;
+  koffein?: number | string;
+  glucomannan?: number | string;
+  polyole?: number | string;
+};
+
+type NutritionOption = {
+  id: string;
+  label: string;
+  values: ProductNutritionValues;
 };
 
 type ProductDetailsPayload = {
@@ -38,25 +71,51 @@ type ProductDetailsPayload = {
   preis: string;
   kategorie?: string | null;
   zutaten: string;
-  naehrwerte: {
-    energyKj?: number | string;
-    kcal: number | string;
-    protein: number | string;
-    fat: number | string;
-    saturatedFat?: number | string;
-    carbs: number | string;
-    sugar?: number | string;
-    ballaststoffe?: number | string;
-    salz?: number | string;
-    koffein?: number | string;
-    glucomannan?: number | string;
-    polyole?: number | string;
-  };
+  naehrwerte: ProductNutritionValues;
   aminosaeurenprofil?: AminoAcidEntry[];
   durchschnittsbewertung: number | string;
   kommentare: ProductComment[];
+  preisOptionen?: PriceOption[];
+  naehrwertOptionen?: NutritionOption[];
   quelle: "online" | "placeholder";
 };
+
+function SegmentToggle({
+  options,
+  activeId,
+  onChange,
+}: {
+  options: Array<{ id: string; label: string }>;
+  activeId: string | null;
+  onChange: (id: string) => void;
+}) {
+  if (options.length <= 1) {
+    return null;
+  }
+
+  return (
+    <div className="inline-flex flex-wrap gap-2 rounded-full border border-[#2D3A4B] bg-[#111823] p-1">
+      {options.map((option) => {
+        const isActive = option.id === activeId;
+
+        return (
+          <button
+            key={option.id}
+            type="button"
+            onClick={() => onChange(option.id)}
+            className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
+              isActive
+                ? "bg-[#8AF5AC] text-[#112018]"
+                : "text-[#AFC0D3] hover:bg-[#1A2533] hover:text-white"
+            }`}
+          >
+            {option.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
 function createFallbackDetails(product: Product): ProductDetailsPayload {
   return {
@@ -102,10 +161,13 @@ function normalizeComments(value: unknown): ProductComment[] {
         if (!text) return null;
 
         return {
+          reviewUserId: null,
           username: COMMENT_FALLBACK_USERNAME,
           text,
           updatedAt: null,
           isOwnComment: false,
+          likeCount: 0,
+          viewerLiked: false,
         } satisfies ProductComment;
       }
 
@@ -125,10 +187,21 @@ function normalizeComments(value: unknown): ProductComment[] {
           : COMMENT_FALLBACK_USERNAME;
 
       return {
+        reviewUserId:
+          typeof (comment as { reviewUserId?: unknown }).reviewUserId === "string" &&
+          (comment as { reviewUserId?: string }).reviewUserId?.trim().length
+            ? (comment as { reviewUserId: string }).reviewUserId.trim()
+            : null,
         username,
         text,
         updatedAt: typeof comment.updatedAt === "string" ? comment.updatedAt : null,
         isOwnComment: comment.isOwnComment === true,
+        likeCount:
+          typeof (comment as { likeCount?: unknown }).likeCount === "number" &&
+          (comment as { likeCount: number }).likeCount >= 0
+            ? (comment as { likeCount: number }).likeCount
+            : 0,
+        viewerLiked: (comment as { viewerLiked?: boolean }).viewerLiked === true,
       } satisfies ProductComment;
     })
     .filter((entry): entry is ProductComment => entry !== null);
@@ -163,7 +236,6 @@ export default function ProductPage() {
     submittingComments,
     commentErrors,
     saveRating,
-    deleteRating,
     deleteComment,
     updateCommentDraft,
     submitComment,
@@ -173,12 +245,24 @@ export default function ProductPage() {
   const {
     isFavorite,
     isWantToTry,
+    isTried,
     toggleFavorite,
     toggleWantToTry,
+    toggleTried,
     isUpdating,
     error: listError,
     listTypes,
   } = useUserProductLists();
+  const {
+    customLists,
+    loaded: customListsLoaded,
+    creatingList,
+    error: customListsError,
+    createCustomList,
+    setProductInCustomList,
+    isProductInCustomList,
+    isUpdatingItem,
+  } = useUserCustomLists();
 
   const params = useParams<{ slug: string }>();
   const routeSlug = params?.slug || "";
@@ -193,7 +277,15 @@ export default function ProductPage() {
   const [detailsReloadToken, setDetailsReloadToken] = useState(0);
   const [commentMessage, setCommentMessage] = useState<string | null>(null);
   const [listMessage, setListMessage] = useState<string | null>(null);
+  const [customListInput, setCustomListInput] = useState("");
+  const [customListMessage, setCustomListMessage] = useState<string | null>(null);
   const [isEditingOwnComment, setIsEditingOwnComment] = useState(false);
+  const [isOwnCommentMenuOpen, setIsOwnCommentMenuOpen] = useState(false);
+  const [isIngredientsOpen, setIsIngredientsOpen] = useState(false);
+  const [isNutritionOpen, setIsNutritionOpen] = useState(false);
+  const [selectedPriceOptionId, setSelectedPriceOptionId] = useState<string | null>(null);
+  const [selectedNutritionOptionId, setSelectedNutritionOptionId] = useState<string | null>(null);
+  const ownCommentMenuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -235,17 +327,97 @@ export default function ProductPage() {
 
   useEffect(() => {
     setIsEditingOwnComment(false);
+    setIsOwnCommentMenuOpen(false);
+    setIsIngredientsOpen(false);
+    setIsNutritionOpen(false);
   }, [routeSlug]);
 
   useEffect(() => {
     if (!hasSavedComment) {
       setIsEditingOwnComment(false);
+      setIsOwnCommentMenuOpen(false);
     }
   }, [hasSavedComment]);
 
+  useEffect(() => {
+    if (!isOwnCommentMenuOpen) {
+      return;
+    }
+
+    function handlePointerDown(event: MouseEvent) {
+      if (
+        ownCommentMenuRef.current &&
+        event.target instanceof Node &&
+        !ownCommentMenuRef.current.contains(event.target)
+      ) {
+        setIsOwnCommentMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handlePointerDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+    };
+  }, [isOwnCommentMenuOpen]);
+
+  const fallback = product ? createFallbackDetails(product) : null;
+  const mergedDetails = useMemo(
+    () => (fallback ? mergeDetails(fallback, details) : null),
+    [fallback, details]
+  );
+
+  useEffect(() => {
+    const nextPriceOptionId = mergedDetails?.preisOptionen?.[0]?.id ?? null;
+    setSelectedPriceOptionId((current) => {
+      if (!mergedDetails?.preisOptionen?.length) {
+        return null;
+      }
+
+      return mergedDetails.preisOptionen.some((option) => option.id === current)
+        ? current
+        : nextPriceOptionId;
+    });
+  }, [mergedDetails?.preisOptionen, routeSlug]);
+
+  useEffect(() => {
+    const nextNutritionOptionId = mergedDetails?.naehrwertOptionen?.[0]?.id ?? null;
+    setSelectedNutritionOptionId((current) => {
+      if (!mergedDetails?.naehrwertOptionen?.length) {
+        return null;
+      }
+
+      return mergedDetails.naehrwertOptionen.some((option) => option.id === current)
+        ? current
+        : nextNutritionOptionId;
+    });
+  }, [mergedDetails?.naehrwertOptionen, routeSlug]);
+
+  const initialReviewLikes = useMemo(
+    () =>
+      (mergedDetails?.kommentare ?? [])
+        .filter(
+          (comment): comment is ProductComment & { reviewUserId: string } =>
+            typeof comment.reviewUserId === "string" && comment.reviewUserId.length > 0
+        )
+        .map((comment) => ({
+          reviewUserId: comment.reviewUserId,
+          productSlug: routeSlug,
+          likeCount: comment.likeCount,
+          viewerLiked: comment.viewerLiked,
+        })),
+    [mergedDetails?.kommentare, routeSlug]
+  );
+  const {
+    error: reviewLikesError,
+    getReviewLikeState,
+    toggleReviewLike,
+    isUpdating: isUpdatingReviewLike,
+  } = useReviewLikes(initialReviewLikes);
+
   if (!routeSlug) return null;
 
-  if (!product) {
+  if (!product || !mergedDetails) {
     return (
       <div className="max-w-5xl mx-auto px-4 sm:px-8 lg:px-12 pb-24 text-white">
         <BackButton />
@@ -261,64 +433,71 @@ export default function ProductPage() {
 
   const favoriteActive = isFavorite(routeSlug);
   const wantToTryActive = isWantToTry(routeSlug);
+  const triedActive = isTried(routeSlug);
 
   const originalImageUrl = getProductImageUrl(product);
   const buyLink = getProductBuyLink(product);
   const cachedImageUrl = `/api/product-image/${routeSlug}`;
-  const fallback = createFallbackDetails(product);
-  const mergedDetails = mergeDetails(fallback, details);
-  const hasOwnRating = (ratings[routeSlug] || 0) > 0;
 
   const displayCategory = !isPlaceholderValue(mergedDetails.kategorie) ? mergedDetails.kategorie : product.category;
+  const priceOptions = mergedDetails.preisOptionen || [];
+  const activePriceOption =
+    priceOptions.find((option) => option.id === selectedPriceOptionId) || priceOptions[0] || null;
+  const nutritionOptions = mergedDetails.naehrwertOptionen || [];
+  const activeNutritionOption =
+    nutritionOptions.find((option) => option.id === selectedNutritionOptionId) ||
+    nutritionOptions[0] ||
+    null;
+  const activeNutritionValues = activeNutritionOption?.values || mergedDetails.naehrwerte;
 
   const keyFacts: Array<[string, string | number]> = [
     ["Kategorie", displayCategory || product.category],
     ["Marke", mergedDetails.marke],
     ["Gewicht", mergedDetails.gewicht],
-    ["Preis", mergedDetails.preis],
+    ["Preis", activePriceOption?.value || mergedDetails.preis],
     ["Durchschnittsbewertung", mergedDetails.durchschnittsbewertung],
   ];
 
   const nutritionFacts: Array<[string, string | number]> = [
-    ["Kalorien", mergedDetails.naehrwerte.kcal],
-    ["Protein", mergedDetails.naehrwerte.protein],
-    ["Fett", mergedDetails.naehrwerte.fat],
-    ["Kohlenhydrate", mergedDetails.naehrwerte.carbs],
+    ["Kalorien", activeNutritionValues.kcal],
+    ["Protein", activeNutritionValues.protein],
+    ["Fett", activeNutritionValues.fat],
+    ["Kohlenhydrate", activeNutritionValues.carbs],
   ];
 
-  if (!isPlaceholderValue(mergedDetails.naehrwerte.energyKj)) {
-    nutritionFacts.unshift(["Energie", mergedDetails.naehrwerte.energyKj as string | number]);
+  if (!isPlaceholderValue(activeNutritionValues.energyKj)) {
+    nutritionFacts.unshift(["Energie", activeNutritionValues.energyKj as string | number]);
   }
 
-  if (!isPlaceholderValue(mergedDetails.naehrwerte.saturatedFat)) {
+  if (!isPlaceholderValue(activeNutritionValues.saturatedFat)) {
     nutritionFacts.push([
       "davon gesättigte Fettsäuren",
-      mergedDetails.naehrwerte.saturatedFat as string | number,
+      activeNutritionValues.saturatedFat as string | number,
     ]);
   }
 
-  if (!isPlaceholderValue(mergedDetails.naehrwerte.sugar)) {
-    nutritionFacts.push(["davon Zucker", mergedDetails.naehrwerte.sugar as string | number]);
+  if (!isPlaceholderValue(activeNutritionValues.sugar)) {
+    nutritionFacts.push(["davon Zucker", activeNutritionValues.sugar as string | number]);
   }
 
-  if (!isPlaceholderValue(mergedDetails.naehrwerte.ballaststoffe)) {
-    nutritionFacts.push(["Ballaststoffe", mergedDetails.naehrwerte.ballaststoffe as string | number]);
+  if (!isPlaceholderValue(activeNutritionValues.ballaststoffe)) {
+    nutritionFacts.push(["Ballaststoffe", activeNutritionValues.ballaststoffe as string | number]);
   }
 
-  if (!isPlaceholderValue(mergedDetails.naehrwerte.salz)) {
-    nutritionFacts.push(["Salz", mergedDetails.naehrwerte.salz as string | number]);
+  if (!isPlaceholderValue(activeNutritionValues.salz)) {
+    nutritionFacts.push(["Salz", activeNutritionValues.salz as string | number]);
   }
 
-  if (!isPlaceholderValue(mergedDetails.naehrwerte.polyole)) {
-    nutritionFacts.push(["Mehrwertige Alkohole", mergedDetails.naehrwerte.polyole as string | number]);
+  if (!isPlaceholderValue(activeNutritionValues.polyole)) {
+    nutritionFacts.push(["Mehrwertige Alkohole", activeNutritionValues.polyole as string | number]);
   }
 
-  if (!isPlaceholderValue(mergedDetails.naehrwerte.koffein)) {
-    nutritionFacts.push(["Koffein", mergedDetails.naehrwerte.koffein as string | number]);
+  if (!isPlaceholderValue(activeNutritionValues.koffein)) {
+    nutritionFacts.push(["Koffein", activeNutritionValues.koffein as string | number]);
   }
 
-  if (!isPlaceholderValue(mergedDetails.naehrwerte.glucomannan)) {
-    nutritionFacts.push(["Glucomannan", mergedDetails.naehrwerte.glucomannan as string | number]);
+  if (!isPlaceholderValue(activeNutritionValues.glucomannan)) {
+    nutritionFacts.push(["Glucomannan", activeNutritionValues.glucomannan as string | number]);
   }
 
   const aminoAcidProfile = Array.isArray(mergedDetails.aminosaeurenprofil)
@@ -332,6 +511,29 @@ export default function ProductPage() {
       )
     : [];
 
+  async function handleCreateCustomList() {
+    const createResponse = await createCustomList(customListInput);
+
+    if (!createResponse.success || !createResponse.data) {
+      return;
+    }
+
+    const addResponse = await setProductInCustomList(
+      createResponse.data.id,
+      routeSlug,
+      true
+    );
+
+    if (!addResponse.success) {
+      return;
+    }
+
+    setCustomListInput("");
+    setCustomListMessage(
+      `Liste "${createResponse.data.name}" erstellt und Produkt hinzugefügt.`
+    );
+  }
+
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-8 lg:px-12 pb-24 text-white">
       <BackButton />
@@ -341,7 +543,13 @@ export default function ProductPage() {
           <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#E8F6ED]">
             {product.name}
           </h1>
-          <BuyButton href={buyLink.url} sourceLabel={buyLink.sourceLabel} productName={product.name} />
+          {buyLink ? (
+            <BuyButton
+              href={buyLink.url}
+              sourceLabel={buyLink.sourceLabel}
+              productName={product.name}
+            />
+          ) : null}
         </div>
 
         <div className="grid gap-8 lg:grid-cols-[1.1fr_1fr] lg:items-start">
@@ -367,7 +575,14 @@ export default function ProductPage() {
 
           <div className="space-y-8">
             <section>
-              <h2 className="text-xl font-semibold mb-3 text-[#E8F6ED]">Produktdetails</h2>
+              <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
+                <h2 className="text-xl font-semibold text-[#E8F6ED]">Produktdetails</h2>
+                <SegmentToggle
+                  options={priceOptions}
+                  activeId={activePriceOption?.id || null}
+                  onChange={setSelectedPriceOptionId}
+                />
+              </div>
               <ul className="grid sm:grid-cols-2 gap-2 text-[#C4D0DE]">
                 {keyFacts.map(([key, value]) => (
                   <li key={key} className="rounded-lg bg-[#141C27] border border-[#2D3A4B] px-3 py-2">
@@ -377,15 +592,77 @@ export default function ProductPage() {
               </ul>
             </section>
 
-            <section>
-              <h2 className="text-xl font-semibold mb-3 text-[#E8F6ED]">Zutaten</h2>
-              <p className="rounded-lg bg-[#141C27] border border-[#2D3A4B] px-3 py-3 text-[#C4D0DE] text-sm leading-relaxed">
-                {mergedDetails.zutaten}
-              </p>
+            <section className="overflow-hidden rounded-2xl border border-[#2D3A4B] bg-[#141C27]">
+              <button
+                type="button"
+                onClick={() => setIsIngredientsOpen((current) => !current)}
+                aria-expanded={isIngredientsOpen}
+                className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-[#18212D]"
+              >
+                <h2 className="text-xl font-semibold text-[#E8F6ED]">Zutaten</h2>
+                <svg
+                  viewBox="0 0 20 20"
+                  aria-hidden="true"
+                  className={`h-5 w-5 text-[#8CA1B8] transition-transform ${
+                    isIngredientsOpen ? "rotate-180" : ""
+                  }`}
+                  fill="none"
+                >
+                  <path
+                    d="M5 8l5 5 5-5"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+
+              {isIngredientsOpen ? (
+                <div className="border-t border-[#2D3A4B] px-4 py-4">
+                  <p className="text-[#C4D0DE] text-sm leading-relaxed">
+                    {mergedDetails.zutaten}
+                  </p>
+                </div>
+              ) : null}
             </section>
 
-            <section>
+            <section className="overflow-hidden rounded-2xl border border-[#2D3A4B] bg-[#141C27]">
+              <button
+                type="button"
+                onClick={() => setIsNutritionOpen((current) => !current)}
+                aria-expanded={isNutritionOpen}
+                className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-[#18212D]"
+              >
+                <h2 className="text-xl font-semibold text-[#E8F6ED]">Nährwerte</h2>
+                <svg
+                  viewBox="0 0 20 20"
+                  aria-hidden="true"
+                  className={`h-5 w-5 text-[#8CA1B8] transition-transform ${
+                    isNutritionOpen ? "rotate-180" : ""
+                  }`}
+                  fill="none"
+                >
+                  <path
+                    d="M5 8l5 5 5-5"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+
+              {isNutritionOpen ? (
+                <div className="border-t border-[#2D3A4B] px-4 py-4 [&>h2]:hidden">
               <h2 className="text-xl font-semibold mb-3 text-[#E8F6ED]">Nährwerte</h2>
+              <div className="mb-3 flex flex-wrap justify-end gap-3">
+                <SegmentToggle
+                  options={nutritionOptions}
+                  activeId={activeNutritionOption?.id || null}
+                  onChange={setSelectedNutritionOptionId}
+                />
+              </div>
               <ul className="grid sm:grid-cols-2 gap-2 text-[#C4D0DE]">
                 {nutritionFacts.map(([label, value]) => (
                   <li key={label} className="rounded-lg bg-[#141C27] border border-[#2D3A4B] px-3 py-2">
@@ -393,7 +670,14 @@ export default function ProductPage() {
                   </li>
                 ))}
               </ul>
+              {activeNutritionOption ? (
+                <p className="mt-2 text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">
+                  {activeNutritionOption.label}
+                </p>
+              ) : null}
               {detailsLoading && <p className="text-xs text-[#8CA1B8] mt-2">Lade Produktdaten...</p>}
+                </div>
+              ) : null}
             </section>
 
             {aminoAcidProfile.length > 0 && (
@@ -452,46 +736,99 @@ export default function ProductPage() {
                           </div>
                           <p
                             className={`text-sm leading-relaxed ${
-                              comment.isOwnComment ? "text-[#F3FFF6]" : "text-[#C4D0DE]"
+                              comment.isOwnComment
+                                ? "text-[#F3FFF6] [text-align:justify]"
+                                : "text-[#C4D0DE] [text-align:justify]"
                             }`}
                           >
                             {comment.text}
                           </p>
+
+                          {comment.reviewUserId ? (
+                            <div className="mt-4">
+                              <ReviewLikeButton
+                                active={
+                                  getReviewLikeState(comment.reviewUserId, routeSlug)
+                                    .viewerLiked
+                                }
+                                count={
+                                  getReviewLikeState(comment.reviewUserId, routeSlug)
+                                    .likeCount
+                                }
+                                disabled={
+                                  !user ||
+                                  comment.isOwnComment ||
+                                  isUpdatingReviewLike(comment.reviewUserId, routeSlug)
+                                }
+                                onClick={() => {
+                                  void toggleReviewLike(comment.reviewUserId!, routeSlug);
+                                }}
+                              />
+                            </div>
+                          ) : null}
                         </div>
 
                         {comment.isOwnComment && user && (
-                          <div className="flex shrink-0 items-center gap-2 opacity-100 transition-opacity sm:pointer-events-none sm:opacity-0 sm:group-hover:pointer-events-auto sm:group-hover:opacity-100 sm:group-focus-within:pointer-events-auto sm:group-focus-within:opacity-100">
+                          <div
+                            ref={ownCommentMenuRef}
+                            className="relative shrink-0 opacity-100 transition-opacity sm:pointer-events-none sm:opacity-0 sm:group-hover:pointer-events-auto sm:group-hover:opacity-100 sm:group-focus-within:pointer-events-auto sm:group-focus-within:opacity-100"
+                          >
                             <button
                               type="button"
-                              className="rounded-lg border border-[#5EE287]/35 bg-[#102116]/80 px-3 py-1.5 text-xs font-semibold text-[#CFFFE0] transition-colors hover:bg-[#16301F] disabled:cursor-not-allowed disabled:opacity-60"
+                              aria-label="Kommentaroptionen öffnen"
+                              aria-expanded={isOwnCommentMenuOpen}
+                              className="flex h-10 w-10 items-center justify-center rounded-full border border-[#5EE287]/25 bg-[#102116]/80 text-[#D9FFE6] transition-colors hover:bg-[#16301F] disabled:cursor-not-allowed disabled:opacity-60"
                               disabled={submittingComments[routeSlug] === true}
                               onClick={() => {
-                                updateCommentDraft(routeSlug, savedComment);
-                                setIsEditingOwnComment(true);
+                                setIsOwnCommentMenuOpen((current) => !current);
                                 setCommentMessage(null);
                               }}
                             >
-                              Bearbeiten
+                              <span className="sr-only">Kommentaroptionen öffnen</span>
+                              <span className="flex flex-col items-center gap-0.5">
+                                <span className="block h-1 w-1 rounded-full bg-current" />
+                                <span className="block h-1 w-1 rounded-full bg-current" />
+                                <span className="block h-1 w-1 rounded-full bg-current" />
+                              </span>
                             </button>
 
-                            <button
-                              type="button"
-                              className="rounded-lg border border-red-400/30 bg-[#2A1111]/80 px-3 py-1.5 text-xs font-semibold text-red-200 transition-colors hover:bg-[#3A1717] disabled:cursor-not-allowed disabled:opacity-60"
-                              disabled={submittingComments[routeSlug] === true}
-                              onClick={async () => {
-                                const response = await deleteComment(routeSlug);
-                                if (!response.success) {
-                                  setCommentMessage(response.error || "Kommentar konnte nicht gelöscht werden.");
-                                  return;
-                                }
+                            {isOwnCommentMenuOpen && (
+                              <div className="absolute right-0 top-12 z-20 min-w-[180px] rounded-2xl border border-[#2D3A4B] bg-[#0F1722] p-2 shadow-[0_18px_42px_rgba(0,0,0,0.38)]">
+                                <button
+                                  type="button"
+                                  className="flex w-full items-center rounded-xl px-3 py-2 text-left text-sm font-semibold text-[#D9FFE6] transition-colors hover:bg-[#173023] disabled:cursor-not-allowed disabled:opacity-60"
+                                  disabled={submittingComments[routeSlug] === true}
+                                  onClick={() => {
+                                    updateCommentDraft(routeSlug, savedComment);
+                                    setIsEditingOwnComment(true);
+                                    setIsOwnCommentMenuOpen(false);
+                                    setCommentMessage(null);
+                                  }}
+                                >
+                                  Bearbeiten
+                                </button>
 
-                                setIsEditingOwnComment(false);
-                                setCommentMessage("Kommentar erfolgreich gelöscht.");
-                                setDetailsReloadToken((prev) => prev + 1);
-                              }}
-                            >
-                              {submittingComments[routeSlug] ? "Lösche..." : "Löschen"}
-                            </button>
+                                <button
+                                  type="button"
+                                  className="mt-1 flex w-full items-center rounded-xl px-3 py-2 text-left text-sm font-semibold text-red-200 transition-colors hover:bg-[#2A1111] disabled:cursor-not-allowed disabled:opacity-60"
+                                  disabled={submittingComments[routeSlug] === true}
+                                  onClick={async () => {
+                                    const response = await deleteComment(routeSlug);
+                                    if (!response.success) {
+                                      setCommentMessage(response.error || "Kommentar konnte nicht gelöscht werden.");
+                                      return;
+                                    }
+
+                                    setIsEditingOwnComment(false);
+                                    setIsOwnCommentMenuOpen(false);
+                                    setCommentMessage("Kommentar erfolgreich gelöscht.");
+                                    setDetailsReloadToken((prev) => prev + 1);
+                                  }}
+                                >
+                                  {submittingComments[routeSlug] ? "Lösche..." : "Löschen"}
+                                </button>
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
@@ -503,6 +840,10 @@ export default function ProductPage() {
                   Noch keine Kommentare vorhanden.
                 </p>
               )}
+
+              {reviewLikesError ? (
+                <p className="mt-3 text-xs text-red-300">{reviewLikesError}</p>
+              ) : null}
             </section>
 
             <section>
@@ -510,7 +851,7 @@ export default function ProductPage() {
 
               {!user && (
                 <p className="text-sm text-[#8CA1B8] mb-3">
-                  Bitte logge dich ein, um zu bewerten, Favoriten zu setzen und Produkte zu merken.
+                  Bitte logge dich ein, um zu bewerten, Favoriten zu setzen, Produkte als probiert abzuhaken und Listen zu speichern.
                 </p>
               )}
 
@@ -564,12 +905,139 @@ export default function ProductPage() {
                 >
                   {wantToTryActive ? "Will ich probieren" : "Möchte ich probieren"}
                 </button>
+
+                <button
+                  type="button"
+                  disabled={!user || isUpdating(listTypes.TRIED, routeSlug)}
+                  onClick={async () => {
+                    if (!user) return alert("Bitte einloggen!");
+
+                    const wasTried = triedActive;
+                    const wasWantToTry = wantToTryActive;
+                    const response = await toggleTried(routeSlug);
+
+                    if (!response.success) return;
+
+                    setListMessage(
+                      wasTried
+                        ? "Nicht mehr als probiert markiert."
+                        : wasWantToTry
+                          ? "Als probiert markiert und aus der Probieren-Liste entfernt."
+                          : "Als probiert markiert."
+                    );
+                  }}
+                  className={`px-3 py-2 rounded-lg text-sm font-semibold border transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
+                    triedActive
+                      ? "bg-[#7CC8FF] text-[#0B1A26] border-[#7CC8FF]"
+                      : "bg-[#141C27] text-white border-[#2D3A4B] hover:border-[#7CC8FF]"
+                  }`}
+                >
+                  {triedActive ? "Bereits probiert" : "Als probiert abhaken"}
+                </button>
               </div>
 
               {listError && <p className="text-xs text-red-300 mb-3">{listError}</p>}
               {listMessage && !listError && (
                 <p className="text-xs text-[#8AF5AC] mb-3">{listMessage}</p>
               )}
+
+              <div className="mb-5 rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4">
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+                  <div>
+                    <h3 className="text-base font-semibold text-white">Eigene Listen</h3>
+                    <p className="mt-2 text-sm text-[#9EB0C3]">
+                      Sortiere dieses Produkt in deine eigenen, benannten Listen ein oder lege direkt eine neue an.
+                    </p>
+                  </div>
+
+                  <div className="flex w-full flex-col gap-2 sm:flex-row lg:w-auto">
+                    <input
+                      type="text"
+                      value={customListInput}
+                      maxLength={40}
+                      onChange={(event) => {
+                        setCustomListInput(event.target.value);
+                        setCustomListMessage(null);
+                      }}
+                      placeholder="Neue Liste anlegen"
+                      disabled={!user || creatingList}
+                      className="min-h-11 w-full min-w-[220px] rounded-2xl border border-[#2D3A4B] bg-[#0F1621] px-4 py-3 text-white outline-none transition-colors placeholder:text-[#7F93A8] focus:border-[#5EE287] disabled:cursor-not-allowed disabled:opacity-60"
+                    />
+                    <button
+                      type="button"
+                      disabled={!user || creatingList}
+                      onClick={() => {
+                        void handleCreateCustomList();
+                      }}
+                      className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-[#5EE287] px-5 py-3 font-semibold text-[#0C1910] transition-colors hover:bg-[#79F29C] disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {creatingList ? "Erstelle..." : "Liste + Produkt"}
+                    </button>
+                  </div>
+                </div>
+
+                {(customListsError || customListMessage) && (
+                  <div className={`mt-4 rounded-2xl border px-4 py-3 text-sm ${customListsError ? "border-[#6A3434] bg-[#2A1313] text-red-100" : "border-[#2D5B41] bg-[#173023] text-[#D9FFE6]"}`}>
+                    {customListsError || customListMessage}
+                  </div>
+                )}
+
+                {!customListsLoaded ? (
+                  <p className="mt-4 text-sm text-[#8CA1B8]">Eigene Listen werden geladen...</p>
+                ) : customLists.length === 0 ? (
+                  <p className="mt-4 rounded-[20px] border border-dashed border-[#35503D] bg-[#0F1722] px-4 py-3 text-sm text-[#AFC1D3]">
+                    Du hast noch keine eigenen Listen. Lege oben deine erste Liste an und packe das Produkt direkt hinein.
+                  </p>
+                ) : (
+                  <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                    {customLists.map((list) => {
+                      const active = isProductInCustomList(list.id, routeSlug);
+
+                      return (
+                        <button
+                          key={list.id}
+                          type="button"
+                          disabled={!user || isUpdatingItem(list.id, routeSlug)}
+                          onClick={async () => {
+                            const response = await setProductInCustomList(
+                              list.id,
+                              routeSlug,
+                              !active
+                            );
+
+                            if (!response.success) {
+                              return;
+                            }
+
+                            setCustomListMessage(
+                              active
+                                ? `Aus "${list.name}" entfernt.`
+                                : `Zu "${list.name}" hinzugefügt.`
+                            );
+                          }}
+                          className={`rounded-[20px] border px-4 py-3 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
+                            active
+                              ? "border-[#5EE287] bg-[linear-gradient(135deg,rgba(94,226,135,0.15),rgba(20,28,39,0.96))]"
+                              : "border-[#2D3A4B] bg-[#101822] hover:border-[#5EE287]/35"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="truncate font-semibold text-white">{list.name}</p>
+                              <p className="mt-1 text-xs uppercase tracking-[0.16em] text-[#8CA1B8]">
+                                {list.itemCount} Produkte
+                              </p>
+                            </div>
+                            <span className={`rounded-full px-3 py-1 text-xs font-semibold ${active ? "bg-[#5EE287] text-[#0C1910]" : "border border-[#2D3A4B] bg-[#141C27] text-[#D6E2EF]"}`}>
+                              {active ? "In Liste" : "Hinzufügen"}
+                            </span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
 
               <div className="flex gap-1 mb-4">
                 {[1, 2, 3, 4, 5].map((i) => (
@@ -647,32 +1115,7 @@ export default function ProductPage() {
                     </div>
                   </div>
                 </>
-              ) : (
-                <p className="rounded-lg bg-[#141C27] border border-[#2D3A4B] px-3 py-2 text-sm text-[#8CA1B8]">
-                  Dein Kommentar ist gespeichert. Bearbeiten oder löschen kannst du ihn direkt an
-                  deinem Kommentar.
-                </p>
-              )}
-
-              <div className="mt-3 flex items-center justify-end">
-                <button
-                  type="button"
-                  className="px-4 py-2 rounded-lg bg-[#2A1111] border border-[#5A2A2A] text-red-200 font-semibold hover:bg-[#3A1717] disabled:opacity-60 disabled:cursor-not-allowed"
-                  disabled={!user || submittingComments[routeSlug] === true || !hasOwnRating}
-                  onClick={async () => {
-                    const response = await deleteRating(routeSlug);
-                    if (!response.success) {
-                      setCommentMessage(response.error || "Bewertung konnte nicht gelöscht werden.");
-                      return;
-                    }
-
-                    setCommentMessage("Bewertung erfolgreich gelöscht.");
-                    setDetailsReloadToken((prev) => prev + 1);
-                  }}
-                >
-                  Bewertung löschen
-                </button>
-              </div>
+              ) : null}
 
               {commentErrors[routeSlug] && (
                 <p className="text-xs text-red-300 mt-2">{commentErrors[routeSlug]}</p>

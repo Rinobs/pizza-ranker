@@ -1,9 +1,17 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import {
+  buildCustomLists,
+  isCustomListSchemaMissingError,
+  type CustomListItemRow,
+  type CustomListRow,
+} from "@/lib/custom-lists";
+import {
   getSupabaseAdminClient,
   RATINGS_TABLE,
+  USER_CUSTOM_LIST_ITEMS_TABLE,
+  USER_CUSTOM_LISTS_TABLE,
   USER_FOLLOWS_TABLE,
   USER_PROFILES_TABLE,
   USER_PRODUCT_LISTS_TABLE,
@@ -146,26 +154,32 @@ export async function GET(
       ? profile.avatar_url.trim()
       : null;
 
-  const [ratingsResult, listsResult, followersResult, followingResult] = await Promise.all([
-    supabase
-      .from(RATINGS_TABLE)
-      .select("product_slug, rating, comment, updated_at")
-      .eq("user_id", userId)
-      .order("updated_at", { ascending: false }),
-    supabase
-      .from(USER_PRODUCT_LISTS_TABLE)
-      .select("product_slug, list_type, inserted_at")
-      .eq("user_id", userId)
-      .order("inserted_at", { ascending: false }),
-    supabase
-      .from(USER_FOLLOWS_TABLE)
-      .select("id", { count: "exact", head: true })
-      .eq("following_user_id", userId),
-    supabase
-      .from(USER_FOLLOWS_TABLE)
-      .select("id", { count: "exact", head: true })
-      .eq("follower_user_id", userId),
-  ]);
+  const [ratingsResult, listsResult, followersResult, followingResult, customListsResult] =
+    await Promise.all([
+      supabase
+        .from(RATINGS_TABLE)
+        .select("product_slug, rating, comment, updated_at")
+        .eq("user_id", userId)
+        .order("updated_at", { ascending: false }),
+      supabase
+        .from(USER_PRODUCT_LISTS_TABLE)
+        .select("product_slug, list_type, inserted_at")
+        .eq("user_id", userId)
+        .order("inserted_at", { ascending: false }),
+      supabase
+        .from(USER_FOLLOWS_TABLE)
+        .select("id", { count: "exact", head: true })
+        .eq("following_user_id", userId),
+      supabase
+        .from(USER_FOLLOWS_TABLE)
+        .select("id", { count: "exact", head: true })
+        .eq("follower_user_id", userId),
+      supabase
+        .from(USER_CUSTOM_LISTS_TABLE)
+        .select("id, user_id, name, inserted_at, updated_at")
+        .eq("user_id", userId)
+        .order("updated_at", { ascending: false }),
+    ]);
 
   if (ratingsResult.error) {
     return NextResponse.json(
@@ -181,8 +195,19 @@ export async function GET(
     );
   }
 
+  if (
+    customListsResult.error &&
+    !isCustomListSchemaMissingError(customListsResult.error.message)
+  ) {
+    return NextResponse.json(
+      { success: false, error: customListsResult.error.message },
+      { status: 400 }
+    );
+  }
+
   const ratingsRows = (ratingsResult.data ?? []) as RatingRow[];
   const listRows = (listsResult.data ?? []) as ProductListRow[];
+  const customListRows = (customListsResult.data ?? []) as CustomListRow[];
 
   const ratings = ratingsRows
     .map((row) => {
@@ -242,6 +267,35 @@ export async function GET(
     }
   }
 
+  let customLists = [] as ReturnType<typeof buildCustomLists>;
+
+  if (customListRows.length > 0) {
+    const customListItemsResult = await supabase
+      .from(USER_CUSTOM_LIST_ITEMS_TABLE)
+      .select("list_id, product_slug, inserted_at, updated_at")
+      .in(
+        "list_id",
+        customListRows.map((row) => row.id)
+      )
+      .order("updated_at", { ascending: false });
+
+    if (
+      customListItemsResult.error &&
+      !isCustomListSchemaMissingError(customListItemsResult.error.message)
+    ) {
+      return NextResponse.json(
+        { success: false, error: customListItemsResult.error.message },
+        { status: 400 }
+      );
+    }
+
+    customLists = buildCustomLists(
+      customListRows,
+      (customListItemsResult.data ?? []) as CustomListItemRow[],
+      { previewLimit: Number.MAX_SAFE_INTEGER }
+    );
+  }
+
   let isFollowing = false;
 
   if (viewerUserId && viewerUserId !== userId) {
@@ -276,6 +330,7 @@ export async function GET(
       ratings,
       favorites,
       wantToTry,
+      customLists,
     },
   });
 }

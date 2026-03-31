@@ -4,11 +4,17 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import {
   getSupabaseAdminClient,
   RATINGS_TABLE,
+  REVIEW_LIKES_TABLE,
   USER_PROFILES_TABLE,
 } from "@/lib/supabase";
 import { MORE_NUTRITION_PROTEIN_DETAILS } from "@/app/data/more-nutrition-protein";
 import { OFFICIAL_PROTEINRIEGEL_DETAILS } from "@/app/data/official-protein-bars";
 import { ALL_PRODUCTS, getProductRouteSlug, type Product } from "@/app/data/products";
+import {
+  buildReviewLikeKey,
+  buildReviewLikeStateMap,
+  type ReviewLikeRow,
+} from "@/lib/review-likes";
 import { getStableUserId } from "@/lib/user-id";
 
 export const runtime = "nodejs";
@@ -40,15 +46,45 @@ type ProfileRow = {
 };
 
 type ProductComment = {
+  reviewUserId: string;
   username: string;
   text: string;
   updatedAt: string | null;
   isOwnComment: boolean;
+  likeCount: number;
+  viewerLiked: boolean;
 };
 
 type AminoAcidEntry = {
   name: string;
   amount: string;
+};
+
+type PriceOption = {
+  id: string;
+  label: string;
+  value: string;
+};
+
+type ProductNutritionValues = {
+  energyKj?: number | string;
+  kcal: number | string;
+  protein: number | string;
+  fat: number | string;
+  saturatedFat?: number | string;
+  carbs: number | string;
+  sugar?: number | string;
+  ballaststoffe?: number | string;
+  salz?: number | string;
+  koffein?: number | string;
+  glucomannan?: number | string;
+  polyole?: number | string;
+};
+
+type NutritionOption = {
+  id: string;
+  label: string;
+  values: ProductNutritionValues;
 };
 
 type ProductDetails = {
@@ -57,24 +93,54 @@ type ProductDetails = {
   preis: string;
   kategorie?: string | null;
   zutaten: string;
-  naehrwerte: {
-    energyKj?: number | string;
-    kcal: number | string;
-    protein: number | string;
-    fat: number | string;
-    saturatedFat?: number | string;
-    carbs: number | string;
-    sugar?: number | string;
-    ballaststoffe?: number | string;
-    salz?: number | string;
-    koffein?: number | string;
-    glucomannan?: number | string;
-    polyole?: number | string;
-  };
+  naehrwerte: ProductNutritionValues;
   aminosaeurenprofil?: AminoAcidEntry[];
   durchschnittsbewertung: number | string;
   kommentare: ProductComment[];
+  preisOptionen?: PriceOption[];
+  naehrwertOptionen?: NutritionOption[];
   quelle: "online" | "placeholder";
+};
+
+type NutritionFieldKey = keyof ProductNutritionValues;
+
+type ServingMeta = {
+  label: string;
+  totalWeightGrams: number;
+  servingWeightGrams: number;
+  count: number;
+};
+
+const NUTRITION_FIELDS = [
+  "energyKj",
+  "kcal",
+  "protein",
+  "fat",
+  "saturatedFat",
+  "carbs",
+  "sugar",
+  "ballaststoffe",
+  "salz",
+  "koffein",
+  "glucomannan",
+  "polyole",
+] as const satisfies readonly NutritionFieldKey[];
+
+const CORE_NUTRITION_FIELDS = ["kcal", "protein", "fat", "carbs"] as const satisfies readonly NutritionFieldKey[];
+
+const NUTRITION_UNITS: Record<NutritionFieldKey, string> = {
+  energyKj: "kJ",
+  kcal: "kcal",
+  protein: "g",
+  fat: "g",
+  saturatedFat: "g",
+  carbs: "g",
+  sugar: "g",
+  ballaststoffe: "g",
+  salz: "g",
+  koffein: "mg",
+  glucomannan: "g",
+  polyole: "g",
 };
 
 function asText(value: unknown): string {
@@ -97,6 +163,340 @@ function asNumber(value: unknown): number | null {
   }
 
   return null;
+}
+
+function formatDecimal(value: number, fractionDigits: number) {
+  return value
+    .toFixed(fractionDigits)
+    .replace(/\.0+$/, "")
+    .replace(/(\.\d*?)0+$/, "$1")
+    .replace(".", ",");
+}
+
+function formatNutritionValue(key: NutritionFieldKey, value: number): string {
+  if (!Number.isFinite(value)) {
+    return PLACEHOLDER_TEXT;
+  }
+
+  const unit = NUTRITION_UNITS[key];
+  const fractionDigits =
+    unit === "kJ" || unit === "kcal" ? 0 : Math.abs(value) < 1 ? 2 : 1;
+
+  return `${formatDecimal(value, fractionDigits)} ${unit}`;
+}
+
+function formatEuro(value: number): string {
+  return new Intl.NumberFormat("de-DE", {
+    style: "currency",
+    currency: "EUR",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value);
+}
+
+function hasNumericRange(value: string): boolean {
+  return /\d+(?:[.,]\d+)?\s*[-–]\s*\d+(?:[.,]\d+)?/.test(value);
+}
+
+function parseFloatLoose(value: string): number | null {
+  const normalized = value.replace(",", ".").trim();
+  const parsed = Number.parseFloat(normalized);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function inferServingLabel(details: ProductDetails, product: Product): string {
+  const categoryText = `${details.kategorie || ""} ${product.category}`.toLowerCase();
+
+  if (categoryText.includes("proteinriegel")) {
+    return "Riegel";
+  }
+
+  if (categoryText.includes("proteinpulver")) {
+    return "Portion";
+  }
+
+  if (categoryText.includes("pizza")) {
+    return "Pizza";
+  }
+
+  return "Produkt";
+}
+
+function inferSingleProductLabel(details: ProductDetails, product: Product): string {
+  const categoryText = `${details.kategorie || ""} ${product.category}`.toLowerCase();
+
+  if (categoryText.includes("proteinriegel")) {
+    return "Riegel";
+  }
+
+  if (categoryText.includes("pizza")) {
+    return "Pizza";
+  }
+
+  return "Produkt";
+}
+
+function parseServingMeta(details: ProductDetails, product: Product): ServingMeta | null {
+  const normalized = details.gewicht.replace(/\s+/g, " ").trim();
+
+  const multiPackMatch = normalized.match(/(\d+(?:[.,]\d+)?)\s*x\s*(\d+(?:[.,]\d+)?)\s*g/i);
+  if (multiPackMatch) {
+    const count = parseFloatLoose(multiPackMatch[1]);
+    const servingWeightGrams = parseFloatLoose(multiPackMatch[2]);
+
+    if (count && servingWeightGrams) {
+      return {
+        label: inferServingLabel(details, product),
+        totalWeightGrams: count * servingWeightGrams,
+        servingWeightGrams,
+        count,
+      };
+    }
+  }
+
+  const portionsMatch = normalized.match(/(\d+(?:[.,]\d+)?)\s*g\s*\((\d+)\s*Portionen?\)/i);
+  if (portionsMatch) {
+    const totalWeightGrams = parseFloatLoose(portionsMatch[1]);
+    const count = parseFloatLoose(portionsMatch[2]);
+
+    if (totalWeightGrams && count) {
+      return {
+        label: "Portion",
+        totalWeightGrams,
+        servingWeightGrams: totalWeightGrams / count,
+        count,
+      };
+    }
+  }
+
+  const pizzaMatch = normalized.match(/(\d+(?:[.,]\d+)?)\s*g\s+pro\s+Pizza/i);
+  if (pizzaMatch) {
+    const totalWeightGrams = parseFloatLoose(pizzaMatch[1]);
+
+    if (totalWeightGrams) {
+      return {
+        label: "Pizza",
+        totalWeightGrams,
+        servingWeightGrams: totalWeightGrams,
+        count: 1,
+      };
+    }
+  }
+
+  const singleWeightMatch = normalized.match(/(\d+(?:[.,]\d+)?)\s*g\b/i);
+  if (singleWeightMatch) {
+    const totalWeightGrams = parseFloatLoose(singleWeightMatch[1]);
+
+    if (totalWeightGrams) {
+      return {
+        label: inferSingleProductLabel(details, product),
+        totalWeightGrams,
+        servingWeightGrams: totalWeightGrams,
+        count: 1,
+      };
+    }
+  }
+
+  return null;
+}
+
+function parseNumericNutritionValue(
+  value: string | number | undefined,
+  key: NutritionFieldKey
+): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const normalized = value.replace(/\s+/g, " ").trim();
+  if (hasNumericRange(normalized) || normalized.includes("<")) {
+    return null;
+  }
+
+  const unit = NUTRITION_UNITS[key];
+  const match = normalized.match(new RegExp(`(-?\\d+(?:[.,]\\d+)?)\\s*${unit}`, "i"));
+  if (!match) {
+    return null;
+  }
+
+  return parseFloatLoose(match[1]);
+}
+
+function buildDualNutritionOptions(details: ProductDetails): NutritionOption[] {
+  let servingLabel: string | null = null;
+  const servingValues: Partial<ProductNutritionValues> = {};
+  const per100Values: Partial<ProductNutritionValues> = {};
+
+  for (const field of NUTRITION_FIELDS) {
+    const currentValue = details.naehrwerte[field];
+    if (typeof currentValue !== "string") {
+      continue;
+    }
+
+    const normalized = currentValue.replace(/\s+/g, " ").trim();
+    const match = normalized.match(/^(.*)\s*\/\s*([^,]+),\s*(.*)\s*\/\s*100\s*g\s*$/i);
+    if (!match) {
+      continue;
+    }
+
+    const currentServingLabel = match[2].trim();
+    if (servingLabel && servingLabel !== currentServingLabel) {
+      return [];
+    }
+
+    servingLabel = currentServingLabel;
+    servingValues[field] = match[1].trim();
+    per100Values[field] = match[3].trim();
+  }
+
+  if (!servingLabel) {
+    return [];
+  }
+
+  const hasCoreMetrics = CORE_NUTRITION_FIELDS.every(
+    (field) => servingValues[field] && per100Values[field]
+  );
+
+  if (!hasCoreMetrics) {
+    return [];
+  }
+
+  return [
+    {
+      id: "serving",
+      label: `Pro ${servingLabel}`,
+      values: servingValues as ProductNutritionValues,
+    },
+    {
+      id: "per100g",
+      label: "Pro 100 g",
+      values: per100Values as ProductNutritionValues,
+    },
+  ];
+}
+
+function buildDerivedNutritionOptions(
+  details: ProductDetails,
+  product: Product
+): NutritionOption[] {
+  const servingMeta = parseServingMeta(details, product);
+  if (!servingMeta) {
+    return [];
+  }
+
+  if (servingMeta.count === 1 && servingMeta.label === "Produkt") {
+    return [];
+  }
+
+  const per100Values: Partial<ProductNutritionValues> = {};
+  const servingValues: Partial<ProductNutritionValues> = {};
+
+  for (const field of NUTRITION_FIELDS) {
+    const rawValue = details.naehrwerte[field];
+    const isPer100Source =
+      typeof rawValue === "number" ||
+      (typeof rawValue === "string" && /\/\s*100\s*g/i.test(rawValue));
+
+    if (!isPer100Source) {
+      continue;
+    }
+
+    const numericValue = parseNumericNutritionValue(rawValue, field);
+    if (numericValue === null) {
+      continue;
+    }
+
+    per100Values[field] = formatNutritionValue(field, numericValue);
+    servingValues[field] = formatNutritionValue(
+      field,
+      (numericValue * servingMeta.servingWeightGrams) / 100
+    );
+  }
+
+  const hasCoreMetrics = CORE_NUTRITION_FIELDS.every(
+    (field) => servingValues[field] && per100Values[field]
+  );
+
+  if (!hasCoreMetrics) {
+    return [];
+  }
+
+  return [
+    {
+      id: "serving",
+      label: `Pro ${servingMeta.label}`,
+      values: servingValues as ProductNutritionValues,
+    },
+    {
+      id: "per100g",
+      label: "Pro 100 g",
+      values: per100Values as ProductNutritionValues,
+    },
+  ];
+}
+
+function buildNutritionOptions(details: ProductDetails, product: Product): NutritionOption[] {
+  const dualOptions = buildDualNutritionOptions(details);
+  if (dualOptions.length > 1) {
+    return dualOptions;
+  }
+
+  return buildDerivedNutritionOptions(details, product);
+}
+
+function parsePackPrice(price: string, servingMeta: ServingMeta | null): number | null {
+  const normalized = price.replace(/\s+/g, " ").trim();
+  if (hasNumericRange(normalized)) {
+    return null;
+  }
+
+  const perKgMatch = normalized.match(
+    /(?:€|â‚¬|EUR)?\s*(\d+(?:[.,]\d+)?)\s*(?:€|â‚¬|EUR)?\s*\/\s*kg/i
+  );
+  if (perKgMatch && servingMeta) {
+    const perKg = parseFloatLoose(perKgMatch[1]);
+    if (perKg !== null) {
+      return (perKg * servingMeta.totalWeightGrams) / 1000;
+    }
+  }
+
+  const directMatch = normalized.match(
+    /(?:ca\.\s*)?(?:€|â‚¬)?\s*(\d+(?:[.,]\d+)?)\s*(?:€|â‚¬|EUR)?/i
+  );
+  if (!directMatch) {
+    return null;
+  }
+
+  return parseFloatLoose(directMatch[1]);
+}
+
+function buildPriceOptions(details: ProductDetails, product: Product): PriceOption[] {
+  const servingMeta = parseServingMeta(details, product);
+  if (!servingMeta || servingMeta.count <= 1) {
+    return [];
+  }
+
+  const packPrice = parsePackPrice(details.preis, servingMeta);
+  if (packPrice === null) {
+    return [];
+  }
+
+  return [
+    {
+      id: "pack",
+      label: "Packung",
+      value: formatEuro(packPrice),
+    },
+    {
+      id: "unit",
+      label: `Pro ${servingMeta.label}`,
+      value: formatEuro(packPrice / servingMeta.count),
+    },
+  ];
 }
 
 function getDefaultDetails(product: Product): ProductDetails {
@@ -1444,6 +1844,23 @@ async function loadRatingSummary(routeSlug: string, currentUserId: string | null
     }
   }
 
+  let reviewLikeState = new Map<string, { likeCount: number; viewerLiked: boolean }>();
+
+  if (userIds.length > 0) {
+    const { data: likeData, error: likeError } = await supabase
+      .from(REVIEW_LIKES_TABLE)
+      .select("user_id, review_user_id, product_slug, inserted_at, updated_at")
+      .eq("product_slug", routeSlug)
+      .in("review_user_id", userIds);
+
+    if (!likeError && Array.isArray(likeData)) {
+      reviewLikeState = buildReviewLikeStateMap(
+        likeData as ReviewLikeRow[],
+        currentUserId
+      );
+    }
+  }
+
   const comments: ProductComment[] = commentRows
     .map((row) => {
       const text = typeof row.comment === "string" ? row.comment.trim() : "";
@@ -1451,11 +1868,20 @@ async function loadRatingSummary(routeSlug: string, currentUserId: string | null
         return null;
       }
 
+      const likeState =
+        reviewLikeState.get(buildReviewLikeKey(row.user_id, routeSlug)) ?? {
+          likeCount: 0,
+          viewerLiked: false,
+        };
+
       return {
+        reviewUserId: row.user_id,
         username: usernameByUserId.get(row.user_id) ?? FALLBACK_USERNAME,
         text,
         updatedAt: typeof row.updated_at === "string" ? row.updated_at : null,
         isOwnComment: currentUserId !== null && row.user_id === currentUserId,
+        likeCount: likeState.likeCount,
+        viewerLiked: likeState.viewerLiked,
       };
     })
     .filter((entry): entry is ProductComment => entry !== null);
@@ -1499,10 +1925,15 @@ export async function GET(
     merged = mergeDetails(merged, manualDetails);
   }
 
+  const naehrwertOptionen = buildNutritionOptions(merged, product);
+  const preisOptionen = buildPriceOptions(merged, product);
+
   const payload = {
     ...merged,
     durchschnittsbewertung: ratingSummary.durchschnittsbewertung,
     kommentare: ratingSummary.kommentare,
+    naehrwertOptionen: naehrwertOptionen.length > 1 ? naehrwertOptionen : undefined,
+    preisOptionen: preisOptionen.length > 1 ? preisOptionen : undefined,
   };
 
   return NextResponse.json(payload, {

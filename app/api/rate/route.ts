@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { getSupabaseAdminClient, RATINGS_TABLE } from "@/lib/supabase";
+import {
+  getSupabaseAdminClient,
+  RATINGS_TABLE,
+  REVIEW_LIKES_TABLE,
+} from "@/lib/supabase";
 import { getStableUserId } from "@/lib/user-id";
 
 const PRODUCT_SLUG_PATTERN = /^[a-z0-9-]+$/;
@@ -46,6 +50,18 @@ function normalizeComment(value: unknown) {
   }
 
   return trimmed.slice(0, MAX_COMMENT_LENGTH);
+}
+
+async function clearReviewLikes(
+  supabase: NonNullable<ReturnType<typeof getSupabaseAdminClient>>,
+  userId: string,
+  productSlug: string
+) {
+  return supabase
+    .from(REVIEW_LIKES_TABLE)
+    .delete()
+    .eq("review_user_id", userId)
+    .eq("product_slug", productSlug);
 }
 
 export async function POST(req: Request) {
@@ -127,6 +143,21 @@ export async function POST(req: Request) {
       { success: false, error: error.message },
       { status: 400 }
     );
+  }
+
+  if (comment === null) {
+    const { error: likeCleanupError } = await clearReviewLikes(
+      supabase,
+      userId,
+      productSlug
+    );
+
+    if (likeCleanupError) {
+      return NextResponse.json(
+        { success: false, error: likeCleanupError.message },
+        { status: 400 }
+      );
+    }
   }
 
   return NextResponse.json({ success: true, data });

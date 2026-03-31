@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 const LIST_TYPES = {
   FAVORITES: "favorites",
   WANT_TO_TRY: "want_to_try",
+  TRIED: "tried",
 } as const;
 
 type ListType = (typeof LIST_TYPES)[keyof typeof LIST_TYPES];
@@ -59,6 +60,7 @@ export function useUserProductLists() {
 
   const [favorites, setFavorites] = useState<Record<string, true>>({});
   const [wantToTry, setWantToTry] = useState<Record<string, true>>({});
+  const [tried, setTried] = useState<Record<string, true>>({});
   const [loaded, setLoaded] = useState(false);
   const [updating, setUpdating] = useState<Record<string, boolean>>({});
   const [error, setError] = useState<string | null>(null);
@@ -69,6 +71,7 @@ export function useUserProductLists() {
     if (!user) {
       setFavorites({});
       setWantToTry({});
+      setTried({});
       setLoaded(true);
       setUpdating({});
       setError(null);
@@ -97,6 +100,7 @@ export function useUserProductLists() {
 
         const favoriteMap: Record<string, true> = {};
         const wantToTryMap: Record<string, true> = {};
+        const triedMap: Record<string, true> = {};
 
         for (const row of json.data ?? []) {
           if (row.list_type === LIST_TYPES.FAVORITES) {
@@ -106,10 +110,15 @@ export function useUserProductLists() {
           if (row.list_type === LIST_TYPES.WANT_TO_TRY) {
             wantToTryMap[row.product_slug] = true;
           }
+
+          if (row.list_type === LIST_TYPES.TRIED) {
+            triedMap[row.product_slug] = true;
+          }
         }
 
         setFavorites(favoriteMap);
         setWantToTry(wantToTryMap);
+        setTried(triedMap);
       } catch {
         if (!cancelled) {
           setError("Listen konnten nicht geladen werden.");
@@ -140,6 +149,10 @@ export function useUserProductLists() {
     return wantToTry[productSlug] === true;
   }
 
+  function isTried(productSlug: string) {
+    return tried[productSlug] === true;
+  }
+
   function isUpdating(listType: ListType, productSlug: string) {
     return updating[getUpdatingKey(listType, productSlug)] === true;
   }
@@ -162,11 +175,18 @@ export function useUserProductLists() {
 
     const previousFavorites = favorites;
     const previousWantToTry = wantToTry;
+    const previousTried = tried;
 
     if (listType === LIST_TYPES.FAVORITES) {
       setFavorites((prev) => setWithValue(prev, productSlug, active));
-    } else {
+    } else if (listType === LIST_TYPES.WANT_TO_TRY) {
       setWantToTry((prev) => setWithValue(prev, productSlug, active));
+    } else {
+      setTried((prev) => setWithValue(prev, productSlug, active));
+
+      if (active) {
+        setWantToTry((prev) => setWithValue(prev, productSlug, false));
+      }
     }
 
     try {
@@ -187,6 +207,7 @@ export function useUserProductLists() {
       if (!response.ok || !json.success) {
         setFavorites(previousFavorites);
         setWantToTry(previousWantToTry);
+        setTried(previousTried);
 
         const message = json.error || "Liste konnte nicht gespeichert werden.";
         setError(message);
@@ -201,6 +222,7 @@ export function useUserProductLists() {
     } catch {
       setFavorites(previousFavorites);
       setWantToTry(previousWantToTry);
+      setTried(previousTried);
 
       const message = "Liste konnte nicht gespeichert werden.";
       setError(message);
@@ -224,17 +246,25 @@ export function useUserProductLists() {
     return setProductInList(productSlug, LIST_TYPES.WANT_TO_TRY, active);
   }
 
+  async function toggleTried(productSlug: string) {
+    const active = !isTried(productSlug);
+    return setProductInList(productSlug, LIST_TYPES.TRIED, active);
+  }
+
   return {
     user,
     loaded,
     error,
     isFavorite,
     isWantToTry,
+    isTried,
     toggleFavorite,
     toggleWantToTry,
+    toggleTried,
     isUpdating,
     favoriteSlugs: Object.keys(favorites),
     wantToTrySlugs: Object.keys(wantToTry),
+    triedSlugs: Object.keys(tried),
     listTypes: LIST_TYPES,
   };
 }

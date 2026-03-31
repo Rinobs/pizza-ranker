@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import BuyButton from "@/app/components/BuyButton";
-import { getProductBuyLink, type Product } from "@/app/data/products";
+import { type Product } from "@/app/data/products";
 
 export type ComparableProduct = {
   item: Product;
@@ -196,7 +195,6 @@ export default function ProductComparisonPanel({
       <div className="mt-5 grid gap-3 lg:grid-cols-2 xl:grid-cols-3">
         {products.map((product) => {
           const quickFacts = getQuickFacts(product);
-          const buyLink = getProductBuyLink(product.item);
 
           return (
             <article
@@ -253,12 +251,6 @@ export default function ProductComparisonPanel({
                   >
                     Zum Produkt
                   </Link>
-                  <BuyButton
-                    href={buyLink.url}
-                    sourceLabel={buyLink.sourceLabel}
-                    productName={product.name}
-                    compact
-                  />
                 </div>
                 <button
                   type="button"

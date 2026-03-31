@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { getSupabaseAdminClient, RATINGS_TABLE } from "@/lib/supabase";
+import {
+  getSupabaseAdminClient,
+  RATINGS_TABLE,
+  REVIEW_LIKES_TABLE,
+} from "@/lib/supabase";
 import { getStableUserId } from "@/lib/user-id";
 
 const PRODUCT_SLUG_PATTERN = /^[a-z0-9-]+$/;
@@ -60,6 +64,18 @@ function normalizeDeleteTarget(value: string | null) {
   }
 
   return "all";
+}
+
+async function clearReviewLikes(
+  supabase: NonNullable<ReturnType<typeof getSupabaseAdminClient>>,
+  userId: string,
+  productSlug: string
+) {
+  return supabase
+    .from(REVIEW_LIKES_TABLE)
+    .delete()
+    .eq("review_user_id", userId)
+    .eq("product_slug", productSlug);
 }
 
 export async function POST(
@@ -145,6 +161,17 @@ export async function POST(
     );
   }
 
+  if (comment === null) {
+    const { error: likeCleanupError } = await clearReviewLikes(supabase, userId, slug);
+
+    if (likeCleanupError) {
+      return NextResponse.json(
+        { success: false, error: likeCleanupError.message },
+        { status: 400 }
+      );
+    }
+  }
+
   return NextResponse.json({ success: true, data });
 }
 
@@ -183,6 +210,15 @@ export async function DELETE(
   const deleteTarget = normalizeDeleteTarget(req.nextUrl.searchParams.get("target"));
 
   if (deleteTarget === "all") {
+    const { error: likeCleanupError } = await clearReviewLikes(supabase, userId, slug);
+
+    if (likeCleanupError) {
+      return NextResponse.json(
+        { success: false, error: likeCleanupError.message },
+        { status: 400 }
+      );
+    }
+
     const { error } = await supabase
       .from(RATINGS_TABLE)
       .delete()
@@ -268,6 +304,15 @@ export async function DELETE(
 
   if (deleteTarget === "comment") {
     if (!hasRating) {
+      const { error: likeCleanupError } = await clearReviewLikes(supabase, userId, slug);
+
+      if (likeCleanupError) {
+        return NextResponse.json(
+          { success: false, error: likeCleanupError.message },
+          { status: 400 }
+        );
+      }
+
       const { error } = await supabase
         .from(RATINGS_TABLE)
         .delete()
@@ -281,6 +326,15 @@ export async function DELETE(
         );
       }
     } else if (hasComment) {
+      const { error: likeCleanupError } = await clearReviewLikes(supabase, userId, slug);
+
+      if (likeCleanupError) {
+        return NextResponse.json(
+          { success: false, error: likeCleanupError.message },
+          { status: 400 }
+        );
+      }
+
       const { error } = await supabase
         .from(RATINGS_TABLE)
         .update({

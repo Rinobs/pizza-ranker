@@ -5,7 +5,7 @@ import { getSupabaseAdminClient, USER_PRODUCT_LISTS_TABLE } from "@/lib/supabase
 import { getStableUserId } from "@/lib/user-id";
 
 const PRODUCT_SLUG_PATTERN = /^[a-z0-9-]+$/;
-const VALID_LIST_TYPES = ["favorites", "want_to_try"] as const;
+const VALID_LIST_TYPES = ["favorites", "want_to_try", "tried"] as const;
 type ListType = (typeof VALID_LIST_TYPES)[number];
 
 type ProductListRow = {
@@ -127,6 +127,22 @@ export async function POST(req: NextRequest) {
         { success: false, error: error.message },
         { status: 400 }
       );
+    }
+
+    if (body.listType === "tried") {
+      const { error: cleanupError } = await supabase
+        .from(USER_PRODUCT_LISTS_TABLE)
+        .delete()
+        .eq("user_id", userId)
+        .eq("product_slug", productSlug)
+        .eq("list_type", "want_to_try");
+
+      if (cleanupError) {
+        return NextResponse.json(
+          { success: false, error: cleanupError.message },
+          { status: 400 }
+        );
+      }
     }
   } else {
     const { error } = await supabase
