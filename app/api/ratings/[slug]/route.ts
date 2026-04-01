@@ -5,8 +5,10 @@ import {
   getSupabaseAdminClient,
   RATINGS_TABLE,
   REVIEW_LIKES_TABLE,
+  REVIEW_REPLIES_TABLE,
 } from "@/lib/supabase";
 import { getStableUserId } from "@/lib/user-id";
+import { isReviewRepliesSchemaMissingError } from "@/lib/review-replies";
 
 const PRODUCT_SLUG_PATTERN = /^[a-z0-9-]+$/;
 const MAX_COMMENT_LENGTH = 1000;
@@ -73,6 +75,18 @@ async function clearReviewLikes(
 ) {
   return supabase
     .from(REVIEW_LIKES_TABLE)
+    .delete()
+    .eq("review_user_id", userId)
+    .eq("product_slug", productSlug);
+}
+
+async function clearReviewReplies(
+  supabase: NonNullable<ReturnType<typeof getSupabaseAdminClient>>,
+  userId: string,
+  productSlug: string
+) {
+  return supabase
+    .from(REVIEW_REPLIES_TABLE)
     .delete()
     .eq("review_user_id", userId)
     .eq("product_slug", productSlug);
@@ -170,6 +184,22 @@ export async function POST(
         { status: 400 }
       );
     }
+
+    const { error: replyCleanupError } = await clearReviewReplies(
+      supabase,
+      userId,
+      slug
+    );
+
+    if (
+      replyCleanupError &&
+      !isReviewRepliesSchemaMissingError(replyCleanupError.message)
+    ) {
+      return NextResponse.json(
+        { success: false, error: replyCleanupError.message },
+        { status: 400 }
+      );
+    }
   }
 
   return NextResponse.json({ success: true, data });
@@ -215,6 +245,22 @@ export async function DELETE(
     if (likeCleanupError) {
       return NextResponse.json(
         { success: false, error: likeCleanupError.message },
+        { status: 400 }
+      );
+    }
+
+    const { error: replyCleanupError } = await clearReviewReplies(
+      supabase,
+      userId,
+      slug
+    );
+
+    if (
+      replyCleanupError &&
+      !isReviewRepliesSchemaMissingError(replyCleanupError.message)
+    ) {
+      return NextResponse.json(
+        { success: false, error: replyCleanupError.message },
         { status: 400 }
       );
     }
@@ -313,6 +359,22 @@ export async function DELETE(
         );
       }
 
+      const { error: replyCleanupError } = await clearReviewReplies(
+        supabase,
+        userId,
+        slug
+      );
+
+      if (
+        replyCleanupError &&
+        !isReviewRepliesSchemaMissingError(replyCleanupError.message)
+      ) {
+        return NextResponse.json(
+          { success: false, error: replyCleanupError.message },
+          { status: 400 }
+        );
+      }
+
       const { error } = await supabase
         .from(RATINGS_TABLE)
         .delete()
@@ -331,6 +393,22 @@ export async function DELETE(
       if (likeCleanupError) {
         return NextResponse.json(
           { success: false, error: likeCleanupError.message },
+          { status: 400 }
+        );
+      }
+
+      const { error: replyCleanupError } = await clearReviewReplies(
+        supabase,
+        userId,
+        slug
+      );
+
+      if (
+        replyCleanupError &&
+        !isReviewRepliesSchemaMissingError(replyCleanupError.message)
+      ) {
+        return NextResponse.json(
+          { success: false, error: replyCleanupError.message },
           { status: 400 }
         );
       }

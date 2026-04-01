@@ -11,7 +11,6 @@ import {
   FiEdit3,
   FiGrid,
   FiHeart,
-  FiImage,
   FiMessageCircle,
   FiPlus,
   FiSearch,
@@ -43,6 +42,7 @@ import {
   MetricCard,
   PersonListItem,
   SectionShell,
+  SnapshotFeatureCard,
   TabButton,
   buildAvatarDataUrl,
   formatPercent,
@@ -160,7 +160,7 @@ type FriendGameResponse = {
   error?: string;
 };
 
-type ProfileTab = "overview" | "social" | "collection" | "activity";
+type ProfileTab = "overview" | "stats" | "badges" | "social" | "collection" | "activity" | "settings";
 
 type NoticeTone = "success" | "info";
 
@@ -180,9 +180,12 @@ function formatShortDate(value: string | null) {
 
 const TAB_ITEMS: TabItem<ProfileTab>[] = [
   { id: "overview", label: "Übersicht", icon: FiGrid },
+  { id: "stats", label: "Stats", icon: FiTrendingUp },
+  { id: "badges", label: "Badges", icon: FiAward },
   { id: "social", label: "Social", icon: FiUsers },
   { id: "collection", label: "Sammlung", icon: FiBookmark },
   { id: "activity", label: "Aktivität", icon: FiActivity },
+  { id: "settings", label: "Einstellungen", icon: FiEdit3 },
 ];
 
 export default function ProfilPage() {
@@ -226,6 +229,8 @@ export default function ProfilPage() {
   const [profileNotice, setProfileNotice] = useState<{ tone: NoticeTone; text: string } | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
+  const [isAvatarMenuOpen, setIsAvatarMenuOpen] = useState(false);
+  const avatarMenuRef = useRef<HTMLDivElement | null>(null);
 
   const [selectedRatedCategory, setSelectedRatedCategory] = useState("all");
   const [ratedSortMode, setRatedSortMode] = useState<RatedSortMode>("rating-desc");
@@ -249,6 +254,34 @@ export default function ProfilPage() {
     setUsernameInput(username);
     setBioInput(bio);
   }, [bio, profileLoaded, username]);
+
+  useEffect(() => {
+    if (!avatarUrl) {
+      setIsAvatarMenuOpen(false);
+    }
+  }, [avatarUrl]);
+
+  useEffect(() => {
+    if (!isAvatarMenuOpen) {
+      return;
+    }
+
+    function handlePointerDown(event: MouseEvent) {
+      if (
+        avatarMenuRef.current &&
+        event.target instanceof Node &&
+        !avatarMenuRef.current.contains(event.target)
+      ) {
+        setIsAvatarMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handlePointerDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+    };
+  }, [isAvatarMenuOpen]);
 
   const productBySlug = useMemo(() => {
     const map = new Map<string, (typeof ALL_PRODUCTS)[number]>();
@@ -353,6 +386,9 @@ export default function ProfilPage() {
     wantToTryProducts.length +
     triedProducts.length +
     customListItemCount;
+  const favoriteShare = collectionCount > 0 ? (favoriteProducts.length / collectionCount) * 100 : 0;
+  const watchlistShare = collectionCount > 0 ? (wantToTryProducts.length / collectionCount) * 100 : 0;
+  const topCategoryShare = topCategory && ratedProducts.length > 0 ? (topCategory[1] / ratedProducts.length) * 100 : 0;
   const basePoints = calculateProfilePoints({ ratingCount, commentCount, favoriteCount: favoriteProducts.length, followerCount: followersCount });
   const profilePoints = friendGameData?.viewer.points ?? basePoints;
   const levelInfo = getProfileLevelInfo(profilePoints);
@@ -371,9 +407,41 @@ export default function ProfilPage() {
     averageRating,
     isLeagueLeader: viewerLeadsLeague,
   });
+  const unlockedBadgeCount = profileBadges.filter((badge) => badge.unlocked).length;
   const currentLevelProgress = !levelInfo.nextLevelMinPoints
     ? 100
     : Math.max(0, Math.min(100, ((profilePoints - levelInfo.currentLevelMinPoints) / (levelInfo.nextLevelMinPoints - levelInfo.currentLevelMinPoints)) * 100));
+  const profileSnapshotCards = (
+    <div className="grid gap-4 lg:auto-rows-fr lg:grid-cols-3">
+      <SnapshotFeatureCard
+        icon={FiStar}
+        label="Signature Produkt"
+        title={topRatedProduct ? <Link href={`/produkt/${topRatedProduct.slug}`} className="block text-xl font-semibold leading-tight text-white transition-colors hover:text-[#8AF5AC]">{topRatedProduct.name}</Link> : "Noch offen"}
+        titleClassName={topRatedProduct ? undefined : "text-xl font-semibold text-white"}
+        description={topRatedProduct ? "Dein aktuell bestbewerteter Pick und damit das Aushängeschild deines Profils." : "Sobald du dein erstes Produkt bewertest, landet hier automatisch dein persönliches Highlight."}
+        footer={topRatedProduct ? <div className="flex flex-wrap items-center gap-2"><span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#D6E2EF]">{topRatedProduct.category}</span><span className="rounded-full border border-[#4E4322] bg-[#2B2414] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#FFD86C]">Rating {topRatedProduct.rating.toFixed(1)}/5</span></div> : "Noch kein Signature Produkt gespeichert"}
+      />
+
+      <SnapshotFeatureCard
+        icon={FiTrendingUp}
+        label="Liga Momentum"
+        title={friendGameData ? `#${friendGameData.viewer.rank}` : "Noch offen"}
+        titleClassName={friendGameData ? "text-4xl font-black tracking-tight text-white" : "text-xl font-semibold text-white"}
+        description={friendGameData ? viewerLeadsLeague ? "Du führst deine aktuelle Liga an und gibst gerade das Tempo vor." : friendGameData.closestRival ? `Nächster Rivale: ${friendGameData.closestRival.username}. Ein kleiner Push kann die Reihenfolge kippen.` : "Deine Liga füllt sich gerade. Bald entstehen hier echte Rivalitäten." : "Sobald Social-Daten geladen sind, siehst du hier deinen aktuellen Platz in der Liga."}
+        footer={friendGameData ? <div className="flex flex-wrap items-center gap-2"><span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#D6E2EF]">unter {friendGameData.viewer.totalPlayers} Profilen</span><span className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] ${viewerLeadsLeague ? "border-[#34503B] bg-[#173023] text-[#D9FFE6]" : "border-[#2D3A4B] bg-[#141C27] text-[#D6E2EF]"}`}>{viewerLeadsLeague ? "Liga-Führung" : friendGameData.closestRival ? `Rivale ${friendGameData.closestRival.username}` : "Momentum baut sich auf"}</span></div> : "Noch keine Liga-Daten verfügbar"}
+      />
+
+      <SnapshotFeatureCard
+        icon={FiZap}
+        label="Level Leiste"
+        title={friendGameData?.viewer.currentLevelName ?? levelInfo.currentLevelName}
+        titleClassName="text-xl font-semibold leading-tight text-white"
+        description={levelInfo.nextLevelName ? `${levelInfo.pointsToNextLevel} Punkte fehlen noch bis ${levelInfo.nextLevelName}.` : "Du hast aktuell das höchste Level auf deinem Profil erreicht."}
+        support={<div><div className="flex items-center justify-between text-xs uppercase tracking-[0.16em] text-[#8CA1B8]"><span>Fortschritt</span><span>{Math.round(currentLevelProgress)}%</span></div><div className="mt-3 h-3 overflow-hidden rounded-full bg-[#0E1520]"><div className="h-full rounded-full bg-[linear-gradient(90deg,#5EE287,#7CC8FF)] transition-all duration-500" style={{ width: formatPercent(currentLevelProgress) }} /></div></div>}
+        footer={<div className="flex flex-wrap items-center gap-2"><span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#D6E2EF]">{profilePoints} Punkte gesammelt</span><span className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] ${levelInfo.nextLevelName ? "border-[#34506D] bg-[#132234] text-[#DCEEFF]" : "border-[#34503B] bg-[#173023] text-[#D9FFE6]"}`}>{levelInfo.nextLevelName ? `Nächstes Level ${levelInfo.nextLevelName}` : "Top-Level erreicht"}</span></div>}
+      />
+    </div>
+  );
 
   const loadFollowProfiles = useCallback(async () => {
     if (!user) {
@@ -532,6 +600,7 @@ export default function ProfilPage() {
   async function handleRemoveAvatar() {
     const response = await saveProfileDetails({ avatarUrl: null });
     if (response.success) {
+      setIsAvatarMenuOpen(false);
       setProfileNotice({ tone: "success", text: "Profilbild wurde entfernt." });
     }
   }
@@ -548,6 +617,7 @@ export default function ProfilPage() {
     }
 
     setUploadingAvatar(true);
+    setIsAvatarMenuOpen(false);
     setProfileNotice(null);
 
     try {
@@ -656,24 +726,51 @@ export default function ProfilPage() {
                 <button
                   type="button"
                   disabled={!supportsProfileDetails || !hasUsername || uploadingAvatar || savingProfileDetails}
-                  onClick={() => avatarInputRef.current?.click()}
+                  onClick={() => {
+                    setIsAvatarMenuOpen(false);
+                    avatarInputRef.current?.click();
+                  }}
                   className="inline-flex min-h-11 items-center gap-2 rounded-2xl border border-[#2D3A4B] bg-[#111925]/90 px-4 py-2 text-sm font-semibold text-white transition-all duration-300 hover:border-[#5EE287] disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <FiUploadCloud size={16} />
                   {uploadingAvatar ? "Lade Bild..." : avatarUrl ? "Bild ändern" : "Bild hochladen"}
                 </button>
                 {avatarUrl && (
-                  <button
-                    type="button"
-                    disabled={savingProfileDetails || uploadingAvatar}
-                    onClick={() => {
-                      void handleRemoveAvatar();
-                    }}
-                    className="inline-flex min-h-11 items-center gap-2 rounded-2xl border border-[#2D3A4B] bg-[#111925]/90 px-4 py-2 text-sm font-semibold text-[#D3DFEB] transition-all duration-300 hover:border-[#FF9A9A] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    <FiImage size={16} />
-                    Entfernen
-                  </button>
+                  <div ref={avatarMenuRef} className="relative">
+                    <button
+                      type="button"
+                      aria-label="Profilbildoptionen öffnen"
+                      aria-expanded={isAvatarMenuOpen}
+                      aria-haspopup="menu"
+                      disabled={savingProfileDetails || uploadingAvatar}
+                      onClick={() => {
+                        setIsAvatarMenuOpen((current) => !current);
+                      }}
+                      className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[#2D3A4B] bg-[#111925]/90 text-[#D3DFEB] transition-all duration-300 hover:border-[#5EE287] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <span className="sr-only">Profilbildoptionen öffnen</span>
+                      <span className="flex flex-col items-center gap-0.5">
+                        <span className="block h-1 w-1 rounded-full bg-current" />
+                        <span className="block h-1 w-1 rounded-full bg-current" />
+                        <span className="block h-1 w-1 rounded-full bg-current" />
+                      </span>
+                    </button>
+
+                    {isAvatarMenuOpen && (
+                      <div className="absolute left-0 top-12 z-20 min-w-[190px] rounded-2xl border border-[#2D3A4B] bg-[#0F1722] p-2 shadow-[0_18px_42px_rgba(0,0,0,0.38)]">
+                        <button
+                          type="button"
+                          className="flex w-full items-center rounded-xl px-3 py-2 text-left text-sm font-semibold text-red-200 transition-colors hover:bg-[#2A1111] disabled:cursor-not-allowed disabled:opacity-60"
+                          disabled={savingProfileDetails || uploadingAvatar}
+                          onClick={() => {
+                            void handleRemoveAvatar();
+                          }}
+                        >
+                          Profilbild entfernen
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
             </div>
@@ -714,13 +811,27 @@ export default function ProfilPage() {
         </div>
       )}
 
-      <div className="mt-8 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+      <div className="mt-8 grid gap-3 md:grid-cols-3 xl:grid-cols-7">
         {TAB_ITEMS.map((item) => (
           <TabButton
             key={item.id}
             item={item}
             active={activeTab === item.id}
-            count={item.id === "overview" ? profileBadges.filter((badge) => badge.unlocked).length : item.id === "social" ? socialReach : item.id === "collection" ? collectionCount : ratedProducts.length}
+            count={
+              item.id === "stats"
+                  ? ratingCount
+                  : item.id === "badges"
+                    ? unlockedBadgeCount
+                    : item.id === "social"
+                      ? socialReach
+                      : item.id === "collection"
+                        ? collectionCount
+                        : item.id === "activity"
+                          ? ratedProducts.length
+                          : item.id === "settings"
+                            ? profileCompletion.completedCount
+                            : undefined
+            }
             onClick={() => setActiveTab(item.id)}
           />
         ))}
@@ -728,171 +839,151 @@ export default function ProfilPage() {
 
       <div className="mt-8 space-y-6">
         {activeTab === "overview" && (
-          <>
-            <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
-              <SectionShell eyebrow="Profil Setup" title="Dein Auftritt" description="Username, Bio und Look in einem kompakten Bereich.">
-                <div className="grid gap-5 lg:grid-cols-2">
-                  <div className="rounded-[26px] border border-[#2A394B] bg-[#111925]/88 p-4">
-                    <p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">Username</p>
-                    {hasUsername ? (
-                      <div className="mt-3 rounded-[22px] border border-[#35503D] bg-[linear-gradient(135deg,rgba(94,226,135,0.12),rgba(15,22,33,0.95))] px-4 py-4">
-                        <p className="text-sm font-semibold text-white">{username}</p>
-                        <p className="mt-2 text-sm text-[#BFE7CC]">Dein Username ist fest gespeichert und bereit für die Freundes-Suche.</p>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="mt-3 space-y-3">
-                          <input
-                            type="text"
-                            value={usernameInput}
-                            maxLength={usernameLimits.max}
-                            onChange={(event) => {
-                              setUsernameInput(event.target.value);
-                              setProfileNotice(null);
-                            }}
-                            placeholder="Eindeutigen Username eingeben"
-                            className="w-full rounded-2xl border border-[#2D3A4B] bg-[#0F1621] px-4 py-3 text-white outline-none transition-colors placeholder:text-[#7F93A8] focus:border-[#5EE287]"
-                          />
-                          <button
-                            type="button"
-                            disabled={savingUsername}
-                            onClick={async () => {
-                              const response = await saveUsername(usernameInput);
-                              if (response.success) {
-                                setProfileNotice({ tone: "success", text: "Username erfolgreich gespeichert." });
-                              }
-                            }}
-                            className="inline-flex min-h-11 items-center rounded-2xl bg-[#5EE287] px-5 py-3 font-semibold text-[#0C1910] transition-colors hover:bg-[#79F29C] disabled:cursor-not-allowed disabled:opacity-60"
-                          >
-                            {savingUsername ? "Speichere..." : "Username festlegen"}
-                          </button>
-                        </div>
-                        <p className="mt-3 text-sm text-[#9EB0C3]">Dein Username braucht {usernameLimits.min} bis {usernameLimits.max} Zeichen und kann danach nicht mehr geändert werden.</p>
-                      </>
-                    )}
-                  </div>
+          <SectionShell eyebrow="Profil" title="Dein Snapshot" description="Hier landet nur das, was dein Profil nach außen ausmacht: Lieblingsprodukt, Liga-Momentum und dein aktuelles Level." action={<button type="button" onClick={() => setActiveTab("settings")} className="inline-flex min-h-11 items-center gap-2 rounded-2xl border border-[#2D3A4B] bg-[#141C27] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:border-[#5EE287] hover:text-[#E8FFF0]"><FiEdit3 size={15} />Profil bearbeiten</button>}>
+            {profileSnapshotCards}
+          </SectionShell>
+        )}
 
-                  <div className="rounded-[26px] border border-[#2A394B] bg-[#111925]/88 p-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">Bio</p>
-                        <p className="mt-2 text-sm text-[#9EB0C3]">Zeig in zwei Sätzen, was deinen Geschmack ausmacht.</p>
-                      </div>
-                      <span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-xs font-semibold text-[#D6E2EF]">{bioInput.length}/{profileLimits.bioMax}</span>
-                    </div>
-
-                    {!supportsProfileDetails && <p className="mt-4 rounded-2xl border border-[#41586F] bg-[#122233] px-4 py-3 text-sm text-[#DCEEFF]">Bio und Profilbild werden aktiv, sobald die neuen Profilspalten in Supabase eingespielt sind.</p>}
-
-                    <textarea
-                      value={bioInput}
-                      maxLength={profileLimits.bioMax}
-                      onChange={(event) => {
-                        setBioInput(event.target.value);
-                        setProfileNotice(null);
-                      }}
-                      disabled={!supportsProfileDetails || !hasUsername}
-                      placeholder={hasUsername ? "Zum Beispiel: Crunchy Fan, Vanille first, Kommentare immer ehrlich." : "Lege zuerst deinen Username fest, dann kannst du deine Bio speichern."}
-                      className="mt-4 min-h-32 w-full rounded-[22px] border border-[#2D3A4B] bg-[#0F1621] px-4 py-3 text-white outline-none transition-colors placeholder:text-[#7F93A8] focus:border-[#5EE287] disabled:cursor-not-allowed disabled:opacity-60"
-                    />
-
-                    <div className="mt-4 flex flex-wrap gap-3">
-                      <button
-                        type="button"
-                        disabled={!supportsProfileDetails || !hasUsername || savingProfileDetails}
-                        onClick={() => {
-                          void handleSaveBio();
-                        }}
-                        className="inline-flex min-h-11 items-center gap-2 rounded-2xl bg-[#5EE287] px-5 py-3 font-semibold text-[#0C1910] transition-colors hover:bg-[#79F29C] disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        <FiEdit3 size={16} />
-                        {savingProfileDetails ? "Speichere..." : "Bio speichern"}
-                      </button>
-                      <button
-                        type="button"
-                        disabled={!supportsProfileDetails || !hasUsername || savingProfileDetails}
-                        onClick={() => setBioInput(bio)}
-                        className="inline-flex min-h-11 items-center gap-2 rounded-2xl border border-[#2D3A4B] bg-[#141C27] px-5 py-3 font-semibold text-white transition-colors hover:border-[#5EE287] disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        <FiClock size={16} />
-                        Zurücksetzen
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </SectionShell>
-
-              <SectionShell eyebrow="Completion" title="Profil Fortschritt" description="Jeder kleine Schritt macht dein Profil persönlicher und stärker.">
-                <div className="rounded-[26px] border border-[#2A394B] bg-[#111925]/88 p-5">
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-                    <div>
-                      <p className="text-4xl font-black tracking-tight text-white">{profileCompletion.percent}%</p>
-                      <p className="mt-2 text-sm text-[#9EB0C3]">{profileCompletion.completedCount} von {profileCompletion.totalCount} Profil-Meilensteinen erledigt.</p>
-                    </div>
-                    <div className="rounded-[22px] border border-[#2D3A4B] bg-[#141C27] px-4 py-3">
-                      <p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">Level Fortschritt</p>
-                      <p className="mt-2 text-sm font-semibold text-white">{friendGameData?.viewer.currentLevelName ?? levelInfo.currentLevelName}</p>
-                      <p className="mt-1 text-xs text-[#AFC1D3]">{levelInfo.nextLevelName ? `${levelInfo.pointsToNextLevel} Punkte bis ${levelInfo.nextLevelName}` : "Maximales Level erreicht"}</p>
-                    </div>
-                  </div>
-
-                  <div className="mt-5 h-3 overflow-hidden rounded-full bg-[#0E1520]">
-                    <div className="h-full rounded-full bg-[linear-gradient(90deg,#5EE287,#8BC9FF)] transition-all duration-500" style={{ width: formatPercent(profileCompletion.percent) }} />
-                  </div>
-
-                  <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                    {profileCompletion.items.map((item) => (
-                      <CompletionItemCard key={item.id} label={item.label} description={item.description} completed={item.completed} />
-                    ))}
-                  </div>
-                </div>
-              </SectionShell>
+        {activeTab === "stats" && (
+          <SectionShell eyebrow="Statistiken" title="Dein Geschmack in Zahlen" description="Hier siehst du kompakt, wie aktiv, fokussiert und charakteristisch dein Profil gerade wirkt.">
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              <MetricCard icon={FiMessageCircle} label="Kommentarquote" value={formatPercent(ratingCoverage)} hint={commentCount > 0 ? `${commentCount} Kommentare zu deinen Ratings` : "Noch keine Kommentare gespeichert"} visual={{ kind: "ring", value: ratingCoverage, label: "Mit Kommentar erklärt", valueLabel: formatPercent(ratingCoverage), tone: "sky" }} />
+              <MetricCard icon={FiHeart} label="Favoriten" value={String(favoriteProducts.length)} hint={favoriteProducts.length > 0 ? "Deine aktuelle Hall of Fame" : "Speichere Highlights für dein Profil"} visual={{ kind: "bars", value: favoriteShare, label: "Anteil deiner Sammlung", valueLabel: formatPercent(favoriteShare), tone: "rose" }} />
+              <MetricCard icon={FiBookmark} label="Watchlist" value={String(wantToTryProducts.length)} hint={wantToTryProducts.length > 0 ? "Produkte auf deiner Probieren-Liste" : "Baue dir eine Watchlist auf"} visual={{ kind: "bars", value: watchlistShare, label: "Für später reserviert", valueLabel: formatPercent(watchlistShare), tone: "amber" }} />
+              <MetricCard icon={FiTarget} label="Top Kategorie" value={topCategory ? topCategory[0] : "-"} hint={topCategory ? `${topCategory[1]} Einträge in deinem stärksten Bereich` : "Noch keine dominante Kategorie"} visual={{ kind: "ring", value: topCategoryShare, label: "Anteil deiner Einträge", valueLabel: formatPercent(topCategoryShare), tone: "mint" }} />
             </div>
+          </SectionShell>
+        )}
 
-            <SectionShell eyebrow="Statistiken" title="Dein Geschmack in Zahlen" description="Ein schneller Snapshot über Aktivität, Qualität und Sammler-Vibes.">
-              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                <MetricCard icon={FiMessageCircle} label="Kommentarquote" value={formatPercent(ratingCoverage)} hint={commentCount > 0 ? `${commentCount} Kommentare zu deinen Ratings` : "Noch keine Kommentare gespeichert"} />
-                <MetricCard icon={FiHeart} label="Favoriten" value={String(favoriteProducts.length)} hint={favoriteProducts.length > 0 ? "Deine aktuelle Hall of Fame" : "Speichere Highlights für dein Profil"} />
-                <MetricCard icon={FiBookmark} label="Watchlist" value={String(wantToTryProducts.length)} hint={wantToTryProducts.length > 0 ? "Produkte auf deiner Probieren-Liste" : "Baue dir eine Watchlist auf"} />
-                <MetricCard icon={FiTarget} label="Top Kategorie" value={topCategory ? topCategory[0] : "-"} hint={topCategory ? `${topCategory[1]} Einträge in deinem stärksten Bereich` : "Noch keine dominante Kategorie"} />
-              </div>
+        {activeTab === "badges" && (
+          <SectionShell eyebrow="Badges" title="Freigeschaltete Profil-Vibes" description="Mehr Aktivität und ein rundes Profil schalten automatisch neue kleine Status-Momente frei." action={<span className="inline-flex rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#D6E2EF]">{unlockedBadgeCount}/{profileBadges.length} offen</span>}>
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {profileBadges.map((badge) => (
+                <BadgeCard key={badge.id} badge={badge} />
+              ))}
+            </div>
+          </SectionShell>
+        )}
 
-              <div className="mt-6 grid gap-4 lg:grid-cols-3">
-                <div className="rounded-[26px] border border-[#2A394B] bg-[#111925]/88 p-5">
-                  <p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">Signature Produkt</p>
-                  {topRatedProduct ? (
-                    <>
-                      <Link href={`/produkt/${topRatedProduct.slug}`} className="mt-3 block text-xl font-semibold text-white transition-colors hover:text-[#8AF5AC]">{topRatedProduct.name}</Link>
-                      <p className="mt-2 text-sm text-[#AFC1D3]">{topRatedProduct.category}</p>
-                      <p className="mt-4 inline-flex rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-sm font-semibold text-[#FFD86C]">Rating {topRatedProduct.rating.toFixed(1)}/5</p>
-                    </>
+        {activeTab === "settings" && (
+          <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
+            <SectionShell eyebrow="Profil Setup" title="Dein Auftritt" description="Username, Bio und Look bearbeitest du jetzt gesammelt in deinem eigenen Einstellungsbereich.">
+              <div className="grid gap-5 lg:grid-cols-2">
+                <div className="rounded-[26px] border border-[#2A394B] bg-[#111925]/88 p-4">
+                  <p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">Username</p>
+                  {hasUsername ? (
+                    <div className="mt-3 rounded-[22px] border border-[#35503D] bg-[linear-gradient(135deg,rgba(94,226,135,0.12),rgba(15,22,33,0.95))] px-4 py-4">
+                      <p className="text-sm font-semibold text-white">{username}</p>
+                      <p className="mt-2 text-sm text-[#BFE7CC]">Dein Username ist fest gespeichert und bereit für die Freundes-Suche.</p>
+                    </div>
                   ) : (
-                    <p className="mt-3 text-sm text-[#9EB0C3]">Sobald du bewertest, taucht hier dein stärkstes Produkt auf.</p>
+                    <>
+                      <div className="mt-3 space-y-3">
+                        <input
+                          type="text"
+                          value={usernameInput}
+                          maxLength={usernameLimits.max}
+                          onChange={(event) => {
+                            setUsernameInput(event.target.value);
+                            setProfileNotice(null);
+                          }}
+                          placeholder="Eindeutigen Username eingeben"
+                          className="w-full rounded-2xl border border-[#2D3A4B] bg-[#0F1621] px-4 py-3 text-white outline-none transition-colors placeholder:text-[#7F93A8] focus:border-[#5EE287]"
+                        />
+                        <button
+                          type="button"
+                          disabled={savingUsername}
+                          onClick={async () => {
+                            const response = await saveUsername(usernameInput);
+                            if (response.success) {
+                              setProfileNotice({ tone: "success", text: "Username erfolgreich gespeichert." });
+                            }
+                          }}
+                          className="inline-flex min-h-11 items-center rounded-2xl bg-[#5EE287] px-5 py-3 font-semibold text-[#0C1910] transition-colors hover:bg-[#79F29C] disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          {savingUsername ? "Speichere..." : "Username festlegen"}
+                        </button>
+                      </div>
+                      <p className="mt-3 text-sm text-[#9EB0C3]">Dein Username braucht {usernameLimits.min} bis {usernameLimits.max} Zeichen und kann danach nicht mehr geändert werden.</p>
+                    </>
                   )}
                 </div>
 
-                <div className="rounded-[26px] border border-[#2A394B] bg-[#111925]/88 p-5">
-                  <p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">Liga Momentum</p>
-                  <p className="mt-3 text-2xl font-black tracking-tight text-white">{friendGameData ? `#${friendGameData.viewer.rank}` : "-"}</p>
-                  <p className="mt-2 text-sm text-[#AFC1D3]">{friendGameData ? viewerLeadsLeague ? "Du führst deine aktuelle Liga an." : friendGameData.closestRival ? `Nächster Rivale: ${friendGameData.closestRival.username}` : "Bald entstehen hier echte Rivalitäten." : "Sobald Social-Daten geladen sind, siehst du hier deinen Platz."}</p>
-                </div>
+                <div className="rounded-[26px] border border-[#2A394B] bg-[#111925]/88 p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">Bio</p>
+                      <p className="mt-2 text-sm text-[#9EB0C3]">Zeig in zwei Sätzen, was deinen Geschmack ausmacht.</p>
+                    </div>
+                    <span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-xs font-semibold text-[#D6E2EF]">{bioInput.length}/{profileLimits.bioMax}</span>
+                  </div>
 
-                <div className="rounded-[26px] border border-[#2A394B] bg-[#111925]/88 p-5">
-                  <p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">Level Leiste</p>
-                  <p className="mt-3 text-xl font-semibold text-white">{friendGameData?.viewer.currentLevelName ?? levelInfo.currentLevelName}</p>
-                  <div className="mt-4 h-3 overflow-hidden rounded-full bg-[#0E1520]"><div className="h-full rounded-full bg-[linear-gradient(90deg,#5EE287,#7CC8FF)] transition-all duration-500" style={{ width: formatPercent(currentLevelProgress) }} /></div>
-                  <p className="mt-3 text-sm text-[#AFC1D3]">{levelInfo.nextLevelName ? `${levelInfo.pointsToNextLevel} Punkte bis ${levelInfo.nextLevelName}` : "Top-Level erreicht"}</p>
+                  {!supportsProfileDetails && <p className="mt-4 rounded-2xl border border-[#41586F] bg-[#122233] px-4 py-3 text-sm text-[#DCEEFF]">Bio und Profilbild werden aktiv, sobald die neuen Profilspalten in Supabase eingespielt sind.</p>}
+
+                  <textarea
+                    value={bioInput}
+                    maxLength={profileLimits.bioMax}
+                    onChange={(event) => {
+                      setBioInput(event.target.value);
+                      setProfileNotice(null);
+                    }}
+                    disabled={!supportsProfileDetails || !hasUsername}
+                    placeholder={hasUsername ? "Zum Beispiel: Crunchy Fan, Vanille first, Kommentare immer ehrlich." : "Lege zuerst deinen Username fest, dann kannst du deine Bio speichern."}
+                    className="mt-4 min-h-32 w-full rounded-[22px] border border-[#2D3A4B] bg-[#0F1621] px-4 py-3 text-white outline-none transition-colors placeholder:text-[#7F93A8] focus:border-[#5EE287] disabled:cursor-not-allowed disabled:opacity-60"
+                  />
+
+                  <div className="mt-4 flex flex-wrap gap-3">
+                    <button
+                      type="button"
+                      disabled={!supportsProfileDetails || !hasUsername || savingProfileDetails}
+                      onClick={() => {
+                        void handleSaveBio();
+                      }}
+                      className="inline-flex min-h-11 items-center gap-2 rounded-2xl bg-[#5EE287] px-5 py-3 font-semibold text-[#0C1910] transition-colors hover:bg-[#79F29C] disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <FiEdit3 size={16} />
+                      {savingProfileDetails ? "Speichere..." : "Bio speichern"}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={!supportsProfileDetails || !hasUsername || savingProfileDetails}
+                      onClick={() => setBioInput(bio)}
+                      className="inline-flex min-h-11 items-center gap-2 rounded-2xl border border-[#2D3A4B] bg-[#141C27] px-5 py-3 font-semibold text-white transition-colors hover:border-[#5EE287] disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <FiClock size={16} />
+                      Zurücksetzen
+                    </button>
+                  </div>
                 </div>
               </div>
             </SectionShell>
 
-            <SectionShell eyebrow="Badges" title="Freigeschaltete Profil-Vibes" description="Mehr Aktivität und ein rundes Profil schalten automatisch neue kleine Status-Momente frei." action={<span className="inline-flex rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#D6E2EF]">{profileBadges.filter((badge) => badge.unlocked).length}/{profileBadges.length} offen</span>}>
-              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                {profileBadges.map((badge) => (
-                  <BadgeCard key={badge.id} badge={badge} />
-                ))}
+            <SectionShell eyebrow="Completion" title="Profil Fortschritt" description="Fortschritt und Profilpflege bleiben sichtbar, aber bewusst außerhalb deiner Hauptansicht.">
+              <div className="rounded-[26px] border border-[#2A394B] bg-[#111925]/88 p-5">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <p className="text-4xl font-black tracking-tight text-white">{profileCompletion.percent}%</p>
+                    <p className="mt-2 text-sm text-[#9EB0C3]">{profileCompletion.completedCount} von {profileCompletion.totalCount} Profil-Meilensteinen erledigt.</p>
+                  </div>
+                  <div className="rounded-[22px] border border-[#2D3A4B] bg-[#141C27] px-4 py-3">
+                    <p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">Level Fortschritt</p>
+                    <p className="mt-2 text-sm font-semibold text-white">{friendGameData?.viewer.currentLevelName ?? levelInfo.currentLevelName}</p>
+                    <p className="mt-1 text-xs text-[#AFC1D3]">{levelInfo.nextLevelName ? `${levelInfo.pointsToNextLevel} Punkte bis ${levelInfo.nextLevelName}` : "Maximales Level erreicht"}</p>
+                  </div>
+                </div>
+
+                <div className="mt-5 h-3 overflow-hidden rounded-full bg-[#0E1520]">
+                  <div className="h-full rounded-full bg-[linear-gradient(90deg,#5EE287,#8BC9FF)] transition-all duration-500" style={{ width: formatPercent(profileCompletion.percent) }} />
+                </div>
+
+                <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                  {profileCompletion.items.map((item) => (
+                    <CompletionItemCard key={item.id} label={item.label} description={item.description} completed={item.completed} />
+                  ))}
+                </div>
               </div>
             </SectionShell>
-          </>
+          </div>
         )}
 
         {activeTab === "social" && (

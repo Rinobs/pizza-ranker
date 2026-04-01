@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { FiAward, FiBookmark, FiHeart, FiMessageCircle, FiStar, FiTrendingUp, FiUsers } from "react-icons/fi";
+import { FiAward, FiBookmark, FiHeart, FiMessageCircle, FiStar, FiTarget, FiTrendingUp, FiUsers } from "react-icons/fi";
 import BackButton from "@/app/components/BackButton";
 import ProfileAvatar from "@/app/components/ProfileAvatar";
 import { buildProfileBadges, buildProfileCompletion } from "@/lib/profile-features";
@@ -52,6 +52,50 @@ type PublicProfileResponse = {
   error?: string;
 };
 
+type TasteCompareData = {
+  viewer: {
+    userId: string;
+    username: string;
+  };
+  target: {
+    userId: string;
+    username: string;
+  };
+  comparison: {
+    matchScore: number;
+    overlapCount: number;
+    averageDifference: number;
+    strongestAgreements: Array<{
+      productSlug: string;
+      name: string;
+      category: string;
+      viewerRating: number;
+      targetRating: number;
+      difference: number;
+    }>;
+    strongestDisagreements: Array<{
+      productSlug: string;
+      name: string;
+      category: string;
+      viewerRating: number;
+      targetRating: number;
+      difference: number;
+    }>;
+    sharedFavoritesCount: number;
+    sharedFavorites: Array<{
+      productSlug: string;
+      name: string;
+      category: string;
+    }>;
+  } | null;
+};
+
+type TasteCompareResponse = {
+  success: boolean;
+  data?: TasteCompareData;
+  error?: string;
+};
+
 type ToggleFollowResponse = {
   success: boolean;
   data?: {
@@ -64,13 +108,18 @@ type ToggleFollowResponse = {
 export default function PublicProfilePage() {
   const params = useParams<{ userId: string }>();
   const routeUserId = typeof params?.userId === "string" ? params.userId : "";
-  const { data: session } = useSession();
+  const { data: session, status: sessionStatus } = useSession();
 
   const [profileData, setProfileData] = useState<PublicProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [followLoading, setFollowLoading] = useState(false);
   const [followMessage, setFollowMessage] = useState<string | null>(null);
+  const [tasteCompareData, setTasteCompareData] = useState<TasteCompareData | null>(null);
+  const [tasteCompareLoading, setTasteCompareLoading] = useState(false);
+  const [tasteCompareError, setTasteCompareError] = useState<string | null>(null);
+  const targetProfileUserId = profileData?.profile.userId ?? null;
+  const isOwnPublicProfile = profileData?.profile.isOwnProfile ?? false;
 
   useEffect(() => {
     let cancelled = false;
@@ -115,6 +164,60 @@ export default function PublicProfilePage() {
       cancelled = true;
     };
   }, [routeUserId]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    if (
+      sessionStatus === "loading" ||
+      !targetProfileUserId ||
+      isOwnPublicProfile ||
+      !session?.user
+    ) {
+      setTasteCompareData(null);
+      setTasteCompareError(null);
+      setTasteCompareLoading(false);
+      return;
+    }
+
+    async function loadTasteCompare() {
+      setTasteCompareLoading(true);
+      setTasteCompareError(null);
+
+      try {
+        const response = await fetch(
+          `/api/profile/taste-compare/${targetProfileUserId}`,
+          { cache: "no-store" }
+        );
+        const json = (await response.json()) as TasteCompareResponse;
+
+        if (cancelled) return;
+
+        if (!response.ok || !json.success || !json.data) {
+          setTasteCompareData(null);
+          setTasteCompareError(json.error || "Geschmacksvergleich konnte nicht geladen werden.");
+          return;
+        }
+
+        setTasteCompareData(json.data);
+      } catch {
+        if (!cancelled) {
+          setTasteCompareData(null);
+          setTasteCompareError("Geschmacksvergleich konnte nicht geladen werden.");
+        }
+      } finally {
+        if (!cancelled) {
+          setTasteCompareLoading(false);
+        }
+      }
+    }
+
+    void loadTasteCompare();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isOwnPublicProfile, session?.user, sessionStatus, targetProfileUserId]);
 
   async function handleToggleFollow(active: boolean) {
     if (!profileData || profileData.profile.isOwnProfile) return;
@@ -227,7 +330,10 @@ export default function PublicProfilePage() {
             {profileData.profile.isOwnProfile ? (
               <Link href="/profil" className="inline-flex items-center rounded-2xl bg-[#5EE287] px-5 py-3 font-semibold text-[#0C1910] hover:bg-[#79F29C]">Mein Profil bearbeiten</Link>
             ) : session?.user ? (
-              <button type="button" disabled={followLoading} onClick={() => { void handleToggleFollow(!profileData.profile.isFollowing); }} className={`rounded-2xl border px-5 py-3 font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${profileData.profile.isFollowing ? "border-[#2D3A4B] bg-[#141C27] text-white hover:border-red-300" : "border-[#5EE287] bg-[#5EE287] text-[#0C1910] hover:bg-[#79F29C]"}`}>{followLoading ? "Speichere..." : profileData.profile.isFollowing ? "Entfolgen" : "Folgen"}</button>
+              <div className="flex flex-wrap gap-3 xl:justify-end">
+                <a href="#taste-compare" className="inline-flex items-center gap-2 rounded-2xl border border-[#2D3A4B] bg-[#141C27] px-5 py-3 font-semibold text-white transition-colors hover:border-[#7CC8FF] hover:text-[#E8F5FF]"><FiTarget size={16} />Geschmack vergleichen</a>
+                <button type="button" disabled={followLoading} onClick={() => { void handleToggleFollow(!profileData.profile.isFollowing); }} className={`rounded-2xl border px-5 py-3 font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${profileData.profile.isFollowing ? "border-[#2D3A4B] bg-[#141C27] text-white hover:border-red-300" : "border-[#5EE287] bg-[#5EE287] text-[#0C1910] hover:bg-[#79F29C]"}`}>{followLoading ? "Speichere..." : profileData.profile.isFollowing ? "Entfolgen" : "Folgen"}</button>
+              </div>
             ) : (
               <p className="text-sm text-[#AFC1D3]">Logge dich ein, um diesem Profil zu folgen.</p>
             )}
@@ -242,6 +348,91 @@ export default function PublicProfilePage() {
         <MetricCard icon={FiStar} label="Bewertungen" value={String(summary.ratingCount)} hint={summary.averageRating !== null ? `Durchschnitt ${summary.averageRating.toFixed(1)}` : "Noch keine Sterne vergeben"} />
         <MetricCard icon={FiMessageCircle} label="Kommentare" value={String(summary.commentCount)} hint={`${summary.completion.percent}% Profil-Completion`} />
       </div>
+
+      {!profileData.profile.isOwnProfile && session?.user && (
+        <div id="taste-compare" className="mt-8">
+          <SectionShell eyebrow="Taste Compare" title={`Dein Geschmack vs. ${profileData.profile.username}`} description="Wir vergleichen eure gemeinsamen Ratings und machen sichtbar, wo ihr fast gleich tickt und wo ihr komplett unterschiedlich bewertet.">
+            {tasteCompareLoading && <div className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4 text-sm text-[#9EB0C3]">Geschmacksvergleich wird geladen...</div>}
+            {!tasteCompareLoading && tasteCompareError && <div className="rounded-[24px] border border-[#6A3434] bg-[#2A1313] p-4 text-sm text-red-100">{tasteCompareError}</div>}
+            {!tasteCompareLoading && !tasteCompareError && tasteCompareData?.comparison && (
+              <>
+                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                  <MetricCard icon={FiTrendingUp} label="Geschmacksmatch" value={`${tasteCompareData.comparison.matchScore}%`} hint={`auf Basis von ${tasteCompareData.comparison.overlapCount} gemeinsamen Bewertungen`} visual={{ kind: "ring", value: tasteCompareData.comparison.matchScore, label: "Gemeinsamer Score", valueLabel: `${tasteCompareData.comparison.matchScore}%`, tone: "sky" }} />
+                  <MetricCard icon={FiStar} label="Gemeinsame Ratings" value={String(tasteCompareData.comparison.overlapCount)} hint="So viele Produkte habt ihr beide mit Sternen bewertet" visual={{ kind: "bars", value: Math.min(100, tasteCompareData.comparison.overlapCount * 15), label: "Überschneidung", valueLabel: `${tasteCompareData.comparison.overlapCount} Produkte`, tone: "mint" }} />
+                  <MetricCard icon={FiTarget} label="Ø Differenz" value={`${tasteCompareData.comparison.averageDifference.toFixed(2)} Sterne`} hint="Je niedriger, desto ähnlicher eure Urteile" visual={{ kind: "bars", value: Math.max(0, 100 - (tasteCompareData.comparison.averageDifference / 4) * 100), label: "Nähe eurer Ratings", valueLabel: `${tasteCompareData.comparison.averageDifference.toFixed(2)} Sterne`, tone: "amber" }} />
+                  <MetricCard icon={FiHeart} label="Gemeinsame Favoriten" value={String(tasteCompareData.comparison.sharedFavoritesCount)} hint={tasteCompareData.comparison.sharedFavoritesCount > 0 ? "Produkte, die ihr beide aktiv gefeiert habt" : "Noch keine identischen Favoriten gespeichert"} visual={{ kind: "ring", value: Math.min(100, tasteCompareData.comparison.sharedFavoritesCount * 25), label: "Übereinstimmende Favoriten", valueLabel: String(tasteCompareData.comparison.sharedFavoritesCount), tone: "rose" }} />
+                </div>
+
+                <div className="mt-6 grid gap-4 xl:grid-cols-2">
+                  <div className="rounded-[26px] border border-[#2A394B] bg-[#111925]/88 p-5">
+                    <p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">Starke Übereinstimmungen</p>
+                    <h3 className="mt-2 text-lg font-semibold text-white">Hier seid ihr fast auf derselben Wellenlänge</h3>
+                    <ul className="mt-4 grid gap-3">
+                      {tasteCompareData.comparison.strongestAgreements.map((item) => (
+                        <li key={`agreement-${item.productSlug}`} className="rounded-[20px] border border-[#2D3A4B] bg-[#101822] p-4">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <Link href={`/produkt/${item.productSlug}`} className="font-semibold text-white transition-colors hover:text-[#8AF5AC]">{item.name}</Link>
+                              <p className="mt-1 text-sm text-[#8CA1B8]">{item.category}</p>
+                            </div>
+                            <span className="shrink-0 rounded-full border border-[#34503B] bg-[#173023] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#D9FFE6]">Δ {item.difference.toFixed(1)}</span>
+                          </div>
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            <span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-xs font-semibold text-[#D6E2EF]">Du {item.viewerRating.toFixed(1)}</span>
+                            <span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-xs font-semibold text-[#D6E2EF]">{profileData.profile.username} {item.targetRating.toFixed(1)}</span>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="rounded-[26px] border border-[#2A394B] bg-[#111925]/88 p-5">
+                    <p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">Reibungspunkte</p>
+                    <h3 className="mt-2 text-lg font-semibold text-white">Hier geht euer Geschmack auseinander</h3>
+                    {tasteCompareData.comparison.strongestDisagreements.length === 0 ? (
+                      <p className="mt-4 rounded-[20px] border border-dashed border-[#35503D] bg-[#0F1722] px-4 py-3 text-sm text-[#AFC1D3]">Bei euren gemeinsamen Ratings seid ihr überraschend nah beieinander. Größere Ausreißer gibt es aktuell noch nicht.</p>
+                    ) : (
+                      <ul className="mt-4 grid gap-3">
+                        {tasteCompareData.comparison.strongestDisagreements.map((item) => (
+                          <li key={`disagreement-${item.productSlug}`} className="rounded-[20px] border border-[#2D3A4B] bg-[#101822] p-4">
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="min-w-0">
+                                <Link href={`/produkt/${item.productSlug}`} className="font-semibold text-white transition-colors hover:text-[#8AF5AC]">{item.name}</Link>
+                                <p className="mt-1 text-sm text-[#8CA1B8]">{item.category}</p>
+                              </div>
+                              <span className="shrink-0 rounded-full border border-[#5A2A2A] bg-[#2A1111] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-red-200">Δ {item.difference.toFixed(1)}</span>
+                            </div>
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              <span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-xs font-semibold text-[#D6E2EF]">Du {item.viewerRating.toFixed(1)}</span>
+                              <span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-xs font-semibold text-[#D6E2EF]">{profileData.profile.username} {item.targetRating.toFixed(1)}</span>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </div>
+
+                {tasteCompareData.comparison.sharedFavoritesCount > 0 && (
+                  <div className="mt-6 rounded-[26px] border border-[#2A394B] bg-[#111925]/88 p-5">
+                    <p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">Gemeinsame Favoriten</p>
+                    <div className="mt-4 flex flex-wrap gap-2.5">
+                      {tasteCompareData.comparison.sharedFavorites.map((item) => (
+                        <Link key={`shared-favorite-${item.productSlug}`} href={`/produkt/${item.productSlug}`} className="inline-flex items-center rounded-full border border-[#34503B] bg-[#173023] px-4 py-2 text-sm font-semibold text-[#D9FFE6] transition-colors hover:bg-[#21402E]">
+                          {item.name}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+            {!tasteCompareLoading && !tasteCompareError && tasteCompareData && !tasteCompareData.comparison && (
+              <EmptyPanel icon={FiTarget} title="Noch zu wenig Überschneidung" description="Sobald ihr ein paar gemeinsame Produkte mit Sternen bewertet habt, zeigen wir hier direkt Gemeinsamkeiten und klare Unterschiede in eurem Geschmack." />
+            )}
+          </SectionShell>
+        </div>
+      )}
 
       <div className="mt-8 grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
         <SectionShell eyebrow="Badges" title="Profil Vibes" description="Auch öffentliche Profile bekommen jetzt kleine Gamification-Signale für Aktivität und Profilpflege.">

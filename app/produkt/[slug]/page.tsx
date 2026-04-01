@@ -18,10 +18,28 @@ import { useUserCustomLists } from "@/app/hooks/useUserCustomLists";
 import { useReviewLikes } from "@/app/hooks/useReviewLikes";
 import { useUserRatings } from "@/app/hooks/useUserRatings";
 import { useUserProductLists } from "@/app/hooks/useUserProductLists";
+import { getCategoryAccent } from "@/lib/category-accents";
 
 const PLACEHOLDER_TEXT = "9999";
 const PLACEHOLDER_NUMBER = 9999;
 const COMMENT_FALLBACK_USERNAME = "Anonym";
+
+function humanizeRouteSlug(value: string) {
+  return value
+    .replace(/-/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 120);
+}
+
+type ReviewReply = {
+  id: number | null;
+  userId: string | null;
+  username: string;
+  text: string;
+  updatedAt: string | null;
+  isOwnReply: boolean;
+};
 
 type ProductComment = {
   reviewUserId: string | null;
@@ -31,6 +49,8 @@ type ProductComment = {
   isOwnComment: boolean;
   likeCount: number;
   viewerLiked: boolean;
+  replyCount: number;
+  replies: ReviewReply[];
 };
 
 type AminoAcidEntry = {
@@ -78,6 +98,16 @@ type ProductDetailsPayload = {
   preisOptionen?: PriceOption[];
   naehrwertOptionen?: NutritionOption[];
   quelle: "online" | "placeholder";
+};
+
+type ReviewReplyResponse = {
+  success: boolean;
+  data?: {
+    id?: number;
+    reviewUserId?: string;
+    productSlug?: string;
+  };
+  error?: string;
 };
 
 function SegmentToggle({
@@ -149,6 +179,110 @@ function isPlaceholderValue(value: string | number | null | undefined) {
   return value === undefined || value === null || value === PLACEHOLDER_NUMBER || value === PLACEHOLDER_TEXT;
 }
 
+function parseRatingValue(value: string | number | null | undefined) {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return Math.max(0, Math.min(5, value));
+  }
+
+  if (typeof value === "string") {
+    const normalized = value.replace(",", ".").trim();
+    if (!normalized) {
+      return null;
+    }
+
+    const parsed = Number(normalized);
+    if (Number.isFinite(parsed)) {
+      return Math.max(0, Math.min(5, parsed));
+    }
+  }
+
+  return null;
+}
+
+function formatRatingValue(value: number) {
+  return new Intl.NumberFormat("de-DE", {
+    minimumFractionDigits: value % 1 === 0 ? 0 : 1,
+    maximumFractionDigits: 1,
+  }).format(value);
+}
+
+function ReadOnlyRatingStars({ rating }: { rating: number }) {
+  return (
+    <div className="flex items-center gap-1" aria-hidden="true">
+      {Array.from({ length: 5 }, (_, index) => {
+        const fillLevel = Math.max(0, Math.min(1, rating - index));
+        const fillPercent = `${fillLevel * 100}%`;
+
+        return (
+          <span key={index} className="relative h-5 w-5">
+            <svg
+              className="absolute inset-0 text-[#334255]"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+            >
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.54 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z" />
+            </svg>
+            <span
+              className="absolute inset-y-0 left-0 overflow-hidden text-[#F6C85C]"
+              style={{ width: fillPercent }}
+            >
+              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.54 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z" />
+              </svg>
+            </span>
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
+function normalizeReplies(value: unknown): ReviewReply[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .map((entry) => {
+      if (!entry || typeof entry !== "object") {
+        return null;
+      }
+
+      const reply = entry as Partial<ReviewReply>;
+      const text = typeof reply.text === "string" ? reply.text.trim() : "";
+      if (!text) {
+        return null;
+      }
+
+      const username =
+        typeof reply.username === "string" && reply.username.trim().length > 0
+          ? reply.username.trim()
+          : COMMENT_FALLBACK_USERNAME;
+
+      const rawReplyId = (entry as { id?: unknown }).id;
+      const rawId =
+        typeof rawReplyId === "number"
+          ? rawReplyId
+          : typeof rawReplyId === "string"
+            ? Number(rawReplyId)
+            : null;
+
+      return {
+        id: typeof rawId === "number" && Number.isFinite(rawId) && rawId > 0 ? rawId : null,
+        userId:
+          typeof (reply as { userId?: unknown }).userId === "string" &&
+          (reply as { userId?: string }).userId?.trim().length
+            ? (reply as { userId: string }).userId.trim()
+            : null,
+        username,
+        text,
+        updatedAt: typeof reply.updatedAt === "string" ? reply.updatedAt : null,
+        isOwnReply: reply.isOwnReply === true,
+      } satisfies ReviewReply;
+    })
+    .filter((entry): entry is ReviewReply => entry !== null);
+}
+
 function normalizeComments(value: unknown): ProductComment[] {
   if (!Array.isArray(value)) {
     return [];
@@ -168,6 +302,8 @@ function normalizeComments(value: unknown): ProductComment[] {
           isOwnComment: false,
           likeCount: 0,
           viewerLiked: false,
+          replyCount: 0,
+          replies: [],
         } satisfies ProductComment;
       }
 
@@ -185,6 +321,12 @@ function normalizeComments(value: unknown): ProductComment[] {
         typeof comment.username === "string" && comment.username.trim().length > 0
           ? comment.username.trim()
           : COMMENT_FALLBACK_USERNAME;
+      const replies = normalizeReplies((comment as { replies?: unknown }).replies);
+      const rawReplyCount = (comment as { replyCount?: unknown }).replyCount;
+      const replyCount =
+        typeof rawReplyCount === "number" && rawReplyCount >= 0
+          ? Math.max(rawReplyCount, replies.length)
+          : replies.length;
 
       return {
         reviewUserId:
@@ -202,6 +344,8 @@ function normalizeComments(value: unknown): ProductComment[] {
             ? (comment as { likeCount: number }).likeCount
             : 0,
         viewerLiked: (comment as { viewerLiked?: boolean }).viewerLiked === true,
+        replyCount,
+        replies,
       } satisfies ProductComment;
     })
     .filter((entry): entry is ProductComment => entry !== null);
@@ -236,6 +380,7 @@ export default function ProductPage() {
     submittingComments,
     commentErrors,
     saveRating,
+    deleteRating,
     deleteComment,
     updateCommentDraft,
     submitComment,
@@ -281,11 +426,18 @@ export default function ProductPage() {
   const [customListMessage, setCustomListMessage] = useState<string | null>(null);
   const [isEditingOwnComment, setIsEditingOwnComment] = useState(false);
   const [isOwnCommentMenuOpen, setIsOwnCommentMenuOpen] = useState(false);
+  const [expandedReplyThreads, setExpandedReplyThreads] = useState<Record<string, boolean>>({});
+  const [activeReplyEditorReviewId, setActiveReplyEditorReviewId] = useState<string | null>(null);
+  const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
+  const [replyErrors, setReplyErrors] = useState<Record<string, string | null>>({});
+  const [submittingReplies, setSubmittingReplies] = useState<Record<string, boolean>>({});
+  const [deletingReplyIds, setDeletingReplyIds] = useState<Record<string, boolean>>({});
   const [isIngredientsOpen, setIsIngredientsOpen] = useState(false);
   const [isNutritionOpen, setIsNutritionOpen] = useState(false);
   const [selectedPriceOptionId, setSelectedPriceOptionId] = useState<string | null>(null);
   const [selectedNutritionOptionId, setSelectedNutritionOptionId] = useState<string | null>(null);
   const ownCommentMenuRef = useRef<HTMLDivElement | null>(null);
+  const replyHashHandledRef = useRef<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -328,6 +480,13 @@ export default function ProductPage() {
   useEffect(() => {
     setIsEditingOwnComment(false);
     setIsOwnCommentMenuOpen(false);
+    setExpandedReplyThreads({});
+    setActiveReplyEditorReviewId(null);
+    setReplyDrafts({});
+    setReplyErrors({});
+    setSubmittingReplies({});
+    setDeletingReplyIds({});
+    replyHashHandledRef.current = null;
     setIsIngredientsOpen(false);
     setIsNutritionOpen(false);
   }, [routeSlug]);
@@ -366,6 +525,41 @@ export default function ProductPage() {
     () => (fallback ? mergeDetails(fallback, details) : null),
     [fallback, details]
   );
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !mergedDetails) {
+      return;
+    }
+
+    const hash = window.location.hash.replace(/^#/, "").trim();
+    if (!hash.startsWith("review-")) {
+      return;
+    }
+
+    if (replyHashHandledRef.current === hash) {
+      return;
+    }
+
+    const reviewUserId = decodeURIComponent(hash.slice("review-".length)).trim();
+    if (!reviewUserId) {
+      return;
+    }
+
+    const targetComment = mergedDetails.kommentare.find(
+      (comment) => comment.reviewUserId === reviewUserId
+    );
+
+    if (!targetComment) {
+      return;
+    }
+
+    setExpandedReplyThreads((prev) => ({ ...prev, [reviewUserId]: true }));
+    replyHashHandledRef.current = hash;
+
+    if (user && !targetComment.isOwnComment) {
+      setActiveReplyEditorReviewId(reviewUserId);
+    }
+  }, [mergedDetails, user]);
 
   useEffect(() => {
     const nextPriceOptionId = mergedDetails?.preisOptionen?.[0]?.id ?? null;
@@ -415,17 +609,162 @@ export default function ProductPage() {
     isUpdating: isUpdatingReviewLike,
   } = useReviewLikes(initialReviewLikes);
 
+  function openReplyEditor(reviewUserId: string) {
+    if (!user) {
+      alert("Bitte einloggen!");
+      return;
+    }
+
+    setExpandedReplyThreads((prev) => ({ ...prev, [reviewUserId]: true }));
+    setActiveReplyEditorReviewId(reviewUserId);
+    setReplyErrors((prev) => ({ ...prev, [reviewUserId]: null }));
+  }
+
+  async function submitReply(reviewUserId: string) {
+    if (!user) {
+      return {
+        success: false,
+        error: "Bitte zuerst einloggen.",
+      } satisfies ReviewReplyResponse;
+    }
+
+    const draft = (replyDrafts[reviewUserId] || "").trim();
+    if (!draft) {
+      const error = "Bitte schreibe erst eine Antwort.";
+      setReplyErrors((prev) => ({ ...prev, [reviewUserId]: error }));
+
+      return {
+        success: false,
+        error,
+      } satisfies ReviewReplyResponse;
+    }
+
+    setSubmittingReplies((prev) => ({ ...prev, [reviewUserId]: true }));
+    setReplyErrors((prev) => ({ ...prev, [reviewUserId]: null }));
+
+    try {
+      const response = await fetch("/api/review-replies", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          productSlug: routeSlug,
+          reviewUserId,
+          text: draft,
+        }),
+      });
+
+      const json = (await response.json()) as ReviewReplyResponse;
+
+      if (!response.ok || !json.success) {
+        const error = json.error || "Antwort konnte nicht gesendet werden.";
+        setReplyErrors((prev) => ({ ...prev, [reviewUserId]: error }));
+
+        return {
+          success: false,
+          error,
+        } satisfies ReviewReplyResponse;
+      }
+
+      setReplyDrafts((prev) => ({ ...prev, [reviewUserId]: "" }));
+      setReplyErrors((prev) => ({ ...prev, [reviewUserId]: null }));
+      setExpandedReplyThreads((prev) => ({ ...prev, [reviewUserId]: true }));
+      setActiveReplyEditorReviewId((current) =>
+        current === reviewUserId ? null : current
+      );
+      setDetailsReloadToken((prev) => prev + 1);
+
+      return json;
+    } catch {
+      const error = "Antwort konnte nicht gesendet werden.";
+      setReplyErrors((prev) => ({ ...prev, [reviewUserId]: error }));
+
+      return {
+        success: false,
+        error,
+      } satisfies ReviewReplyResponse;
+    } finally {
+      setSubmittingReplies((prev) => ({ ...prev, [reviewUserId]: false }));
+    }
+  }
+
+  async function deleteReply(replyId: number, reviewUserId: string) {
+    if (!user) {
+      return {
+        success: false,
+        error: "Bitte zuerst einloggen.",
+      } satisfies ReviewReplyResponse;
+    }
+
+    const replyKey = String(replyId);
+    setDeletingReplyIds((prev) => ({ ...prev, [replyKey]: true }));
+    setReplyErrors((prev) => ({ ...prev, [reviewUserId]: null }));
+
+    try {
+      const response = await fetch(`/api/review-replies/${replyId}`, {
+        method: "DELETE",
+      });
+
+      const json = (await response.json()) as ReviewReplyResponse;
+
+      if (!response.ok || !json.success) {
+        const error = json.error || "Antwort konnte nicht gelöscht werden.";
+        setReplyErrors((prev) => ({ ...prev, [reviewUserId]: error }));
+
+        return {
+          success: false,
+          error,
+        } satisfies ReviewReplyResponse;
+      }
+
+      setDetailsReloadToken((prev) => prev + 1);
+      return json;
+    } catch {
+      const error = "Antwort konnte nicht gelöscht werden.";
+      setReplyErrors((prev) => ({ ...prev, [reviewUserId]: error }));
+
+      return {
+        success: false,
+        error,
+      } satisfies ReviewReplyResponse;
+    } finally {
+      setDeletingReplyIds((prev) => ({ ...prev, [replyKey]: false }));
+    }
+  }
+
   if (!routeSlug) return null;
 
   if (!product || !mergedDetails) {
+    const suggestionName = humanizeRouteSlug(routeSlug);
+
     return (
       <div className="max-w-5xl mx-auto px-4 sm:px-8 lg:px-12 pb-24 text-white">
         <BackButton />
-        <div className="rounded-2xl border border-[#2D3A4B] bg-[#1B222D] p-8 text-center shadow-[0_10px_28px_rgba(0,0,0,0.26)]">
-          <h1 className="text-3xl font-bold mb-4">Produkt nicht gefunden</h1>
-          <Link href="/" className="text-[#8AF5AC] hover:text-[#CFFFE0] underline">
-            Zurück zur Startseite
-          </Link>
+        <div className="rounded-[30px] border border-[#2D3A4B] bg-[linear-gradient(145deg,rgba(27,34,45,0.98),rgba(15,22,32,0.96))] p-8 text-center shadow-[0_18px_44px_rgba(0,0,0,0.28)]">
+          <h1 className="mb-4 text-3xl font-bold">Produkt nicht gefunden</h1>
+          <p className="mx-auto max-w-2xl text-sm leading-relaxed text-[#AFC1D3] sm:text-base">
+            Wenn dieses Produkt noch nicht im Katalog ist, kannst du es direkt vorschlagen
+            oder selbst einreichen. Mit Name, Marke oder Shop-Link können wir es schneller
+            aufnehmen.
+          </p>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+            <Link
+              href={{
+                pathname: "/produkt-vorschlagen",
+                query: suggestionName ? { name: suggestionName, from: "produktseite" } : { from: "produktseite" },
+              }}
+              className="inline-flex items-center rounded-full bg-[#5EE287] px-5 py-3 text-sm font-semibold text-[#0C1910] transition-colors hover:bg-[#79F29C]"
+            >
+              Produkt vorschlagen
+            </Link>
+            <Link
+              href="/"
+              className="inline-flex items-center rounded-full border border-[#2D3A4B] bg-[#121B27] px-5 py-3 text-sm font-semibold text-white transition-colors hover:border-[#5EE287] hover:text-[#D9FFE6]"
+            >
+              Zurück zur Startseite
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -440,6 +779,13 @@ export default function ProductPage() {
   const cachedImageUrl = `/api/product-image/${routeSlug}`;
 
   const displayCategory = !isPlaceholderValue(mergedDetails.kategorie) ? mergedDetails.kategorie : product.category;
+  const displayBrand = !isPlaceholderValue(mergedDetails.marke) ? mergedDetails.marke : null;
+  const categoryAccent = getCategoryAccent(displayCategory);
+  const averageRatingValue = isPlaceholderValue(mergedDetails.durchschnittsbewertung)
+    ? null
+    : parseRatingValue(mergedDetails.durchschnittsbewertung);
+  const userRatingValue = ratings[routeSlug] || 0;
+  const hasUserRating = userRatingValue > 0;
   const priceOptions = mergedDetails.preisOptionen || [];
   const activePriceOption =
     priceOptions.find((option) => option.id === selectedPriceOptionId) || priceOptions[0] || null;
@@ -455,7 +801,6 @@ export default function ProductPage() {
     ["Marke", mergedDetails.marke],
     ["Gewicht", mergedDetails.gewicht],
     ["Preis", activePriceOption?.value || mergedDetails.preis],
-    ["Durchschnittsbewertung", mergedDetails.durchschnittsbewertung],
   ];
 
   const nutritionFacts: Array<[string, string | number]> = [
@@ -540,9 +885,37 @@ export default function ProductPage() {
 
       <div className="rounded-3xl border border-[#2D3A4B] bg-[#1B222D]/95 p-5 sm:p-8 shadow-[0_14px_34px_rgba(0,0,0,0.28)]">
         <div className="mb-7 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#E8F6ED]">
-            {product.name}
-          </h1>
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:gap-4">
+              <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#E8F6ED]">
+                {product.name}
+              </h1>
+
+              <div className="inline-flex w-fit items-center gap-3 rounded-[22px] border border-[#314254] bg-[linear-gradient(135deg,rgba(18,28,41,0.96),rgba(12,19,30,0.92))] px-4 py-3 shadow-[0_16px_34px_rgba(0,0,0,0.24)]">
+                <div className="flex flex-col">
+                  <span className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#9AB0C6]">
+                    Community
+                  </span>
+                  {averageRatingValue !== null ? (
+                    <div className="mt-1 flex items-center gap-3">
+                      <ReadOnlyRatingStars rating={averageRatingValue} />
+                      <span className="text-lg font-bold text-[#F6F8FB]">
+                        {formatRatingValue(averageRatingValue)}/5
+                      </span>
+                    </div>
+                  ) : (
+                    <span className="mt-1 text-sm font-semibold text-[#D6E2EF]">
+                      Noch keine Bewertung
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <p className="text-sm text-[#9EB0C3]">
+              Auf einen Blick sehen, wie die Community dieses Produkt bewertet.
+            </p>
+          </div>
           {buyLink ? (
             <BuyButton
               href={buyLink.url}
@@ -554,22 +927,57 @@ export default function ProductPage() {
 
         <div className="grid gap-8 lg:grid-cols-[1.1fr_1fr] lg:items-start">
           <div className="group lg:sticky lg:top-28 lg:self-start">
-            <div className="flex min-h-[320px] items-center justify-center px-2 py-2 sm:min-h-[440px] sm:px-4 lg:min-h-[calc(100vh-9rem)] lg:py-6">
-              <img
-                src={cachedImageUrl}
-                className="h-[260px] w-auto max-w-full object-contain drop-shadow-[0_20px_42px_rgba(0,0,0,0.38)] transition-transform duration-500 group-hover:scale-[1.04] sm:h-[360px] lg:h-auto lg:max-h-[72vh]"
-                alt={product.name}
-                decoding="async"
-                onError={(e) => {
-                  const image = e.currentTarget;
-                  if (image.dataset.fallbackApplied === "1") {
-                    image.src = "/images/placeholders/product-default.svg";
-                    return;
-                  }
-                  image.dataset.fallbackApplied = "1";
-                  image.src = originalImageUrl;
-                }}
-              />
+            <div className="rounded-[34px] border border-[#314254] bg-[radial-gradient(circle_at_top,rgba(124,200,255,0.16),transparent_48%),radial-gradient(circle_at_bottom,rgba(94,226,135,0.16),transparent_42%),linear-gradient(160deg,rgba(26,35,47,0.98),rgba(17,24,36,0.96))] p-4 shadow-[0_24px_60px_rgba(0,0,0,0.34)] sm:p-6">
+              <div className="relative overflow-hidden rounded-[28px] border border-[#3A4B5D] bg-[linear-gradient(180deg,rgba(31,42,56,0.94),rgba(18,25,37,0.98))] px-2 py-2 sm:px-4 sm:py-4">
+                <div className="pointer-events-none absolute -left-6 -top-6 h-44 w-44 rounded-full bg-[radial-gradient(circle,rgba(124,200,255,0.22),transparent_68%)] blur-3xl sm:h-52 sm:w-52" />
+                <div className="pointer-events-none absolute left-10 top-20 h-28 w-28 rounded-full bg-[radial-gradient(circle,rgba(94,226,135,0.18),transparent_72%)] blur-3xl sm:h-32 sm:w-32" />
+                <div className="pointer-events-none absolute inset-x-8 top-0 h-24 rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.12),transparent_68%)] blur-2xl" />
+                <div className="pointer-events-none absolute bottom-6 left-1/2 h-10 w-3/4 -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(0,0,0,0.34),transparent_72%)] blur-2xl" />
+
+                <div className="absolute left-4 top-4 z-[2] max-w-[14rem] sm:left-6 sm:top-6 sm:max-w-[18rem]">
+                  <div className="overflow-hidden rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(15,22,33,0.88),rgba(15,22,33,0.5))] shadow-[0_18px_32px_rgba(0,0,0,0.24)] backdrop-blur-md">
+                    <div className={`h-1.5 w-full ${categoryAccent.accentBarClass}`} />
+                    <div className="space-y-3 px-4 py-3.5">
+                      <p className="text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-[#94A9BF]">
+                        Produktansicht
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        <span
+                          className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[0.68rem] font-semibold ${categoryAccent.badgeClass}`}
+                        >
+                          {displayCategory || product.category}
+                        </span>
+                        {displayBrand ? (
+                          <span className="inline-flex items-center rounded-full border border-[#41556A] bg-[#13202C]/88 px-2.5 py-1 text-[0.68rem] font-semibold text-[#DCE7F3]">
+                            {displayBrand}
+                          </span>
+                        ) : null}
+                      </div>
+                      <p className="max-w-[14rem] text-sm font-semibold leading-snug text-[#F1F7FD]">
+                        Verpackung, Marke und Kategorie sofort im Blick.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex min-h-[320px] items-center justify-center py-4 sm:min-h-[440px] lg:min-h-[calc(100vh-11rem)] lg:items-end lg:px-4 lg:pb-8 lg:pt-40">
+                  <img
+                    src={cachedImageUrl}
+                    className="relative z-[1] h-[260px] w-auto max-w-full object-contain drop-shadow-[0_26px_46px_rgba(0,0,0,0.42)] transition-transform duration-500 group-hover:scale-[1.04] sm:h-[360px] lg:h-auto lg:max-h-[68vh]"
+                    alt={product.name}
+                    decoding="async"
+                    onError={(e) => {
+                      const image = e.currentTarget;
+                      if (image.dataset.fallbackApplied === "1") {
+                        image.src = "/images/placeholders/product-default.svg";
+                        return;
+                      }
+                      image.dataset.fallbackApplied = "1";
+                      image.src = originalImageUrl;
+                    }}
+                  />
+                </div>
+              </div>
             </div>
           </div>
 
@@ -589,6 +997,21 @@ export default function ProductPage() {
                     <strong className="text-white">{key}:</strong> {value}
                   </li>
                 ))}
+                <li className="rounded-lg border border-[#2D3A4B] bg-[#141C27] px-3 py-2 sm:col-span-2">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <strong className="text-white">Durchschnittsbewertung:</strong>
+                    {averageRatingValue !== null ? (
+                      <div className="flex items-center gap-3">
+                        <ReadOnlyRatingStars rating={averageRatingValue} />
+                        <span className="rounded-full border border-[#3B4E64] bg-[#101925] px-2.5 py-1 text-sm font-semibold text-[#F6F8FB]">
+                          {formatRatingValue(averageRatingValue)}/5
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-sm text-[#8CA1B8]">Noch keine Bewertung</span>
+                    )}
+                  </div>
+                </li>
               </ul>
             </section>
 
@@ -711,6 +1134,7 @@ export default function ProductPage() {
                 <ul className="space-y-3">
                   {mergedDetails.kommentare.map((comment, index) => (
                     <li
+                      id={comment.reviewUserId ? `review-${comment.reviewUserId}` : undefined}
                       key={`${comment.username}-${comment.updatedAt || index}-${comment.text}`}
                       className={`group rounded-xl border px-3 py-3 transition-colors ${
                         comment.isOwnComment
@@ -745,7 +1169,7 @@ export default function ProductPage() {
                           </p>
 
                           {comment.reviewUserId ? (
-                            <div className="mt-4">
+                            <div className="mt-4 flex flex-wrap items-center gap-2">
                               <ReviewLikeButton
                                 active={
                                   getReviewLikeState(comment.reviewUserId, routeSlug)
@@ -764,6 +1188,165 @@ export default function ProductPage() {
                                   void toggleReviewLike(comment.reviewUserId!, routeSlug);
                                 }}
                               />
+
+                              {!comment.isOwnComment ? (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    openReplyEditor(comment.reviewUserId!);
+                                  }}
+                                  className="inline-flex items-center rounded-full border border-[#35506A] bg-[#132132] px-3 py-2 text-xs font-semibold text-[#D9ECFF] transition-colors hover:border-[#7CC8FF] hover:text-white"
+                                >
+                                  Antworten
+                                </button>
+                              ) : null}
+
+                              {comment.replyCount > 0 ? (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setExpandedReplyThreads((prev) => ({
+                                      ...prev,
+                                      [comment.reviewUserId!]: !prev[comment.reviewUserId!],
+                                    }));
+                                  }}
+                                  className="inline-flex items-center rounded-full border border-[#2D3A4B] bg-[#111823] px-3 py-2 text-xs font-semibold text-[#D6E2EF] transition-colors hover:border-[#5EE287] hover:text-white"
+                                >
+                                  {expandedReplyThreads[comment.reviewUserId]
+                                    ? `${comment.replyCount} ${
+                                        comment.replyCount === 1
+                                          ? "Antwort ausblenden"
+                                          : "Antworten ausblenden"
+                                      }`
+                                    : `${comment.replyCount} ${
+                                        comment.replyCount === 1
+                                          ? "Antwort anzeigen"
+                                          : "Antworten anzeigen"
+                                      }`}
+                                </button>
+                              ) : null}
+                            </div>
+                          ) : null}
+
+                          {comment.reviewUserId &&
+                          (comment.replies.length > 0 ||
+                            activeReplyEditorReviewId === comment.reviewUserId ||
+                            replyErrors[comment.reviewUserId]) &&
+                          (expandedReplyThreads[comment.reviewUserId] === true ||
+                            activeReplyEditorReviewId === comment.reviewUserId ||
+                            Boolean(replyErrors[comment.reviewUserId])) ? (
+                            <div className="mt-4 rounded-[20px] border border-[#2A394B] bg-[#0F1722]/92 p-3 sm:p-4">
+                              {comment.replies.length > 0 ? (
+                                <ul className="space-y-3">
+                                  {comment.replies.map((reply, replyIndex) => (
+                                    <li
+                                      key={`${reply.id ?? replyIndex}-${reply.updatedAt || replyIndex}-${reply.text}`}
+                                      className={`rounded-2xl border px-3 py-3 ${
+                                        reply.isOwnReply
+                                          ? "border-[#4D7E61] bg-[linear-gradient(135deg,rgba(94,226,135,0.12),rgba(18,25,35,0.96))]"
+                                          : "border-[#2D3A4B] bg-[#111823]"
+                                      }`}
+                                    >
+                                      <div className="flex items-start justify-between gap-3">
+                                        <div className="min-w-0 flex-1">
+                                          <div className="mb-1 flex flex-wrap items-center gap-2">
+                                            <p className="text-[11px] uppercase tracking-[0.18em] text-[#8CA1B8]">
+                                              {reply.username}
+                                            </p>
+                                            {reply.isOwnReply ? (
+                                              <span className="rounded-full border border-[#5EE287]/35 bg-[#173023] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#D9FFE6]">
+                                                Deine Antwort
+                                              </span>
+                                            ) : null}
+                                          </div>
+                                          <p className="text-sm leading-relaxed text-[#D3DFEB] [text-align:justify]">
+                                            {reply.text}
+                                          </p>
+                                        </div>
+
+                                        {reply.isOwnReply && reply.id !== null ? (
+                                          <button
+                                            type="button"
+                                            className="shrink-0 rounded-full border border-[#5B3030] bg-[#261315] px-3 py-1.5 text-xs font-semibold text-red-100 transition-colors hover:bg-[#31181B] disabled:cursor-not-allowed disabled:opacity-60"
+                                            disabled={deletingReplyIds[String(reply.id)] === true}
+                                            onClick={() => {
+                                              void deleteReply(reply.id!, comment.reviewUserId!);
+                                            }}
+                                          >
+                                            {deletingReplyIds[String(reply.id)] ? "Lösche..." : "Löschen"}
+                                          </button>
+                                        ) : null}
+                                      </div>
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : null}
+
+                              {activeReplyEditorReviewId === comment.reviewUserId ? (
+                                <div className={comment.replies.length > 0 ? "mt-4 border-t border-[#213042] pt-4" : ""}>
+                                  <textarea
+                                    className="min-h-28 w-full rounded-xl border border-[#2D3A4B] bg-[#141C27] p-3 text-sm text-white placeholder:text-[#8CA1B8]"
+                                    placeholder={`Antwort an ${comment.username}`}
+                                    maxLength={1000}
+                                    value={replyDrafts[comment.reviewUserId] || ""}
+                                    onChange={(event) => {
+                                      setReplyDrafts((prev) => ({
+                                        ...prev,
+                                        [comment.reviewUserId!]: event.target.value.slice(0, 1000),
+                                      }));
+                                      setReplyErrors((prev) => ({
+                                        ...prev,
+                                        [comment.reviewUserId!]: null,
+                                      }));
+                                    }}
+                                    disabled={!user || submittingReplies[comment.reviewUserId] === true}
+                                  />
+
+                                  <div className="mt-3 flex items-center justify-between gap-3">
+                                    <p className="text-xs text-[#8CA1B8]">
+                                      {(replyDrafts[comment.reviewUserId] || "").length}/1000 Zeichen
+                                    </p>
+
+                                    <div className="flex items-center gap-2">
+                                      <button
+                                        type="button"
+                                        className="rounded-lg border border-[#2D3A4B] bg-[#141C27] px-4 py-2 text-sm font-semibold text-white transition-colors hover:border-[#5EE287] disabled:cursor-not-allowed disabled:opacity-60"
+                                        disabled={submittingReplies[comment.reviewUserId] === true}
+                                        onClick={() => {
+                                          setActiveReplyEditorReviewId((current) =>
+                                            current === comment.reviewUserId ? null : current
+                                          );
+                                          setReplyErrors((prev) => ({
+                                            ...prev,
+                                            [comment.reviewUserId!]: null,
+                                          }));
+                                        }}
+                                      >
+                                        Abbrechen
+                                      </button>
+
+                                      <button
+                                        type="button"
+                                        className="rounded-lg bg-[#5EE287] px-4 py-2 text-sm font-semibold text-[#0C1910] transition-colors hover:bg-[#75F39B] disabled:cursor-not-allowed disabled:opacity-60"
+                                        disabled={!user || submittingReplies[comment.reviewUserId] === true}
+                                        onClick={() => {
+                                          void submitReply(comment.reviewUserId!);
+                                        }}
+                                      >
+                                        {submittingReplies[comment.reviewUserId]
+                                          ? "Sende..."
+                                          : "Antwort senden"}
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              ) : null}
+
+                              {replyErrors[comment.reviewUserId] ? (
+                                <p className="mt-3 text-xs text-red-300">
+                                  {replyErrors[comment.reviewUserId]}
+                                </p>
+                              ) : null}
                             </div>
                           ) : null}
                         </div>
@@ -941,16 +1524,27 @@ export default function ProductPage() {
                 <p className="text-xs text-[#8AF5AC] mb-3">{listMessage}</p>
               )}
 
-              <div className="mb-5 rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4">
-                <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-                  <div>
-                    <h3 className="text-base font-semibold text-white">Eigene Listen</h3>
+              <div className="mb-5 rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4 sm:p-5">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="text-base font-semibold text-white">Eigene Listen</h3>
+                      <span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#AFC1D3]">
+                        {customListsLoaded ? `${customLists.length} Listen` : "Listen"}
+                      </span>
+                    </div>
                     <p className="mt-2 text-sm text-[#9EB0C3]">
-                      Sortiere dieses Produkt in deine eigenen, benannten Listen ein oder lege direkt eine neue an.
+                      In Listen einsortieren oder direkt eine neue anlegen.
                     </p>
                   </div>
 
-                  <div className="flex w-full flex-col gap-2 sm:flex-row lg:w-auto">
+                  <p className="rounded-full border border-[#24455A] bg-[#10202A] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#BDEBFF]">
+                    Schnellzugriff
+                  </p>
+                </div>
+
+                <div className="mt-4 rounded-[22px] border border-[#223243] bg-[#0F1722] p-3 sm:p-4">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                     <input
                       type="text"
                       value={customListInput}
@@ -959,9 +1553,9 @@ export default function ProductPage() {
                         setCustomListInput(event.target.value);
                         setCustomListMessage(null);
                       }}
-                      placeholder="Neue Liste anlegen"
+                      placeholder="Neue Liste"
                       disabled={!user || creatingList}
-                      className="min-h-11 w-full min-w-[220px] rounded-2xl border border-[#2D3A4B] bg-[#0F1621] px-4 py-3 text-white outline-none transition-colors placeholder:text-[#7F93A8] focus:border-[#5EE287] disabled:cursor-not-allowed disabled:opacity-60"
+                      className="min-h-11 w-full rounded-2xl border border-[#2D3A4B] bg-[#0C141E] px-4 py-3 text-white outline-none transition-colors placeholder:text-[#7F93A8] focus:border-[#5EE287] disabled:cursor-not-allowed disabled:opacity-60"
                     />
                     <button
                       type="button"
@@ -969,9 +1563,9 @@ export default function ProductPage() {
                       onClick={() => {
                         void handleCreateCustomList();
                       }}
-                      className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-[#5EE287] px-5 py-3 font-semibold text-[#0C1910] transition-colors hover:bg-[#79F29C] disabled:cursor-not-allowed disabled:opacity-60"
+                      className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-2xl bg-[#5EE287] px-5 py-3 font-semibold text-[#0C1910] transition-colors hover:bg-[#79F29C] disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      {creatingList ? "Erstelle..." : "Liste + Produkt"}
+                      {creatingList ? "Erstelle..." : "Liste erstellen"}
                     </button>
                   </div>
                 </div>
@@ -986,7 +1580,7 @@ export default function ProductPage() {
                   <p className="mt-4 text-sm text-[#8CA1B8]">Eigene Listen werden geladen...</p>
                 ) : customLists.length === 0 ? (
                   <p className="mt-4 rounded-[20px] border border-dashed border-[#35503D] bg-[#0F1722] px-4 py-3 text-sm text-[#AFC1D3]">
-                    Du hast noch keine eigenen Listen. Lege oben deine erste Liste an und packe das Produkt direkt hinein.
+                    Noch keine Liste vorhanden. Lege oben deine erste an.
                   </p>
                 ) : (
                   <div className="mt-4 grid gap-2 sm:grid-cols-2">
@@ -1039,26 +1633,95 @@ export default function ProductPage() {
                 )}
               </div>
 
-              <div className="flex gap-1 mb-4">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <Star
-                    key={i}
-                    rating={ratings[routeSlug] || 0}
-                    index={i}
-                    onRate={(value) => {
-                      if (!user) return alert("Bitte einloggen!");
-                      setCommentMessage(null);
-                      void saveRating(routeSlug, value);
-                    }}
-                  />
-                ))}
+              <div className="mb-5 rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4">
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+                  <div>
+                    <h3 className="text-base font-semibold text-white">Deine Bewertung</h3>
+                    <p className="mt-2 text-sm text-[#9EB0C3]">
+                      {user
+                        ? "Wähle 0,5 bis 5 Sterne. Deine Auswahl wird direkt gespeichert."
+                        : "Logge dich ein, um dieses Produkt mit Sternen zu bewerten."}
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="rounded-full border border-[#3B4E64] bg-[#101925] px-3 py-1 text-xs font-semibold text-[#F6F8FB]">
+                      {hasUserRating
+                        ? `${formatRatingValue(userRatingValue)}/5 Sterne`
+                        : "Noch nicht bewertet"}
+                    </span>
+                    {user ? (
+                      <span className="rounded-full border border-[#2D5B41] bg-[#173023] px-3 py-1 text-xs font-semibold text-[#D9FFE6]">
+                        Sofort gespeichert
+                      </span>
+                    ) : null}
+                  </div>
+                </div>
+
+                <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className={`inline-flex w-fit gap-1 rounded-2xl border border-[#2D3A4B] bg-[#141C27] px-3 py-2 ${!user ? "opacity-60" : ""}`}>
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <Star
+                        key={i}
+                        rating={userRatingValue}
+                        index={i}
+                        onRate={(value) => {
+                          if (!user) return alert("Bitte einloggen!");
+                          setCommentMessage(null);
+                          void saveRating(routeSlug, value);
+                        }}
+                      />
+                    ))}
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-xs text-[#8CA1B8]">Halbe Sterne sind möglich.</p>
+                    {hasUserRating ? (
+                      <button
+                        type="button"
+                        className="rounded-lg border border-[#2D3A4B] bg-[#141C27] px-3 py-2 text-sm font-semibold text-white transition-colors hover:border-[#7CC8FF] disabled:cursor-not-allowed disabled:opacity-60"
+                        disabled={!user || submittingComments[routeSlug] === true}
+                        onClick={async () => {
+                          setCommentMessage(null);
+                          const response = await deleteRating(routeSlug);
+                          if (!response.success) {
+                            setCommentMessage(response.error || "Bewertung konnte nicht entfernt werden.");
+                            return;
+                          }
+
+                          setCommentMessage("Bewertung entfernt.");
+                          setDetailsReloadToken((prev) => prev + 1);
+                        }}
+                      >
+                        {submittingComments[routeSlug] ? "Speichere..." : "Bewertung entfernen"}
+                      </button>
+                    ) : null}
+                  </div>
+                </div>
               </div>
 
               {showCommentEditor ? (
-                <>
+                <div className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
+                      <h3 className="text-base font-semibold text-white">
+                        {isEditingOwnComment ? "Kommentar bearbeiten" : "Dein Kommentar"}
+                      </h3>
+                      <p className="mt-2 text-sm text-[#9EB0C3]">
+                        {user
+                          ? "Teile Geschmack, Konsistenz oder Preis-Leistung. Der grüne Button speichert deinen Kommentar."
+                          : "Logge dich ein, um einen Kommentar zu schreiben und abzusenden."}
+                      </p>
+                    </div>
+
+                    <span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-xs font-semibold text-[#D6E2EF]">
+                      {isEditingOwnComment ? "Bearbeiten" : "Optionaler Kommentar"}
+                    </span>
+                  </div>
+
                   <textarea
-                    className="w-full bg-[#141C27] border border-[#2D3A4B] rounded-xl p-3 text-white placeholder:text-[#8CA1B8] min-h-32"
-                    placeholder="Kommentar"
+                    className="mt-4 min-h-32 w-full rounded-xl border border-[#2D3A4B] bg-[#141C27] p-3 text-white placeholder:text-[#8CA1B8]"
+                    placeholder="Was hat dir gefallen oder nicht gefallen?"
                     value={commentDrafts[routeSlug] || ""}
                     maxLength={1000}
                     onChange={(e) => {
@@ -1069,7 +1732,7 @@ export default function ProductPage() {
                     disabled={!user}
                   />
 
-                  <div className="flex items-center justify-between mt-3 gap-3">
+                  <div className="mt-3 flex items-center justify-between gap-3">
                     <p className="text-xs text-[#8CA1B8]">
                       {(commentDrafts[routeSlug] || "").length}/1000 Zeichen
                     </p>
@@ -1114,8 +1777,22 @@ export default function ProductPage() {
                       </button>
                     </div>
                   </div>
-                </>
-              ) : null}
+                </div>
+              ) : (
+                <div className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <h3 className="text-base font-semibold text-white">Dein Kommentar</h3>
+                      <p className="mt-1 text-sm text-[#9EB0C3]">
+                        Dein Kommentar ist bereits gespeichert. Über die drei Punkte am Kommentar kannst du ihn bearbeiten oder löschen.
+                      </p>
+                    </div>
+                    <span className="rounded-full border border-[#2D5B41] bg-[#173023] px-3 py-1 text-xs font-semibold text-[#D9FFE6]">
+                      Bereits veröffentlicht
+                    </span>
+                  </div>
+                </div>
+              )}
 
               {commentErrors[routeSlug] && (
                 <p className="text-xs text-red-300 mt-2">{commentErrors[routeSlug]}</p>

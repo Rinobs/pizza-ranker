@@ -23,6 +23,7 @@ export type ProfileBadge = {
   label: string;
   description: string;
   progressLabel: string;
+  progressPercent: number;
   unlocked: boolean;
   tone: ProfileBadgeTone;
 };
@@ -51,6 +52,10 @@ export type ProfileBadgeInput = {
 };
 
 const AVATAR_DATA_URL_PATTERN = /^data:image\/(png|jpe?g|webp);base64,[a-z0-9+/=\s]+$/i;
+
+function clampPercent(value: number) {
+  return Math.max(0, Math.min(100, Math.round(value)));
+}
 
 export function normalizeProfileBio(value: unknown) {
   if (typeof value !== "string") {
@@ -167,6 +172,7 @@ export function buildProfileBadges(input: ProfileBadgeInput): ProfileBadge[] {
       description: "Für fleißiges Bewerten und schnelles Geschmacksgespür.",
       progressLabel:
         input.ratingCount >= 12 ? `${input.ratingCount} Bewertungen` : `${input.ratingCount}/12 Bewertungen`,
+      progressPercent: clampPercent((input.ratingCount / 12) * 100),
       unlocked: input.ratingCount >= 12,
       tone: "mint",
     },
@@ -176,6 +182,7 @@ export function buildProfileBadges(input: ProfileBadgeInput): ProfileBadge[] {
       description: "Kommentare geben deinen Empfehlungen echten Mehrwert.",
       progressLabel:
         input.commentCount >= 5 ? `${input.commentCount} Kommentare` : `${input.commentCount}/5 Kommentare`,
+      progressPercent: clampPercent((input.commentCount / 5) * 100),
       unlocked: input.commentCount >= 5,
       tone: "amber",
     },
@@ -185,6 +192,7 @@ export function buildProfileBadges(input: ProfileBadgeInput): ProfileBadge[] {
       description: "Favoriten und Wunschliste zeigen deinen Style als Sammler.",
       progressLabel:
         collectionCount >= 8 ? `${collectionCount} Listenplätze` : `${collectionCount}/8 Listenplätze`,
+      progressPercent: clampPercent((collectionCount / 8) * 100),
       unlocked: collectionCount >= 8,
       tone: "sky",
     },
@@ -194,6 +202,7 @@ export function buildProfileBadges(input: ProfileBadgeInput): ProfileBadge[] {
       description: "Wer Food-Friends sammelt, baut seine eigene Liga auf.",
       progressLabel:
         socialCount >= 4 ? `${socialCount} Social Verbindungen` : `${socialCount}/4 Social Verbindungen`,
+      progressPercent: clampPercent((socialCount / 4) * 100),
       unlocked: socialCount >= 4,
       tone: "rose",
     },
@@ -202,6 +211,7 @@ export function buildProfileBadges(input: ProfileBadgeInput): ProfileBadge[] {
       label: "Profile Glow",
       description: "Ein rundes Profil wirkt direkt lebendig und vertrauenswürdig.",
       progressLabel: `${input.completionPercent}% Profil komplett`,
+      progressPercent: clampPercent(input.completionPercent),
       unlocked: input.completionPercent === 100,
       tone: "mint",
     },
@@ -213,6 +223,7 @@ export function buildProfileBadges(input: ProfileBadgeInput): ProfileBadge[] {
         input.isLeagueLeader || input.points >= 360
           ? `${input.points} Punkte`
           : `${input.points}/360 Punkte`,
+      progressPercent: input.isLeagueLeader ? 100 : clampPercent((input.points / 360) * 100),
       unlocked: input.isLeagueLeader || input.points >= 360,
       tone: "amber",
     },
@@ -224,6 +235,12 @@ export function buildProfileBadges(input: ProfileBadgeInput): ProfileBadge[] {
         input.averageRating !== null
           ? `${input.averageRating.toFixed(1)} Durchschnitt`
           : "Noch kein Durchschnitt",
+      progressPercent: clampPercent(
+        Math.min(
+          ((input.averageRating ?? 0) / 4) * 100,
+          (input.ratingCount / 5) * 100
+        )
+      ),
       unlocked: input.averageRating !== null && input.averageRating >= 4 && input.ratingCount >= 5,
       tone: "sky",
     },

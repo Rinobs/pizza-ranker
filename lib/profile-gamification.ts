@@ -33,6 +33,23 @@ export type ProfileLevelInfo = {
   pointsToNextLevel: number;
 };
 
+export type TasteComparisonItem = {
+  productSlug: string;
+  viewerRating: number;
+  candidateRating: number;
+  difference: number;
+  averageRating: number;
+};
+
+export type TasteComparisonSummary = {
+  overlapCount: number;
+  averageDifference: number;
+  matchScore: number;
+  overlaps: TasteComparisonItem[];
+  strongestAgreements: TasteComparisonItem[];
+  strongestDisagreements: TasteComparisonItem[];
+};
+
 export function calculateProfilePoints(summary: ProfilePointSummary) {
   return (
     summary.ratingCount * PROFILE_POINT_WEIGHTS.rating +
@@ -69,8 +86,28 @@ export function buildTasteMatch(
   viewerRatings: Map<string, number>,
   candidateRatings: Map<string, number>
 ) {
-  let overlapCount = 0;
-  let totalDifference = 0;
+  const comparison = buildTasteComparison(viewerRatings, candidateRatings);
+
+  if (!comparison) {
+    return null;
+  }
+
+  return {
+    overlapCount: comparison.overlapCount,
+    averageDifference: comparison.averageDifference,
+    matchScore: comparison.matchScore,
+  };
+}
+
+export function buildTasteComparison(
+  viewerRatings: Map<string, number>,
+  candidateRatings: Map<string, number>,
+  options?: {
+    agreementLimit?: number;
+    disagreementLimit?: number;
+  }
+) {
+  const overlaps: TasteComparisonItem[] = [];
 
   for (const [productSlug, viewerRating] of viewerRatings.entries()) {
     const candidateRating = candidateRatings.get(productSlug);
@@ -79,21 +116,57 @@ export function buildTasteMatch(
       continue;
     }
 
-    overlapCount += 1;
-    totalDifference += Math.abs(viewerRating - candidateRating);
+    const difference = Math.abs(viewerRating - candidateRating);
+    overlaps.push({
+      productSlug,
+      viewerRating,
+      candidateRating,
+      difference,
+      averageRating: (viewerRating + candidateRating) / 2,
+    });
   }
 
-  if (overlapCount === 0) {
+  if (overlaps.length === 0) {
     return null;
   }
 
-  const averageDifference = totalDifference / overlapCount;
-  const closenessScore = Math.max(0, 100 - Math.round((averageDifference / 4) * 100));
-  const overlapBonus = Math.min(15, overlapCount * 3);
+  const averageDifference =
+    overlaps.reduce((sum, item) => sum + item.difference, 0) / overlaps.length;
+  const closenessScore = Math.max(
+    0,
+    100 - Math.round((averageDifference / 4) * 100)
+  );
+  const overlapBonus = Math.min(15, overlaps.length * 3);
+  const strongestAgreements = [...overlaps]
+    .sort((left, right) => {
+      if (left.difference !== right.difference) {
+        return left.difference - right.difference;
+      }
+      if (left.averageRating !== right.averageRating) {
+        return right.averageRating - left.averageRating;
+      }
+      return left.productSlug.localeCompare(right.productSlug, "de");
+    })
+    .slice(0, options?.agreementLimit ?? 4);
+  const strongestDisagreements = [...overlaps]
+    .filter((item) => item.difference >= 1)
+    .sort((left, right) => {
+      if (left.difference !== right.difference) {
+        return right.difference - left.difference;
+      }
+      if (left.averageRating !== right.averageRating) {
+        return right.averageRating - left.averageRating;
+      }
+      return left.productSlug.localeCompare(right.productSlug, "de");
+    })
+    .slice(0, options?.disagreementLimit ?? 4);
 
   return {
-    overlapCount,
+    overlapCount: overlaps.length,
     averageDifference,
     matchScore: Math.min(100, closenessScore + overlapBonus),
-  };
+    overlaps,
+    strongestAgreements,
+    strongestDisagreements,
+  } satisfies TasteComparisonSummary;
 }

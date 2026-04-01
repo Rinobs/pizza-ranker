@@ -5,6 +5,7 @@ import {
   getSupabaseAdminClient,
   RATINGS_TABLE,
   REVIEW_LIKES_TABLE,
+  REVIEW_REPLIES_TABLE,
   USER_PROFILES_TABLE,
 } from "@/lib/supabase";
 import { MORE_NUTRITION_PROTEIN_DETAILS } from "@/app/data/more-nutrition-protein";
@@ -15,6 +16,10 @@ import {
   buildReviewLikeStateMap,
   type ReviewLikeRow,
 } from "@/lib/review-likes";
+import {
+  isReviewRepliesSchemaMissingError,
+  type ReviewReplyRow,
+} from "@/lib/review-replies";
 import { getStableUserId } from "@/lib/user-id";
 
 export const runtime = "nodejs";
@@ -53,6 +58,17 @@ type ProductComment = {
   isOwnComment: boolean;
   likeCount: number;
   viewerLiked: boolean;
+  replyCount: number;
+  replies: ReviewReply[];
+};
+
+type ReviewReply = {
+  id: number;
+  userId: string;
+  username: string;
+  text: string;
+  updatedAt: string | null;
+  isOwnReply: boolean;
 };
 
 type AminoAcidEntry = {
@@ -1825,15 +1841,30 @@ async function loadRatingSummary(routeSlug: string, currentUserId: string | null
 
   const userIds = Array.from(new Set(commentRows.map((row) => row.user_id).filter(Boolean)));
   const usernameByUserId = new Map<string, string>();
+  let reviewLikeState = new Map<string, { likeCount: number; viewerLiked: boolean }>();
+  let replyRows: ReviewReplyRow[] = [];
 
   if (userIds.length > 0) {
-    const { data: profileData, error: profileError } = await supabase
-      .from(USER_PROFILES_TABLE)
-      .select("user_id, username")
-      .in("user_id", userIds);
+    const [profileResult, likeResult, replyResult] = await Promise.all([
+      supabase
+        .from(USER_PROFILES_TABLE)
+        .select("user_id, username")
+        .in("user_id", userIds),
+      supabase
+        .from(REVIEW_LIKES_TABLE)
+        .select("user_id, review_user_id, product_slug, inserted_at, updated_at")
+        .eq("product_slug", routeSlug)
+        .in("review_user_id", userIds),
+      supabase
+        .from(REVIEW_REPLIES_TABLE)
+        .select("id, user_id, review_user_id, product_slug, text, inserted_at, updated_at")
+        .eq("product_slug", routeSlug)
+        .in("review_user_id", userIds)
+        .order("updated_at", { ascending: true }),
+    ]);
 
-    if (!profileError && Array.isArray(profileData)) {
-      for (const profile of profileData as ProfileRow[]) {
+    if (!profileResult.error && Array.isArray(profileResult.data)) {
+      for (const profile of profileResult.data as ProfileRow[]) {
         const normalizedUsername =
           typeof profile.username === "string" ? profile.username.trim() : "";
 
@@ -1842,23 +1873,73 @@ async function loadRatingSummary(routeSlug: string, currentUserId: string | null
         }
       }
     }
-  }
 
-  let reviewLikeState = new Map<string, { likeCount: number; viewerLiked: boolean }>();
-
-  if (userIds.length > 0) {
-    const { data: likeData, error: likeError } = await supabase
-      .from(REVIEW_LIKES_TABLE)
-      .select("user_id, review_user_id, product_slug, inserted_at, updated_at")
-      .eq("product_slug", routeSlug)
-      .in("review_user_id", userIds);
-
-    if (!likeError && Array.isArray(likeData)) {
+    if (!likeResult.error && Array.isArray(likeResult.data)) {
       reviewLikeState = buildReviewLikeStateMap(
-        likeData as ReviewLikeRow[],
+        likeResult.data as ReviewLikeRow[],
         currentUserId
       );
     }
+
+    if (!replyResult.error && Array.isArray(replyResult.data)) {
+      replyRows = replyResult.data as ReviewReplyRow[];
+    } else if (
+      replyResult.error &&
+      !isReviewRepliesSchemaMissingError(replyResult.error.message)
+    ) {
+      replyRows = [];
+    }
+  }
+
+  if (replyRows.length > 0) {
+    const replyUserIds = Array.from(
+      new Set(
+        replyRows
+          .map((row) => row.user_id)
+          .filter((userId) => Boolean(userId) && !usernameByUserId.has(userId))
+      )
+    );
+
+    if (replyUserIds.length > 0) {
+      const { data: replyProfileData, error: replyProfileError } = await supabase
+        .from(USER_PROFILES_TABLE)
+        .select("user_id, username")
+        .in("user_id", replyUserIds);
+
+      if (!replyProfileError && Array.isArray(replyProfileData)) {
+        for (const profile of replyProfileData as ProfileRow[]) {
+          const normalizedUsername =
+            typeof profile.username === "string" ? profile.username.trim() : "";
+
+          if (normalizedUsername) {
+            usernameByUserId.set(profile.user_id, normalizedUsername);
+          }
+        }
+      }
+    }
+  }
+
+  const repliesByReviewKey = new Map<string, ReviewReply[]>();
+
+  for (const row of replyRows) {
+    const text = typeof row.text === "string" ? row.text.trim() : "";
+    if (!text) {
+      continue;
+    }
+
+    const key = buildReviewLikeKey(row.review_user_id, routeSlug);
+    const currentReplies = repliesByReviewKey.get(key) ?? [];
+
+    currentReplies.push({
+      id: row.id,
+      userId: row.user_id,
+      username: usernameByUserId.get(row.user_id) ?? FALLBACK_USERNAME,
+      text,
+      updatedAt: typeof row.updated_at === "string" ? row.updated_at : null,
+      isOwnReply: currentUserId !== null && row.user_id === currentUserId,
+    });
+
+    repliesByReviewKey.set(key, currentReplies);
   }
 
   const comments: ProductComment[] = commentRows
@@ -1873,6 +1954,7 @@ async function loadRatingSummary(routeSlug: string, currentUserId: string | null
           likeCount: 0,
           viewerLiked: false,
         };
+      const replies = repliesByReviewKey.get(buildReviewLikeKey(row.user_id, routeSlug)) ?? [];
 
       return {
         reviewUserId: row.user_id,
@@ -1882,6 +1964,8 @@ async function loadRatingSummary(routeSlug: string, currentUserId: string | null
         isOwnComment: currentUserId !== null && row.user_id === currentUserId,
         likeCount: likeState.likeCount,
         viewerLiked: likeState.viewerLiked,
+        replyCount: replies.length,
+        replies,
       };
     })
     .filter((entry): entry is ProductComment => entry !== null);

@@ -35,6 +35,7 @@ import {
   isDiscoverSortMode,
   type DiscoverSortMode,
 } from "@/lib/product-navigation";
+import { getCategoryAccent } from "@/lib/category-accents";
 import { getProfileInitials } from "@/lib/profile-features";
 
 type RankedProduct = {
@@ -144,6 +145,11 @@ type TopListsResponse = {
   error?: string;
 };
 
+type FeedCategoryOption = {
+  category: string;
+  count: number;
+};
+
 const COMPACT_NUMBER_FORMATTER = new Intl.NumberFormat("de-DE", {
   notation: "compact",
   maximumFractionDigits: 1,
@@ -157,6 +163,10 @@ const ABSOLUTE_DATE_FORMATTER = new Intl.DateTimeFormat("de-DE", {
   day: "2-digit",
   month: "short",
 });
+
+const CATEGORY_ORDER = new Map(
+  CATEGORY_NAV_ITEMS.map((item, index) => [item.name, index] as const)
+);
 
 function toRankedProduct(product: Product): RankedProduct {
   return {
@@ -246,6 +256,32 @@ function formatRatingValue(value: number | null) {
   return value.toFixed(1);
 }
 
+function getFeedCategoryOptions(activities: FeedActivity[]): FeedCategoryOption[] {
+  const counts = new Map<string, number>();
+
+  for (const activity of activities) {
+    const category = activity.product.category.trim();
+    if (!category) {
+      continue;
+    }
+
+    counts.set(category, (counts.get(category) ?? 0) + 1);
+  }
+
+  return Array.from(counts.entries())
+    .map(([category, count]) => ({ category, count }))
+    .sort((left, right) => {
+      const leftOrder = CATEGORY_ORDER.get(left.category) ?? Number.MAX_SAFE_INTEGER;
+      const rightOrder = CATEGORY_ORDER.get(right.category) ?? Number.MAX_SAFE_INTEGER;
+
+      if (leftOrder !== rightOrder) {
+        return leftOrder - rightOrder;
+      }
+
+      return left.category.localeCompare(right.category, "de");
+    });
+}
+
 function Panel({
   eyebrow,
   title,
@@ -285,13 +321,17 @@ function Panel({
 function ProductCard({
   product,
   eager = false,
+  className = "",
 }: {
   product: RankedProduct;
   eager?: boolean;
+  className?: string;
 }) {
+  const categoryAccent = getCategoryAccent(product.category);
+
   return (
     <div
-      className="group relative overflow-hidden rounded-[24px] border border-[#2D3A4B] bg-[#131B26] shadow-[0_14px_34px_rgba(0,0,0,0.3)] transition-all duration-300 hover:-translate-y-1.5 hover:border-[#5EE287] hover:shadow-[0_20px_44px_rgba(34,197,94,0.18)]"
+      className={`group relative overflow-hidden rounded-[24px] border border-[#2D3A4B] bg-[#131B26] shadow-[0_14px_34px_rgba(0,0,0,0.3)] transition-all duration-300 hover:-translate-y-1.5 ${categoryAccent.cardClass} ${className}`}
       style={{ aspectRatio: "0.72" }}
     >
       <Link
@@ -299,6 +339,8 @@ function ProductCard({
         aria-label={`${product.name} öffnen`}
         className="absolute inset-0 z-10 rounded-[24px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8AF5AC] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0F151E]"
       />
+
+      <div className={`absolute inset-x-0 top-0 z-[1] h-1 ${categoryAccent.accentBarClass}`} />
 
       <ProductCardImage
         routeSlug={product.routeSlug}
@@ -310,7 +352,7 @@ function ProductCard({
 
       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/28 to-transparent" />
 
-      <div className="absolute left-3 top-3 rounded-full border border-white/10 bg-[#0D1420]/88 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#DCE9F5]">
+      <div className={`absolute left-3 top-3 rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] ${categoryAccent.badgeClass}`}>
         {product.category}
       </div>
 
@@ -352,21 +394,27 @@ function ProductShelf({
         actionHref ? (
           <Link
             href={actionHref}
-            className="inline-flex items-center gap-2 rounded-full border border-[#2D3A4B] bg-[#121B27] px-4 py-2 text-sm font-semibold text-white transition-colors hover:border-[#5EE287] hover:text-[#D9FFE6]"
+            className="inline-flex items-center gap-3 rounded-full border border-[#5EE287]/35 bg-[linear-gradient(135deg,rgba(94,226,135,0.16),rgba(18,27,39,0.94))] px-4 py-2.5 text-sm font-semibold text-[#F3FFF6] shadow-[0_12px_28px_rgba(0,0,0,0.18)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#8AF5AC] hover:bg-[linear-gradient(135deg,rgba(94,226,135,0.24),rgba(18,27,39,0.98))] hover:shadow-[0_16px_34px_rgba(94,226,135,0.14)]"
           >
-            Mehr sehen
-            <FiArrowRight size={16} />
+            <span>Mehr sehen</span>
+            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-[#8AF5AC]/35 bg-[#173023] text-[#CFFFE0]">
+              <FiArrowRight size={15} />
+            </span>
           </Link>
         ) : null
       }
     >
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+      <div className="home-shelf-carousel flex gap-4 overflow-x-auto pb-3 pr-1 snap-x snap-mandatory">
         {products.map((product, index) => (
-          <ProductCard
+          <div
             key={`${title}-${product.routeSlug}`}
-            product={product}
-            eager={index < 2}
-          />
+            className="w-[74vw] min-w-[220px] max-w-[250px] shrink-0 snap-start sm:w-[240px] sm:min-w-[240px] sm:max-w-[240px] lg:w-[252px] lg:min-w-[252px] lg:max-w-[252px]"
+          >
+            <ProductCard
+              product={product}
+              eager={index < 2}
+            />
+          </div>
         ))}
       </div>
     </Panel>
@@ -527,8 +575,13 @@ function ActivityCard({
   isUpdatingReviewLike: (reviewUserId: string, productSlug: string) => boolean;
 }) {
   const productHref = `/produkt/${activity.product.routeSlug}`;
+  const reviewReplyHref =
+    activity.kind === "review" && activity.reviewUserId
+      ? `${productHref}#review-${activity.reviewUserId}`
+      : productHref;
   const profileHref = `/profil/${activity.userId}`;
   const ratingLabel = formatRatingValue(activity.rating);
+  const categoryAccent = getCategoryAccent(activity.product.category);
   const reviewLikeState =
     activity.kind === "review" && activity.reviewUserId
       ? getReviewLikeState(activity.reviewUserId, activity.product.routeSlug)
@@ -652,7 +705,7 @@ function ActivityCard({
           </p>
 
           <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-[#8CA1B8]">
-            <span className="rounded-full border border-[#2D3A4B] bg-[#101822] px-2.5 py-1">
+            <span className={`rounded-full border px-2.5 py-1 ${categoryAccent.subtleBadgeClass}`}>
               {activity.product.category}
             </span>
             {ratingLabel ? (
@@ -669,7 +722,7 @@ function ActivityCard({
           ) : null}
 
           {activity.kind === "review" && activity.reviewUserId ? (
-            <div className="mt-3">
+            <div className="mt-3 flex flex-wrap items-center gap-2">
               <ReviewLikeButton
                 compact
                 active={reviewLikeState.viewerLiked}
@@ -682,13 +735,21 @@ function ActivityCard({
                   onToggleReviewLike(activity.reviewUserId!, activity.product.routeSlug);
                 }}
               />
+
+              <Link
+                href={reviewReplyHref}
+                className="inline-flex items-center gap-2 rounded-full border border-[#35506A] bg-[#132132] px-3 py-1.5 text-xs font-semibold text-[#D9ECFF] transition-colors hover:border-[#7CC8FF] hover:text-white"
+              >
+                <FiMessageSquare size={14} />
+                <span>Antworten</span>
+              </Link>
             </div>
           ) : null}
         </div>
 
         <Link
           href={productHref}
-          className="relative hidden h-28 w-20 shrink-0 overflow-hidden rounded-[18px] border border-[#2D3A4B] bg-[#101822] sm:block"
+          className={`relative hidden h-36 w-28 shrink-0 overflow-hidden rounded-[22px] border bg-[#101822] shadow-[0_16px_36px_rgba(0,0,0,0.24)] sm:block lg:h-40 lg:w-32 ${categoryAccent.thumbClass}`}
         >
           <ProductCardImage
             routeSlug={activity.product.routeSlug}
@@ -711,7 +772,26 @@ function FeedPanel({
   feedLoading: boolean;
   feedError: string | null;
 }) {
+  const [activeCategoryFilter, setActiveCategoryFilter] = useState("all");
   const hasActivities = feedData.activities.length > 0;
+  const categoryOptions = useMemo(
+    () => getFeedCategoryOptions(feedData.activities),
+    [feedData.activities]
+  );
+  const resolvedCategoryFilter =
+    activeCategoryFilter === "all" ||
+    categoryOptions.some((option) => option.category === activeCategoryFilter)
+      ? activeCategoryFilter
+      : "all";
+  const filteredActivities = useMemo(
+    () =>
+      resolvedCategoryFilter === "all"
+        ? feedData.activities
+        : feedData.activities.filter(
+            (activity) => activity.product.category === resolvedCategoryFilter
+          ),
+    [feedData.activities, resolvedCategoryFilter]
+  );
   const initialReviewLikes = useMemo(
     () =>
       feedData.activities
@@ -813,24 +893,93 @@ function FeedPanel({
           </p>
         </div>
       ) : (
-        <ul className="grid gap-4">
-          {feedData.activities.map((activity) => (
-            <ActivityCard
-              key={activity.id}
-              activity={activity}
-              canLikeReviews={Boolean(reviewLikesUser)}
-              getReviewLikeState={getReviewLikeState}
-              isUpdatingReviewLike={isUpdatingReviewLike}
-              onToggleReviewLike={(reviewUserId, productSlug) => {
-                if (!reviewLikesUser) {
-                  return;
-                }
+        <>
+          {categoryOptions.length > 1 ? (
+            <div className="mb-5">
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+                <p className="text-[11px] uppercase tracking-[0.2em] text-[#8CA1B8]">
+                  Kategorie filtern
+                </p>
+                <p className="text-xs text-[#8CA1B8]">
+                  {resolvedCategoryFilter === "all"
+                    ? `${feedData.activities.length} Aktivitäten`
+                    : `${filteredActivities.length} von ${feedData.activities.length} Aktivitäten`}
+                </p>
+              </div>
 
-                void toggleReviewLike(reviewUserId, productSlug);
-              }}
-            />
-          ))}
-        </ul>
+              <div className="flex gap-2 overflow-x-auto pb-2">
+                <button
+                  type="button"
+                  onClick={() => setActiveCategoryFilter("all")}
+                  className={`whitespace-nowrap rounded-full border px-3 py-2 text-xs font-semibold transition-colors ${
+                    resolvedCategoryFilter === "all"
+                      ? "border-[#5EE287] bg-[#173023] text-[#D9FFE6]"
+                      : "border-[#2D3A4B] bg-[#111925] text-[#D6E2EF] hover:border-[#5EE287] hover:text-white"
+                  }`}
+                >
+                  Alle
+                  <span className="ml-2 opacity-70">
+                    {formatCompactCount(feedData.activities.length)}
+                  </span>
+                </button>
+
+                {categoryOptions.map((option) => {
+                  const accent = getCategoryAccent(option.category);
+                  const isActive = resolvedCategoryFilter === option.category;
+
+                  return (
+                    <button
+                      key={option.category}
+                      type="button"
+                      onClick={() => setActiveCategoryFilter(option.category)}
+                      className={`whitespace-nowrap rounded-full border px-3 py-2 text-xs font-semibold transition-colors ${
+                        isActive
+                          ? accent.badgeClass
+                          : `${accent.subtleBadgeClass} hover:text-white`
+                      }`}
+                    >
+                      {option.category}
+                      <span className="ml-2 opacity-70">
+                        {formatCompactCount(option.count)}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
+
+          {filteredActivities.length > 0 ? (
+            <ul className="grid gap-4">
+              {filteredActivities.map((activity) => (
+                <ActivityCard
+                  key={activity.id}
+                  activity={activity}
+                  canLikeReviews={Boolean(reviewLikesUser)}
+                  getReviewLikeState={getReviewLikeState}
+                  isUpdatingReviewLike={isUpdatingReviewLike}
+                  onToggleReviewLike={(reviewUserId, productSlug) => {
+                    if (!reviewLikesUser) {
+                      return;
+                    }
+
+                    void toggleReviewLike(reviewUserId, productSlug);
+                  }}
+                />
+              ))}
+            </ul>
+          ) : (
+            <div className="rounded-[28px] border border-dashed border-[#35503D] bg-[#111925]/85 p-6">
+              <p className="text-lg font-semibold text-white">
+                Keine Feed-Einträge für {resolvedCategoryFilter}
+              </p>
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#AFC1D3]">
+                Sobald jemand aus deinem Netzwerk in dieser Kategorie bewertet, reviewed
+                oder Produkte speichert, taucht das hier auf.
+              </p>
+            </div>
+          )}
+        </>
       )}
 
       {reviewLikesError ? (
@@ -963,21 +1112,27 @@ function CategoryPanel() {
       description="Die Homepage zeigt schon direkt, dass es hier um bewertbare Lebensmittel geht: von Tiefkühlpizza bis Proteinpulver."
     >
       <div className="grid gap-3">
-        {CATEGORY_NAV_ITEMS.map((category) => (
-          <Link
-            key={category.slug}
-            href={category.href}
-            className="group flex items-start gap-3 rounded-[22px] border border-[#2A394B] bg-[#101822] p-4 transition-all duration-300 hover:-translate-y-1 hover:border-[#5EE287]/35"
-          >
-            <span className="text-2xl leading-none">{category.icon}</span>
-            <div className="min-w-0">
-              <p className="font-semibold text-white transition-colors group-hover:text-[#8AF5AC]">
-                {category.name}
-              </p>
-              <p className="mt-1 text-sm text-[#8CA1B8]">{category.description}</p>
-            </div>
-          </Link>
-        ))}
+        {CATEGORY_NAV_ITEMS.map((category) => {
+          const accent = getCategoryAccent(category.name);
+
+          return (
+            <Link
+              key={category.slug}
+              href={category.href}
+              className={`group flex items-start gap-3 rounded-[22px] border p-4 transition-all duration-300 hover:-translate-y-1 ${accent.navCardClass}`}
+            >
+              <span className={`inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border text-2xl leading-none ${accent.iconWrapClass}`}>
+                {category.icon}
+              </span>
+              <div className="min-w-0">
+                <p className={`font-semibold text-white transition-colors ${accent.navTitleClass}`}>
+                  {category.name}
+                </p>
+                <p className="mt-1 text-sm text-[#8CA1B8]">{category.description}</p>
+              </div>
+            </Link>
+          );
+        })}
       </div>
     </Panel>
   );
@@ -998,6 +1153,11 @@ function HomeHero({
   isLoading: boolean;
   hasLiveRatings: boolean;
 }) {
+  const heroShelfEyebrow = hasLiveRatings ? "Top bewertet diese Woche" : "Aktuelle Highlights";
+  const heroShelfDescription = hasLiveRatings
+    ? "Diese Auswahl basiert auf den aktuell stärksten Community-Bewertungen der Woche."
+    : "Diese Auswahl zeigt dir zum Start die spannendsten Produkte im aktuellen Katalog.";
+
   return (
     <section className="overflow-hidden rounded-[40px] border border-[#314258] bg-[radial-gradient(circle_at_top_left,rgba(94,226,135,0.16),rgba(9,14,21,0.98)_38%),radial-gradient(circle_at_top_right,rgba(255,216,108,0.08),transparent_34%),linear-gradient(145deg,rgba(18,26,38,0.99),rgba(8,12,18,0.97))] p-6 shadow-[0_30px_80px_rgba(0,0,0,0.34)] sm:p-8 lg:p-10">
       <div className="grid gap-8 xl:grid-cols-[1.1fr_0.9fr] xl:items-start">
@@ -1078,14 +1238,25 @@ function HomeHero({
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          {heroProducts.map((product, index) => (
-            <ProductCard
-              key={`hero-${product.routeSlug}`}
-              product={product}
-              eager={index < 2}
-            />
-          ))}
+        <div className="rounded-[30px] border border-[#2A394B] bg-[linear-gradient(145deg,rgba(15,22,32,0.92),rgba(10,16,24,0.94))] p-4 shadow-[0_22px_50px_rgba(0,0,0,0.24)] sm:p-5">
+          <div className="mb-4">
+            <p className="text-[11px] uppercase tracking-[0.24em] text-[#9CC9AE]">
+              {heroShelfEyebrow}
+            </p>
+            <p className="mt-2 text-sm leading-relaxed text-[#AFC1D3]">
+              {heroShelfDescription}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            {heroProducts.map((product, index) => (
+              <ProductCard
+                key={`hero-${product.routeSlug}`}
+                product={product}
+                eager={index < 2}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </section>
@@ -1419,8 +1590,31 @@ export default function HomeContent() {
                 </div>
               ) : (
                 <div className="rounded-[28px] border border-[#2A394B] bg-[#111925]/90 p-6 text-[#C4D0DE]">
-                  Keine Treffer gefunden. Versuche andere Begriffe wie Pizza, Salami, Vanille,
-                  Protein oder wähle eine andere Kategorie.
+                  <p>
+                    Keine Treffer gefunden. Versuche andere Begriffe wie Pizza, Salami, Vanille,
+                    Protein oder wähle eine andere Kategorie.
+                  </p>
+                  <div className="mt-4 flex flex-wrap gap-3">
+                    <Link
+                      href={{
+                        pathname: "/produkt-vorschlagen",
+                        query: {
+                          ...(searchQuery ? { name: searchQuery } : {}),
+                          ...(selectedCategory !== "all" ? { category: selectedCategory } : {}),
+                          from: "suche",
+                        },
+                      }}
+                      className="inline-flex items-center rounded-full bg-[#5EE287] px-4 py-2 text-sm font-semibold text-[#0C1910] transition-colors hover:bg-[#79F29C]"
+                    >
+                      Produkt vorschlagen
+                    </Link>
+                    <Link
+                      href="/"
+                      className="inline-flex items-center rounded-full border border-[#2D3A4B] bg-[#141C27] px-4 py-2 text-sm font-semibold text-white transition-colors hover:border-[#5EE287] hover:text-[#D9FFE6]"
+                    >
+                      Zur Startseite
+                    </Link>
+                  </div>
                 </div>
               )}
             </section>

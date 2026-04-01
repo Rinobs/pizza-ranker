@@ -5,7 +5,9 @@ import {
   getSupabaseAdminClient,
   RATINGS_TABLE,
   REVIEW_LIKES_TABLE,
+  REVIEW_REPLIES_TABLE,
 } from "@/lib/supabase";
+import { isReviewRepliesSchemaMissingError } from "@/lib/review-replies";
 import { getStableUserId } from "@/lib/user-id";
 
 const PRODUCT_SLUG_PATTERN = /^[a-z0-9-]+$/;
@@ -59,6 +61,18 @@ async function clearReviewLikes(
 ) {
   return supabase
     .from(REVIEW_LIKES_TABLE)
+    .delete()
+    .eq("review_user_id", userId)
+    .eq("product_slug", productSlug);
+}
+
+async function clearReviewReplies(
+  supabase: NonNullable<ReturnType<typeof getSupabaseAdminClient>>,
+  userId: string,
+  productSlug: string
+) {
+  return supabase
+    .from(REVIEW_REPLIES_TABLE)
     .delete()
     .eq("review_user_id", userId)
     .eq("product_slug", productSlug);
@@ -155,6 +169,22 @@ export async function POST(req: Request) {
     if (likeCleanupError) {
       return NextResponse.json(
         { success: false, error: likeCleanupError.message },
+        { status: 400 }
+      );
+    }
+
+    const { error: replyCleanupError } = await clearReviewReplies(
+      supabase,
+      userId,
+      productSlug
+    );
+
+    if (
+      replyCleanupError &&
+      !isReviewRepliesSchemaMissingError(replyCleanupError.message)
+    ) {
+      return NextResponse.json(
+        { success: false, error: replyCleanupError.message },
         { status: 400 }
       );
     }

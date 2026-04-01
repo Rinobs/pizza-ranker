@@ -7,12 +7,20 @@ export default function NotFound() {
         <h1 className="text-5xl font-bold mb-4 text-white">404</h1>
         <p className="text-[#8CA1B8] mb-6">Diese Seite wurde nicht gefunden.</p>
 
-        <Link
-          href="/"
-          className="inline-flex px-5 py-2.5 rounded-xl bg-[#1B222D] border border-[#2D3A4B] text-white hover:bg-[#212B38] hover:border-[#5EE287] transition-all duration-300"
-        >
-          Zurück zur Startseite
-        </Link>
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <Link
+            href="/"
+            className="inline-flex px-5 py-2.5 rounded-xl bg-[#1B222D] border border-[#2D3A4B] text-white hover:bg-[#212B38] hover:border-[#5EE287] transition-all duration-300"
+          >
+            Zurück zur Startseite
+          </Link>
+          <Link
+            href="/produkt-vorschlagen"
+            className="inline-flex px-5 py-2.5 rounded-xl border border-[#35503D] bg-[#173023] text-[#D9FFE6] hover:bg-[#1E3A2A] hover:border-[#5EE287] transition-all duration-300"
+          >
+            Produkt vorschlagen
+          </Link>
+        </div>
       </div>
     </div>
   );

@@ -17,6 +17,10 @@ export const USER_CUSTOM_LIST_ITEMS_TABLE =
   "user_custom_list_items";
 export const REVIEW_LIKES_TABLE =
   process.env.SUPABASE_REVIEW_LIKES_TABLE?.trim() || "review_likes";
+export const REVIEW_REPLIES_TABLE =
+  process.env.SUPABASE_REVIEW_REPLIES_TABLE?.trim() || "review_replies";
+export const PRODUCT_SUBMISSIONS_TABLE =
+  process.env.SUPABASE_PRODUCT_SUBMISSIONS_TABLE?.trim() || "product_submissions";
 
 function createSupabaseAdminClient() {
   const supabaseUrl = process.env.SUPABASE_URL;

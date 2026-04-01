@@ -139,3 +139,56 @@ create index if not exists review_likes_user_idx
 
 create index if not exists review_likes_product_idx
   on public.review_likes (product_slug);
+
+create table if not exists public.review_replies (
+  id bigint generated always as identity primary key,
+  user_id uuid not null,
+  review_user_id uuid not null,
+  product_slug text not null,
+  text text not null,
+  inserted_at timestamptz default now(),
+  updated_at timestamptz default now(),
+  constraint review_replies_not_self check (user_id <> review_user_id),
+  constraint review_replies_text_length
+    check (char_length(trim(text)) between 1 and 1000)
+);
+
+create index if not exists review_replies_review_product_idx
+  on public.review_replies (review_user_id, product_slug);
+
+create index if not exists review_replies_user_idx
+  on public.review_replies (user_id);
+
+create index if not exists review_replies_product_updated_at_idx
+  on public.review_replies (product_slug, updated_at desc);
+
+create table if not exists public.product_submissions (
+  id uuid primary key,
+  user_id uuid,
+  contact_email text,
+  product_name text not null,
+  brand text,
+  category text not null,
+  barcode text,
+  product_url text,
+  image_url text,
+  notes text,
+  status text not null default 'open',
+  inserted_at timestamptz default now(),
+  updated_at timestamptz default now(),
+  constraint product_submissions_status_check
+    check (status in ('open', 'approved', 'rejected')),
+  constraint product_submissions_name_length
+    check (char_length(trim(product_name)) between 2 and 120),
+  constraint product_submissions_category_length
+    check (char_length(trim(category)) between 2 and 60)
+);
+
+create index if not exists product_submissions_status_idx
+  on public.product_submissions (status);
+
+create index if not exists product_submissions_user_idx
+  on public.product_submissions (user_id);
+
+create index if not exists product_submissions_inserted_at_idx
+  on public.product_submissions (inserted_at desc);
