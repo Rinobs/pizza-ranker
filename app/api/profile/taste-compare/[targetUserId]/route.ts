@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { ALL_PRODUCTS, getProductRouteSlug } from "@/app/data/products";
+import { ALL_PRODUCTS, getProductImageUrl, getProductRouteSlug } from "@/app/data/products";
 import {
   RATINGS_TABLE,
   USER_PRODUCT_LISTS_TABLE,
@@ -46,6 +46,7 @@ function mapProductBase(slug: string) {
     productSlug: slug,
     name: product?.name ?? slug,
     category: product?.category ?? "Unbekannt",
+    imageUrl: getProductImageUrl(product ?? { imageUrl: null }),
   };
 }
 
@@ -201,6 +202,24 @@ export async function GET(
             matchScore: comparison.matchScore,
             overlapCount: comparison.overlapCount,
             averageDifference: Number(comparison.averageDifference.toFixed(2)),
+            overlapProducts: [...comparison.overlaps]
+              .sort((left, right) => {
+                if (left.difference !== right.difference) {
+                  return left.difference - right.difference;
+                }
+
+                if (left.averageRating !== right.averageRating) {
+                  return right.averageRating - left.averageRating;
+                }
+
+                return left.productSlug.localeCompare(right.productSlug, "de");
+              })
+              .map((item) => ({
+                ...mapProductBase(item.productSlug),
+                viewerRating: item.viewerRating,
+                targetRating: item.candidateRating,
+                difference: Number(item.difference.toFixed(2)),
+              })),
             strongestAgreements: comparison.strongestAgreements.map((item) => ({
               ...mapProductBase(item.productSlug),
               viewerRating: item.viewerRating,

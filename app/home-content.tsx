@@ -356,8 +356,8 @@ function ProductCard({
         {product.category}
       </div>
 
-      <div className="absolute inset-x-0 bottom-0 z-20 p-4 pointer-events-none">
-        <h3 className="line-clamp-2 text-sm font-semibold text-white sm:text-base">
+      <div className="absolute inset-x-0 bottom-0 z-20 p-3 pointer-events-none sm:p-4">
+        <h3 className="line-clamp-2 text-[13px] font-semibold leading-[1.15] text-white sm:text-[15px] lg:text-base">
           {product.name}
         </h3>
         {product.ratingAvg !== null ? (
@@ -404,18 +404,31 @@ function ProductShelf({
         ) : null
       }
     >
-      <div className="home-shelf-carousel flex gap-4 overflow-x-auto pb-3 pr-1 snap-x snap-mandatory">
-        {products.map((product, index) => (
-          <div
-            key={`${title}-${product.routeSlug}`}
-            className="w-[74vw] min-w-[220px] max-w-[250px] shrink-0 snap-start sm:w-[240px] sm:min-w-[240px] sm:max-w-[240px] lg:w-[252px] lg:min-w-[252px] lg:max-w-[252px]"
-          >
-            <ProductCard
-              product={product}
-              eager={index < 2}
-            />
-          </div>
-        ))}
+      <div className="relative">
+        <div className="mb-3 flex justify-end">
+          <span className="inline-flex items-center gap-2 rounded-full border border-[#2D3A4B] bg-[#101822] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#D6E2EF]">
+            Nach rechts scrollen
+            <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-[#8AF5AC]/35 bg-[#173023] text-[#D9FFE6]">
+              <FiArrowRight size={12} />
+            </span>
+          </span>
+        </div>
+
+        <div className="home-shelf-carousel flex gap-4 overflow-x-auto pb-3 pr-6 snap-x snap-mandatory">
+          {products.map((product, index) => (
+            <div
+              key={`${title}-${product.routeSlug}`}
+              className="w-[78vw] min-w-[236px] max-w-[276px] shrink-0 snap-start sm:w-[258px] sm:min-w-[258px] sm:max-w-[258px] lg:w-[272px] lg:min-w-[272px] lg:max-w-[272px]"
+            >
+              <ProductCard
+                product={product}
+                eager={index < 2}
+              />
+            </div>
+          ))}
+        </div>
+
+        <div className="pointer-events-none absolute bottom-3 right-0 top-10 hidden w-16 bg-[linear-gradient(90deg,rgba(11,17,26,0),rgba(11,17,26,0.98)_72%)] sm:block" />
       </div>
     </Panel>
   );
@@ -1240,10 +1253,10 @@ function HomeHero({
 
         <div className="rounded-[30px] border border-[#2A394B] bg-[linear-gradient(145deg,rgba(15,22,32,0.92),rgba(10,16,24,0.94))] p-4 shadow-[0_22px_50px_rgba(0,0,0,0.24)] sm:p-5">
           <div className="mb-4">
-            <p className="text-[11px] uppercase tracking-[0.24em] text-[#9CC9AE]">
+            <p className="text-sm font-black uppercase tracking-[0.22em] text-[#F3FFF6] sm:text-base">
               {heroShelfEyebrow}
             </p>
-            <p className="mt-2 text-sm leading-relaxed text-[#AFC1D3]">
+            <p className="mt-2 text-sm leading-relaxed text-[#D6E2EF] sm:text-[15px]">
               {heroShelfDescription}
             </p>
           </div>
@@ -1519,7 +1532,7 @@ export default function HomeContent() {
     selectedCategory === "all" ? null : getCategoryNavigationItem(selectedCategory);
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(94,226,135,0.06),transparent_24%),linear-gradient(180deg,#0A1118_0%,#0F151E_52%,#0A1118_100%)] px-4 pb-24 pt-28 text-white sm:px-8 lg:px-12">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(94,226,135,0.06),transparent_24%),linear-gradient(180deg,#0A1118_0%,#0F151E_52%,#0A1118_100%)] px-4 pb-24 pt-16 text-white sm:px-8 sm:pt-20 lg:px-12">
       <div className="mx-auto max-w-7xl">
         {isDiscoverMode ? (
           <>

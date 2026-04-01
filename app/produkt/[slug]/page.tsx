@@ -85,6 +85,18 @@ type NutritionOption = {
   values: ProductNutritionValues;
 };
 
+type SimilarProductSummary = {
+  slug: string;
+  name: string;
+  category: string;
+  imageUrl: string;
+  price?: string;
+  averageRating: number | null;
+  ratingCount: number;
+  overlapCount: number;
+  source: "co_rated" | "category";
+};
+
 type ProductDetailsPayload = {
   marke: string;
   gewicht: string;
@@ -97,6 +109,7 @@ type ProductDetailsPayload = {
   kommentare: ProductComment[];
   preisOptionen?: PriceOption[];
   naehrwertOptionen?: NutritionOption[];
+  aehnlicheProdukte?: SimilarProductSummary[];
   quelle: "online" | "placeholder";
 };
 
@@ -424,6 +437,8 @@ export default function ProductPage() {
   const [listMessage, setListMessage] = useState<string | null>(null);
   const [customListInput, setCustomListInput] = useState("");
   const [customListMessage, setCustomListMessage] = useState<string | null>(null);
+  const [selectedCustomListId, setSelectedCustomListId] = useState("");
+  const [isCustomListCreatorOpen, setIsCustomListCreatorOpen] = useState(false);
   const [isEditingOwnComment, setIsEditingOwnComment] = useState(false);
   const [isOwnCommentMenuOpen, setIsOwnCommentMenuOpen] = useState(false);
   const [expandedReplyThreads, setExpandedReplyThreads] = useState<Record<string, boolean>>({});
@@ -586,6 +601,26 @@ export default function ProductPage() {
         : nextNutritionOptionId;
     });
   }, [mergedDetails?.naehrwertOptionen, routeSlug]);
+
+  useEffect(() => {
+    if (customLists.length === 0) {
+      if (selectedCustomListId) {
+        setSelectedCustomListId("");
+      }
+      return;
+    }
+
+    const hasSelectedList = customLists.some((list) => list.id === selectedCustomListId);
+    if (hasSelectedList) {
+      return;
+    }
+
+    const firstActiveList =
+      customLists.find((list) => list.items.some((item) => item.productSlug === routeSlug)) ||
+      customLists[0];
+
+    setSelectedCustomListId(firstActiveList?.id || "");
+  }, [customLists, routeSlug, selectedCustomListId]);
 
   const initialReviewLikes = useMemo(
     () =>
@@ -784,6 +819,8 @@ export default function ProductPage() {
   const averageRatingValue = isPlaceholderValue(mergedDetails.durchschnittsbewertung)
     ? null
     : parseRatingValue(mergedDetails.durchschnittsbewertung);
+  const similarProducts = mergedDetails.aehnlicheProdukte || [];
+  const hasCoRatedSimilarProducts = similarProducts.some((item) => item.overlapCount > 0);
   const userRatingValue = ratings[routeSlug] || 0;
   const hasUserRating = userRatingValue > 0;
   const priceOptions = mergedDetails.preisOptionen || [];
@@ -795,6 +832,17 @@ export default function ProductPage() {
     nutritionOptions[0] ||
     null;
   const activeNutritionValues = activeNutritionOption?.values || mergedDetails.naehrwerte;
+  const activeCustomLists = customLists.filter((list) =>
+    list.items.some((item) => item.productSlug === routeSlug)
+  );
+  const selectedCustomList =
+    customLists.find((list) => list.id === selectedCustomListId) || null;
+  const selectedCustomListActive = selectedCustomList
+    ? isProductInCustomList(selectedCustomList.id, routeSlug)
+    : false;
+  const selectedCustomListUpdating = selectedCustomList
+    ? isUpdatingItem(selectedCustomList.id, routeSlug)
+    : false;
 
   const keyFacts: Array<[string, string | number]> = [
     ["Kategorie", displayCategory || product.category],
@@ -874,8 +922,32 @@ export default function ProductPage() {
     }
 
     setCustomListInput("");
+    setSelectedCustomListId(createResponse.data.id);
+    setIsCustomListCreatorOpen(false);
     setCustomListMessage(
       `Liste "${createResponse.data.name}" erstellt und Produkt hinzugefügt.`
+    );
+  }
+
+  async function handleSelectedCustomListToggle() {
+    if (!selectedCustomList) {
+      return;
+    }
+
+    const response = await setProductInCustomList(
+      selectedCustomList.id,
+      routeSlug,
+      !selectedCustomListActive
+    );
+
+    if (!response.success) {
+      return;
+    }
+
+    setCustomListMessage(
+      selectedCustomListActive
+        ? `Aus "${selectedCustomList.name}" entfernt.`
+        : `Zu "${selectedCustomList.name}" hinzugefügt.`
     );
   }
 
@@ -1126,6 +1198,95 @@ export default function ProductPage() {
                 </ul>
               </section>
             )}
+
+            {similarProducts.length > 0 ? (
+              <section>
+                <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
+                  <div>
+                    <h2 className="text-xl font-semibold text-[#E8F6ED]">Ähnliche Produkte</h2>
+                    <p className="text-sm text-[#8CA1B8]">
+                      {hasCoRatedSimilarProducts
+                        ? "Von Nutzern ebenfalls bewertet."
+                        : `Beliebt in ${displayCategory || product.category}.`}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {similarProducts.map((similarProduct) => {
+                    const similarAccent = getCategoryAccent(similarProduct.category);
+
+                    return (
+                      <Link
+                        key={similarProduct.slug}
+                        href={`/produkt/${similarProduct.slug}`}
+                        className={`group rounded-[24px] border border-[#2D3A4B] bg-[#141C27] p-3 transition-colors ${similarAccent.cardClass}`}
+                      >
+                        <div className={`mb-3 h-1 rounded-full ${similarAccent.accentBarClass}`} />
+                        <div className="flex gap-3">
+                          <div
+                            className={`relative flex h-24 w-20 shrink-0 items-center justify-center overflow-hidden rounded-[18px] border bg-[#0F1722] ${similarAccent.thumbClass}`}
+                          >
+                            <img
+                              src={`/api/product-image/${similarProduct.slug}`}
+                              alt={similarProduct.name}
+                              className="h-full w-full object-contain p-2 transition-transform duration-300 group-hover:scale-[1.04]"
+                              loading="lazy"
+                              decoding="async"
+                              onError={(event) => {
+                                const image = event.currentTarget;
+                                if (image.dataset.fallbackApplied === "1") {
+                                  image.src = "/images/placeholders/product-default.svg";
+                                  return;
+                                }
+                                image.dataset.fallbackApplied = "1";
+                                image.src = getProductImageUrl({ imageUrl: similarProduct.imageUrl });
+                              }}
+                            />
+                          </div>
+
+                          <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap gap-2">
+                              <span
+                                className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[0.65rem] font-semibold ${similarAccent.badgeClass}`}
+                              >
+                                {similarProduct.category}
+                              </span>
+                              <span className="inline-flex items-center rounded-full border border-[#2D3A4B] bg-[#101925] px-2.5 py-1 text-[0.65rem] font-semibold text-[#C7D5E3]">
+                                {similarProduct.overlapCount > 0
+                                  ? `${similarProduct.overlapCount} gemeinsame Ratings`
+                                  : `${similarProduct.ratingCount} Bewertungen`}
+                              </span>
+                            </div>
+
+                            <h3 className="mt-2 line-clamp-2 text-sm font-semibold text-white transition-colors group-hover:text-[#E8F6ED]">
+                              {similarProduct.name}
+                            </h3>
+
+                            <div className="mt-3 flex flex-wrap items-center gap-2">
+                              {similarProduct.averageRating !== null ? (
+                                <>
+                                  <ReadOnlyRatingStars rating={similarProduct.averageRating} />
+                                  <span className="rounded-full border border-[#3B4E64] bg-[#101925] px-2.5 py-1 text-xs font-semibold text-[#F6F8FB]">
+                                    {formatRatingValue(similarProduct.averageRating)}/5
+                                  </span>
+                                </>
+                              ) : (
+                                <span className="text-xs text-[#8CA1B8]">Noch keine Bewertung</span>
+                              )}
+                            </div>
+
+                            {similarProduct.price ? (
+                              <p className="mt-2 text-sm text-[#AFC1D3]">{similarProduct.price}</p>
+                            ) : null}
+                          </div>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </section>
+            ) : null}
 
             <section>
               <h2 className="text-xl font-semibold mb-3 text-[#E8F6ED]">Kommentare</h2>
@@ -1525,50 +1686,139 @@ export default function ProductPage() {
               )}
 
               <div className="mb-5 rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4 sm:p-5">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="text-base font-semibold text-white">Eigene Listen</h3>
-                      <span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#AFC1D3]">
-                        {customListsLoaded ? `${customLists.length} Listen` : "Listen"}
-                      </span>
-                    </div>
-                    <p className="mt-2 text-sm text-[#9EB0C3]">
-                      In Listen einsortieren oder direkt eine neue anlegen.
-                    </p>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="text-base font-semibold text-white">Eigene Listen</h3>
+                    <span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#AFC1D3]">
+                      {!user
+                        ? "Login"
+                        : activeCustomLists.length > 0
+                        ? `In ${activeCustomLists.length} Listen`
+                        : customListsLoaded
+                          ? `${customLists.length} Listen`
+                          : "Listen"}
+                    </span>
                   </div>
 
-                  <p className="rounded-full border border-[#24455A] bg-[#10202A] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#BDEBFF]">
-                    Schnellzugriff
-                  </p>
+                  <button
+                    type="button"
+                    disabled={!user || creatingList}
+                    onClick={() => {
+                      setIsCustomListCreatorOpen((current) => !current);
+                      setCustomListMessage(null);
+                    }}
+                    className="inline-flex items-center rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-2 text-xs font-semibold text-[#D6E2EF] transition-colors hover:border-[#5EE287] hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {isCustomListCreatorOpen
+                      ? "Neue Liste schließen"
+                      : customLists.length === 0
+                        ? "Erste Liste"
+                        : "Neue Liste"}
+                  </button>
                 </div>
 
-                <div className="mt-4 rounded-[22px] border border-[#223243] bg-[#0F1722] p-3 sm:p-4">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                    <input
-                      type="text"
-                      value={customListInput}
-                      maxLength={40}
-                      onChange={(event) => {
-                        setCustomListInput(event.target.value);
-                        setCustomListMessage(null);
-                      }}
-                      placeholder="Neue Liste"
-                      disabled={!user || creatingList}
-                      className="min-h-11 w-full rounded-2xl border border-[#2D3A4B] bg-[#0C141E] px-4 py-3 text-white outline-none transition-colors placeholder:text-[#7F93A8] focus:border-[#5EE287] disabled:cursor-not-allowed disabled:opacity-60"
-                    />
+                {!customListsLoaded && (
+                  <p className="mt-4 text-sm text-[#8CA1B8]">Eigene Listen werden geladen...</p>
+                )}
+
+                {customListsLoaded && customLists.length > 0 ? (
+                  <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+                    <div className="relative flex-1">
+                      <select
+                        value={selectedCustomListId}
+                        onChange={(event) => {
+                          setSelectedCustomListId(event.target.value);
+                          setCustomListMessage(null);
+                        }}
+                        disabled={!user || customLists.length === 0}
+                        className="min-h-11 w-full appearance-none rounded-2xl border border-[#2D3A4B] bg-[#0C141E] px-4 py-3 pr-12 text-white outline-none transition-colors focus:border-[#5EE287] disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {customLists.map((list) => (
+                          <option key={list.id} value={list.id}>
+                            {list.name}
+                            {isProductInCustomList(list.id, routeSlug) ? " · hinzugefügt" : ""}
+                          </option>
+                        ))}
+                      </select>
+                      <svg
+                        viewBox="0 0 20 20"
+                        aria-hidden="true"
+                        className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8CA1B8]"
+                        fill="none"
+                      >
+                        <path
+                          d="M5 8l5 5 5-5"
+                          stroke="currentColor"
+                          strokeWidth="1.8"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </div>
                     <button
                       type="button"
-                      disabled={!user || creatingList}
+                      disabled={!user || !selectedCustomList || selectedCustomListUpdating}
                       onClick={() => {
-                        void handleCreateCustomList();
+                        void handleSelectedCustomListToggle();
                       }}
-                      className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-2xl bg-[#5EE287] px-5 py-3 font-semibold text-[#0C1910] transition-colors hover:bg-[#79F29C] disabled:cursor-not-allowed disabled:opacity-60"
+                      className={`inline-flex min-h-11 shrink-0 items-center justify-center rounded-2xl px-5 py-3 font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
+                        selectedCustomListActive
+                          ? "border border-[#2D3A4B] bg-[#141C27] text-white hover:border-[#7CC8FF]"
+                          : "bg-[#5EE287] text-[#0C1910] hover:bg-[#79F29C]"
+                      }`}
                     >
-                      {creatingList ? "Erstelle..." : "Liste erstellen"}
+                      {!selectedCustomList
+                        ? "Liste wählen"
+                        : selectedCustomListUpdating
+                          ? "Speichere..."
+                          : selectedCustomListActive
+                            ? "Entfernen"
+                            : "Hinzufügen"}
                     </button>
                   </div>
-                </div>
+                ) : null}
+
+                {activeCustomLists.length > 0 ? (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {activeCustomLists.map((list) => (
+                      <span
+                        key={list.id}
+                        className="inline-flex items-center rounded-full border border-[#35503D] bg-[#132118] px-3 py-1 text-xs font-semibold text-[#D9FFE6]"
+                      >
+                        {list.name}
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+
+                {isCustomListCreatorOpen ? (
+                  <div className="mt-4 rounded-[22px] border border-[#223243] bg-[#0F1722] p-3 sm:p-4">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                      <input
+                        type="text"
+                        value={customListInput}
+                        maxLength={40}
+                        onChange={(event) => {
+                          setCustomListInput(event.target.value);
+                          setCustomListMessage(null);
+                        }}
+                        placeholder="Neue Liste"
+                        disabled={!user || creatingList}
+                        className="min-h-11 w-full rounded-2xl border border-[#2D3A4B] bg-[#0C141E] px-4 py-3 text-white outline-none transition-colors placeholder:text-[#7F93A8] focus:border-[#5EE287] disabled:cursor-not-allowed disabled:opacity-60"
+                      />
+                      <button
+                        type="button"
+                        disabled={!user || creatingList}
+                        onClick={() => {
+                          void handleCreateCustomList();
+                        }}
+                        className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-2xl bg-[#5EE287] px-5 py-3 font-semibold text-[#0C1910] transition-colors hover:bg-[#79F29C] disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {creatingList ? "Erstelle..." : "Liste erstellen"}
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
 
                 {(customListsError || customListMessage) && (
                   <div className={`mt-4 rounded-2xl border px-4 py-3 text-sm ${customListsError ? "border-[#6A3434] bg-[#2A1313] text-red-100" : "border-[#2D5B41] bg-[#173023] text-[#D9FFE6]"}`}>
@@ -1576,61 +1826,15 @@ export default function ProductPage() {
                   </div>
                 )}
 
-                {!customListsLoaded ? (
-                  <p className="mt-4 text-sm text-[#8CA1B8]">Eigene Listen werden geladen...</p>
-                ) : customLists.length === 0 ? (
+                {customListsLoaded && !user ? (
                   <p className="mt-4 rounded-[20px] border border-dashed border-[#35503D] bg-[#0F1722] px-4 py-3 text-sm text-[#AFC1D3]">
-                    Noch keine Liste vorhanden. Lege oben deine erste an.
+                    Einloggen für eigene Listen.
                   </p>
-                ) : (
-                  <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                    {customLists.map((list) => {
-                      const active = isProductInCustomList(list.id, routeSlug);
-
-                      return (
-                        <button
-                          key={list.id}
-                          type="button"
-                          disabled={!user || isUpdatingItem(list.id, routeSlug)}
-                          onClick={async () => {
-                            const response = await setProductInCustomList(
-                              list.id,
-                              routeSlug,
-                              !active
-                            );
-
-                            if (!response.success) {
-                              return;
-                            }
-
-                            setCustomListMessage(
-                              active
-                                ? `Aus "${list.name}" entfernt.`
-                                : `Zu "${list.name}" hinzugefügt.`
-                            );
-                          }}
-                          className={`rounded-[20px] border px-4 py-3 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
-                            active
-                              ? "border-[#5EE287] bg-[linear-gradient(135deg,rgba(94,226,135,0.15),rgba(20,28,39,0.96))]"
-                              : "border-[#2D3A4B] bg-[#101822] hover:border-[#5EE287]/35"
-                          }`}
-                        >
-                          <div className="flex items-center justify-between gap-3">
-                            <div className="min-w-0">
-                              <p className="truncate font-semibold text-white">{list.name}</p>
-                              <p className="mt-1 text-xs uppercase tracking-[0.16em] text-[#8CA1B8]">
-                                {list.itemCount} Produkte
-                              </p>
-                            </div>
-                            <span className={`rounded-full px-3 py-1 text-xs font-semibold ${active ? "bg-[#5EE287] text-[#0C1910]" : "border border-[#2D3A4B] bg-[#141C27] text-[#D6E2EF]"}`}>
-                              {active ? "In Liste" : "Hinzufügen"}
-                            </span>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
+                ) : customListsLoaded && customLists.length === 0 ? (
+                  <p className="mt-4 rounded-[20px] border border-dashed border-[#35503D] bg-[#0F1722] px-4 py-3 text-sm text-[#AFC1D3]">
+                    Keine Liste vorhanden.
+                  </p>
+                ) : null}
               </div>
 
               <div className="mb-5 rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4">

@@ -7,6 +7,7 @@ import {
   FiAward,
   FiBookmark,
   FiCheckCircle,
+  FiChevronDown,
   FiClock,
   FiEdit3,
   FiGrid,
@@ -24,8 +25,9 @@ import {
   FiZap,
 } from "react-icons/fi";
 import BackButton from "@/app/components/BackButton";
+import ProductCardImage from "@/app/components/ProductCardImage";
 import ProfileAvatar from "@/app/components/ProfileAvatar";
-import { ALL_PRODUCTS, getProductRouteSlug } from "@/app/data/products";
+import { ALL_PRODUCTS, getProductImageUrl, getProductRouteSlug } from "@/app/data/products";
 import { useUserCustomLists } from "@/app/hooks/useUserCustomLists";
 import { useUserRatings } from "@/app/hooks/useUserRatings";
 import { useUserProductLists } from "@/app/hooks/useUserProductLists";
@@ -55,6 +57,15 @@ type RatedProduct = {
   category: string;
   rating: number;
   comment: string;
+  imageUrl: string;
+};
+
+type CollectionProduct = {
+  slug: string;
+  name: string;
+  category: string;
+  imageUrl: string;
+  rating: number;
 };
 
 
@@ -160,6 +171,62 @@ type FriendGameResponse = {
   error?: string;
 };
 
+type TasteCompareData = {
+  viewer: {
+    userId: string;
+    username: string;
+  };
+  target: {
+    userId: string;
+    username: string;
+  };
+  comparison: {
+    matchScore: number;
+    overlapCount: number;
+    averageDifference: number;
+    overlapProducts: Array<{
+      productSlug: string;
+      name: string;
+      category: string;
+      imageUrl: string;
+      viewerRating: number;
+      targetRating: number;
+      difference: number;
+    }>;
+    strongestAgreements: Array<{
+      productSlug: string;
+      name: string;
+      category: string;
+      imageUrl: string;
+      viewerRating: number;
+      targetRating: number;
+      difference: number;
+    }>;
+    strongestDisagreements: Array<{
+      productSlug: string;
+      name: string;
+      category: string;
+      imageUrl: string;
+      viewerRating: number;
+      targetRating: number;
+      difference: number;
+    }>;
+    sharedFavoritesCount: number;
+    sharedFavorites: Array<{
+      productSlug: string;
+      name: string;
+      category: string;
+      imageUrl: string;
+    }>;
+  } | null;
+};
+
+type TasteCompareResponse = {
+  success: boolean;
+  data?: TasteCompareData;
+  error?: string;
+};
+
 type ProfileTab = "overview" | "stats" | "badges" | "social" | "collection" | "activity" | "settings";
 
 type NoticeTone = "success" | "info";
@@ -187,6 +254,203 @@ const TAB_ITEMS: TabItem<ProfileTab>[] = [
   { id: "activity", label: "Aktivität", icon: FiActivity },
   { id: "settings", label: "Einstellungen", icon: FiEdit3 },
 ];
+
+function CollectionProductCard({
+  item,
+  accent = "mint",
+}: {
+  item: CollectionProduct;
+  accent?: "mint" | "amber" | "sky";
+}) {
+  const styles =
+    accent === "amber"
+      ? {
+          card: "hover:border-[#FFD37A]/30",
+          title: "hover:text-[#FFD37A]",
+          imageBorder: "border-[#5C4723]",
+          badge: item.rating > 0
+            ? "border-[#5C4723] bg-[#2C2110] text-[#FFD37A]"
+            : "border-[#4E4030] bg-[#1C1A16] text-[#D3C5A3]",
+        }
+      : accent === "sky"
+        ? {
+            card: "hover:border-[#7CC8FF]/35",
+            title: "hover:text-[#BDE4FF]",
+            imageBorder: "border-[#2C4F68]",
+            badge: item.rating > 0
+              ? "border-[#2C4F68] bg-[#112231] text-[#BDE4FF]"
+              : "border-[#344B5C] bg-[#131B24] text-[#AFC1D3]",
+          }
+        : {
+            card: "hover:border-[#5EE287]/25",
+            title: "hover:text-[#8AF5AC]",
+            imageBorder: "border-[#35503D]",
+            badge: item.rating > 0
+              ? "border-[#34503B] bg-[#173023] text-[#D9FFE6]"
+              : "border-[#35503D] bg-[#101B14] text-[#B8D6C0]",
+          };
+
+  return (
+    <li
+      className={`rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-3.5 transition-all duration-300 hover:-translate-y-1 ${styles.card}`}
+    >
+      <Link href={`/produkt/${item.slug}`} className="flex items-center gap-4">
+        <div
+          className={`relative h-16 w-16 shrink-0 overflow-hidden rounded-[18px] border bg-[#101822] shadow-[0_16px_30px_rgba(0,0,0,0.22)] ${styles.imageBorder}`}
+        >
+          <ProductCardImage
+            routeSlug={item.slug}
+            alt={item.name}
+            fallbackSrc={item.imageUrl}
+            className="h-full w-full object-cover"
+          />
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className={`line-clamp-2 text-sm font-semibold text-white transition-colors ${styles.title}`}>
+                {item.name}
+              </p>
+              <p className="mt-1 text-xs uppercase tracking-[0.14em] text-[#8CA1B8]">
+                {item.category}
+              </p>
+            </div>
+
+            <span
+              className={`inline-flex shrink-0 items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold ${styles.badge}`}
+            >
+              <FiStar size={11} />
+              {item.rating > 0 ? item.rating.toFixed(1) : "Kein Rating"}
+            </span>
+          </div>
+        </div>
+      </Link>
+    </li>
+  );
+}
+
+function TasteMatchCard({
+  match,
+  expanded,
+  loading,
+  onToggle,
+}: {
+  match: FriendGameData["tasteMatch"];
+  expanded: boolean;
+  loading: boolean;
+  onToggle: () => void;
+}) {
+  if (!match) {
+    return (
+      <MetricCard
+        icon={FiHeart}
+        label="Geschmacksmatch"
+        value="-"
+        hint="Noch kein gemeinsamer Bewertungs-Match"
+      />
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      className="group flex h-full w-full flex-col rounded-[26px] border border-[#34506D] bg-[linear-gradient(135deg,rgba(20,33,48,0.98),rgba(15,22,33,0.94))] p-4 text-left transition-all duration-300 hover:-translate-y-1 hover:border-[#7CC8FF]/55 hover:shadow-[0_18px_40px_rgba(0,0,0,0.26)]"
+      aria-expanded={expanded}
+    >
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0 flex-1">
+          <p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">Geschmacksmatch</p>
+          <p className="mt-3 text-2xl font-black tracking-tight text-white">{match.matchScore}%</p>
+          <p className="mt-2 text-sm text-[#D6E5F5]">
+            Bester Match mit {match.username} auf Basis von {match.overlapCount} gemeinsamen Bewertungen.
+          </p>
+
+          <div className="mt-4 rounded-[20px] border border-[#28425C] bg-[#101822] p-3">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8CA1B8]">
+                Gemeinsame Produkte
+              </p>
+              <span className="text-xs font-black tracking-[0.08em] text-[#DCEEFF]">
+                {match.overlapCount}
+              </span>
+            </div>
+            <div className="mt-3 flex items-center justify-between gap-3 text-sm text-[#AFC1D3]">
+              <span>Ø Differenz {match.averageDifference.toFixed(2)} Sterne</span>
+              <span className="inline-flex items-center gap-1 font-semibold text-[#BDE4FF]">
+                {loading ? "Lädt..." : expanded ? "Produkte ausblenden" : "Produkte ansehen"}
+                <FiChevronDown
+                  size={16}
+                  className={`transition-transform duration-300 ${expanded ? "rotate-180" : ""}`}
+                />
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[#34506D] bg-[#132234] text-[#DCEEFF] transition-transform duration-300 group-hover:scale-105 group-hover:border-[#7CC8FF]/55">
+          <FiHeart size={20} />
+        </span>
+      </div>
+    </button>
+  );
+}
+
+function TasteOverlapListItem({
+  item,
+  targetUsername,
+}: {
+  item: NonNullable<TasteCompareData["comparison"]>["overlapProducts"][number];
+  targetUsername: string;
+}) {
+  return (
+    <li className="rounded-[22px] border border-[#2D3A4B] bg-[#101822] p-4">
+      <div className="flex items-start gap-3">
+        <Link
+          href={`/produkt/${item.productSlug}`}
+          aria-label={`${item.name} öffnen`}
+          className="relative h-14 w-14 shrink-0 overflow-hidden rounded-[16px] border border-[#34506D] bg-[#0F1722] shadow-[0_12px_24px_rgba(0,0,0,0.22)]"
+        >
+          <ProductCardImage
+            routeSlug={item.productSlug}
+            alt={item.name}
+            fallbackSrc={item.imageUrl}
+            className="h-full w-full object-cover"
+          />
+        </Link>
+
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <Link
+                href={`/produkt/${item.productSlug}`}
+                className="line-clamp-2 text-sm font-semibold text-white transition-colors hover:text-[#8AF5AC]"
+              >
+                {item.name}
+              </Link>
+              <p className="mt-1 text-xs uppercase tracking-[0.14em] text-[#8CA1B8]">
+                {item.category}
+              </p>
+            </div>
+            <span className="shrink-0 rounded-full border border-[#34506D] bg-[#132234] px-2.5 py-1 text-xs font-semibold text-[#DCEEFF]">
+              Δ {item.difference.toFixed(1)}
+            </span>
+          </div>
+
+          <div className="mt-3 flex flex-wrap gap-2">
+            <span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-xs font-semibold text-[#D6E2EF]">
+              Du {item.viewerRating.toFixed(1)}
+            </span>
+            <span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-xs font-semibold text-[#D6E2EF]">
+              {targetUsername} {item.targetRating.toFixed(1)}
+            </span>
+          </div>
+        </div>
+      </div>
+    </li>
+  );
+}
 
 export default function ProfilPage() {
   const {
@@ -225,6 +489,7 @@ export default function ProfilPage() {
   const [usernameInput, setUsernameInput] = useState("");
   const [bioInput, setBioInput] = useState("");
   const [customListInput, setCustomListInput] = useState("");
+  const customListInputRef = useRef<HTMLInputElement | null>(null);
   const [customListMessage, setCustomListMessage] = useState<string | null>(null);
   const [profileNotice, setProfileNotice] = useState<{ tone: NoticeTone; text: string } | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -248,6 +513,10 @@ export default function ProfilPage() {
   const [friendGameData, setFriendGameData] = useState<FriendGameData | null>(null);
   const [friendGameLoaded, setFriendGameLoaded] = useState(false);
   const [friendGameError, setFriendGameError] = useState<string | null>(null);
+  const [tasteMatchExpanded, setTasteMatchExpanded] = useState(false);
+  const [tasteMatchDetailData, setTasteMatchDetailData] = useState<TasteCompareData | null>(null);
+  const [tasteMatchDetailLoading, setTasteMatchDetailLoading] = useState(false);
+  const [tasteMatchDetailError, setTasteMatchDetailError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!profileLoaded) return;
@@ -260,6 +529,13 @@ export default function ProfilPage() {
       setIsAvatarMenuOpen(false);
     }
   }, [avatarUrl]);
+
+  useEffect(() => {
+    setTasteMatchExpanded(false);
+    setTasteMatchDetailData(null);
+    setTasteMatchDetailError(null);
+    setTasteMatchDetailLoading(false);
+  }, [friendGameData?.tasteMatch?.userId]);
 
   useEffect(() => {
     if (!isAvatarMenuOpen) {
@@ -306,6 +582,7 @@ export default function ProfilPage() {
         category: product?.category ?? "Unbekannt",
         rating,
         comment,
+        imageUrl: getProductImageUrl(product ?? { imageUrl: null }),
       });
     }
 
@@ -341,32 +618,50 @@ export default function ProfilPage() {
     return filtered;
   }, [ratedProducts, ratedSortMode, selectedRatedCategory]);
 
-  const favoriteProducts = useMemo(() => {
+  const favoriteProducts = useMemo<CollectionProduct[]>(() => {
     return favoriteSlugs
       .map((slug) => {
         const product = productBySlug.get(slug);
-        return { slug, name: product?.name ?? slug, category: product?.category ?? "Unbekannt" };
+        return {
+          slug,
+          name: product?.name ?? slug,
+          category: product?.category ?? "Unbekannt",
+          imageUrl: getProductImageUrl(product ?? { imageUrl: null }),
+          rating: typeof ratings[slug] === "number" ? ratings[slug] : 0,
+        };
       })
       .sort((left, right) => left.name.localeCompare(right.name, "de"));
-  }, [favoriteSlugs, productBySlug]);
+  }, [favoriteSlugs, productBySlug, ratings]);
 
-  const wantToTryProducts = useMemo(() => {
+  const wantToTryProducts = useMemo<CollectionProduct[]>(() => {
     return wantToTrySlugs
       .map((slug) => {
         const product = productBySlug.get(slug);
-        return { slug, name: product?.name ?? slug, category: product?.category ?? "Unbekannt" };
+        return {
+          slug,
+          name: product?.name ?? slug,
+          category: product?.category ?? "Unbekannt",
+          imageUrl: getProductImageUrl(product ?? { imageUrl: null }),
+          rating: typeof ratings[slug] === "number" ? ratings[slug] : 0,
+        };
       })
       .sort((left, right) => left.name.localeCompare(right.name, "de"));
-  }, [productBySlug, wantToTrySlugs]);
+  }, [productBySlug, ratings, wantToTrySlugs]);
 
-  const triedProducts = useMemo(() => {
+  const triedProducts = useMemo<CollectionProduct[]>(() => {
     return triedSlugs
       .map((slug) => {
         const product = productBySlug.get(slug);
-        return { slug, name: product?.name ?? slug, category: product?.category ?? "Unbekannt" };
+        return {
+          slug,
+          name: product?.name ?? slug,
+          category: product?.category ?? "Unbekannt",
+          imageUrl: getProductImageUrl(product ?? { imageUrl: null }),
+          rating: typeof ratings[slug] === "number" ? ratings[slug] : 0,
+        };
       })
       .sort((left, right) => left.name.localeCompare(right.name, "de"));
-  }, [productBySlug, triedSlugs]);
+  }, [productBySlug, ratings, triedSlugs]);
 
   const ratingCount = ratedProducts.filter((product) => product.rating > 0).length;
   const commentCount = ratedProducts.filter((product) => product.comment.length > 0).length;
@@ -442,6 +737,9 @@ export default function ProfilPage() {
       />
     </div>
   );
+  const tasteMatchOverlapProducts = tasteMatchDetailData?.comparison?.overlapProducts ?? [];
+  const visibleTasteMatchProducts = tasteMatchOverlapProducts.slice(0, 8);
+  const hiddenTasteMatchProductCount = Math.max(0, tasteMatchOverlapProducts.length - visibleTasteMatchProducts.length);
 
   const loadFollowProfiles = useCallback(async () => {
     if (!user) {
@@ -514,6 +812,31 @@ export default function ProfilPage() {
     }
   }, [user]);
 
+  const loadTasteMatchDetail = useCallback(async (targetUserId: string) => {
+    setTasteMatchDetailLoading(true);
+    setTasteMatchDetailError(null);
+
+    try {
+      const response = await fetch(`/api/profile/taste-compare/${targetUserId}`, {
+        cache: "no-store",
+      });
+      const json = (await response.json()) as TasteCompareResponse;
+
+      if (!response.ok || !json.success || !json.data) {
+        setTasteMatchDetailData(null);
+        setTasteMatchDetailError(json.error || "Geschmacksdetails konnten nicht geladen werden.");
+        return;
+      }
+
+      setTasteMatchDetailData(json.data);
+    } catch {
+      setTasteMatchDetailData(null);
+      setTasteMatchDetailError("Geschmacksdetails konnten nicht geladen werden.");
+    } finally {
+      setTasteMatchDetailLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     void loadFollowProfiles();
   }, [loadFollowProfiles]);
@@ -521,6 +844,29 @@ export default function ProfilPage() {
   useEffect(() => {
     void loadFriendGame();
   }, [loadFriendGame]);
+
+  async function handleToggleTasteMatchDetails() {
+    const topMatch = friendGameData?.tasteMatch;
+    if (!topMatch) {
+      return;
+    }
+
+    if (tasteMatchExpanded) {
+      setTasteMatchExpanded(false);
+      return;
+    }
+
+    setTasteMatchExpanded(true);
+
+    if (
+      tasteMatchDetailData?.target.userId === topMatch.userId ||
+      tasteMatchDetailLoading
+    ) {
+      return;
+    }
+
+    await loadTasteMatchDetail(topMatch.userId);
+  }
 
   async function handleSearchProfiles() {
     const query = profileSearchQuery.trim();
@@ -660,8 +1006,8 @@ export default function ProfilPage() {
 
   if (!profileLoaded) {
     return (
-      <div className="mx-auto max-w-7xl px-4 pb-24 text-white sm:px-8 lg:px-12">
-        <BackButton />
+      <div className="mx-auto -mt-10 max-w-7xl px-4 pb-24 text-white sm:-mt-12 sm:px-8 lg:px-12">
+        <BackButton className="mb-5 sm:mb-6" />
         <div className="rounded-[30px] border border-[#2A394B] bg-[#141C27] p-5">
           Profil wird geladen...
         </div>
@@ -671,8 +1017,8 @@ export default function ProfilPage() {
 
   if (!user) {
     return (
-      <div className="mx-auto max-w-6xl px-4 pb-24 text-white sm:px-8 lg:px-12">
-        <BackButton />
+      <div className="mx-auto -mt-10 max-w-6xl px-4 pb-24 text-white sm:-mt-12 sm:px-8 lg:px-12">
+        <BackButton className="mb-5 sm:mb-6" />
         <div className="overflow-hidden rounded-[34px] border border-[#2D3A4B] bg-[radial-gradient(circle_at_top_left,rgba(94,226,135,0.18),rgba(20,28,39,0.97)_42%),linear-gradient(145deg,rgba(19,28,40,0.98),rgba(15,22,33,0.95))] p-8 shadow-[0_18px_42px_rgba(0,0,0,0.34)]">
           <p className="text-xs uppercase tracking-[0.22em] text-[#8CA1B8]">Profil</p>
           <h1 className="mt-3 text-3xl font-black tracking-tight text-[#F3FFF6] sm:text-4xl">
@@ -693,8 +1039,8 @@ export default function ProfilPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 pb-24 text-white sm:px-8 lg:px-12">
-      <BackButton />
+    <div className="mx-auto -mt-10 max-w-7xl px-4 pb-24 text-white sm:-mt-12 sm:px-8 lg:px-12">
+      <BackButton className="mb-5 sm:mb-6" />
 
       <input
         ref={avatarInputRef}
@@ -1037,7 +1383,199 @@ export default function ProfilPage() {
             <SectionShell eyebrow="Freundesliga" title="Deine Social-Gamification" description="Rang, Level, Geschmacksmatch und Liga-Tabelle machen dein Profil lebendiger." action={friendGameData ? <span className="inline-flex rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#D6E2EF]">{friendGameData.network.comparedAsFriends ? `${friendGameData.network.mutualFriendsCount} Food-Friends` : `${friendGameData.network.followingCount} verglichene Profile`}</span> : null}>
               {!friendGameLoaded && <div className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4 text-sm text-[#9EB0C3]">Freundesliga wird geladen...</div>}
               {friendGameLoaded && friendGameError && <div className="rounded-[24px] border border-[#6A3434] bg-[#2A1313] p-4 text-sm text-red-100">{friendGameError}</div>}
-              {friendGameLoaded && !friendGameError && friendGameData && <><div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4"><MetricCard icon={FiAward} label="Level" value={friendGameData.viewer.currentLevelName} hint={`${friendGameData.viewer.points} Punkte aus Ratings, Kommentaren und Social-Signal`} /><MetricCard icon={FiTrendingUp} label="Liga Rang" value={`#${friendGameData.viewer.rank}`} hint={`von ${friendGameData.viewer.totalPlayers} Profilen in deiner aktuellen Liga`} /><MetricCard icon={FiHeart} label="Geschmacksmatch" value={friendGameData.tasteMatch ? `${friendGameData.tasteMatch.matchScore}%` : "-"} hint={friendGameData.tasteMatch ? `Bester Match mit ${friendGameData.tasteMatch.username}` : "Noch kein gemeinsamer Bewertungs-Match"} /><MetricCard icon={FiTarget} label="Nächster Boost" value={friendGameData.viewer.nextLevelName ? `${friendGameData.viewer.pointsToNextLevel} P` : "Max"} hint={friendGameData.viewer.nextLevelName ? `bis ${friendGameData.viewer.nextLevelName}` : "Aktuell oberstes Profil-Level"} /></div>{friendGameData.network.followingCount === 0 ? <div className="mt-6"><EmptyPanel icon={FiUsers} title="Starte deine Liga" description="Folge ein paar Profilen, damit hier Vergleiche, Geschmacksmatches und kleine Ranglisten entstehen." /></div> : <div className="mt-6 rounded-[28px] border border-[#2A394B] bg-[#111925]/88 p-5"><div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><h3 className="text-lg font-semibold text-white">Liga-Tabelle</h3><p className="mt-1 text-sm text-[#9EB0C3]">{friendGameData.network.comparedAsFriends ? "Gegenseitige Follows zählen hier als echte Food-Friends." : "Bis zu gegenseitigen Follows vergleichst du dich mit den Profilen, denen du folgst."}</p></div><span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#D6E2EF]">Top {leagueStandings.length}</span></div><ul className="mt-5 grid gap-3">{leagueStandings.map((entry) => <li key={`league-${entry.userId}`} className={`flex items-center justify-between gap-3 rounded-[24px] border p-4 transition-all duration-300 ${entry.isViewer ? "border-[#5EE287] bg-[linear-gradient(135deg,rgba(94,226,135,0.14),rgba(20,28,39,0.96))]" : "border-[#2D3A4B] bg-[#101822] hover:-translate-y-1 hover:border-[#5EE287]/25"}`}><div className="flex min-w-0 items-center gap-3"><span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[#2D3A4B] bg-[#141C27] text-sm font-black text-white">#{entry.rank}</span><div className="min-w-0">{entry.isViewer ? <p className="font-semibold text-white">Du</p> : <Link href={`/profil/${entry.userId}`} className="font-semibold text-white transition-colors hover:text-[#8AF5AC]">{entry.username}</Link>}<p className="mt-1 text-xs text-[#8CA1B8]">{entry.currentLevelName} | {entry.ratingCount} Bewertungen | {entry.commentCount} Kommentare | {entry.favoriteCount} Favoriten</p></div></div><div className="text-right"><p className="text-lg font-black text-[#8AF5AC]">{entry.points}</p><p className="text-xs uppercase tracking-[0.16em] text-[#8CA1B8]">Punkte</p></div></li>)}</ul></div>}</>}
+              {friendGameLoaded && !friendGameError && friendGameData && (
+                <>
+                  <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
+                    <MetricCard
+                      icon={FiAward}
+                      label="Level"
+                      value={friendGameData.viewer.currentLevelName}
+                      hint={`${friendGameData.viewer.points} Punkte aus Ratings, Kommentaren und Social-Signal`}
+                    />
+                    <MetricCard
+                      icon={FiTrendingUp}
+                      label="Liga Rang"
+                      value={`#${friendGameData.viewer.rank}`}
+                      hint={`von ${friendGameData.viewer.totalPlayers} Profilen in deiner aktuellen Liga`}
+                    />
+                    <TasteMatchCard
+                      match={friendGameData.tasteMatch}
+                      expanded={tasteMatchExpanded}
+                      loading={tasteMatchDetailLoading}
+                      onToggle={() => {
+                        void handleToggleTasteMatchDetails();
+                      }}
+                    />
+                    <MetricCard
+                      icon={FiTarget}
+                      label="Nächster Boost"
+                      value={friendGameData.viewer.nextLevelName ? `${friendGameData.viewer.pointsToNextLevel} P` : "Max"}
+                      hint={friendGameData.viewer.nextLevelName ? `bis ${friendGameData.viewer.nextLevelName}` : "Aktuell oberstes Profil-Level"}
+                    />
+                  </div>
+
+                  {tasteMatchExpanded && friendGameData.tasteMatch && (
+                    <div className="mt-6 rounded-[28px] border border-[#34506D] bg-[linear-gradient(145deg,rgba(18,28,40,0.98),rgba(14,20,31,0.96))] p-5 shadow-[0_20px_46px_rgba(0,0,0,0.28)]">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                        <div>
+                          <p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">Gemeinsam bewertet</p>
+                          <h3 className="mt-2 text-lg font-semibold text-white">
+                            Du und {friendGameData.tasteMatch.username} im Direktvergleich
+                          </h3>
+                          <p className="mt-1 text-sm text-[#AFC1D3]">
+                            Alle Produkte, die ihr beide bewertet habt. Sortiert nach Nähe eurer Einschätzung.
+                          </p>
+                        </div>
+                        <span className="rounded-full border border-[#34506D] bg-[#132234] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#DCEEFF]">
+                          {friendGameData.tasteMatch.overlapCount} gemeinsame Ratings
+                        </span>
+                      </div>
+
+                      {tasteMatchDetailLoading && (
+                        <div className="mt-5 rounded-[22px] border border-[#2A394B] bg-[#111925]/88 p-4 text-sm text-[#9EB0C3]">
+                          Gemeinsame Produkte werden geladen...
+                        </div>
+                      )}
+
+                      {!tasteMatchDetailLoading && tasteMatchDetailError && (
+                        <div className="mt-5 rounded-[22px] border border-[#6A3434] bg-[#2A1313] p-4 text-sm text-red-100">
+                          <p>{tasteMatchDetailError}</p>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              void loadTasteMatchDetail(friendGameData.tasteMatch!.userId);
+                            }}
+                            className="mt-3 inline-flex min-h-10 items-center rounded-2xl border border-[#34506D] bg-[#132234] px-4 py-2 font-semibold text-[#DCEEFF] transition-colors hover:border-[#7CC8FF]"
+                          >
+                            Erneut laden
+                          </button>
+                        </div>
+                      )}
+
+                      {!tasteMatchDetailLoading && !tasteMatchDetailError && tasteMatchDetailData?.comparison && (
+                        <>
+                          <div className="mt-5 flex flex-wrap gap-2.5">
+                            <span className="rounded-full border border-[#34506D] bg-[#132234] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#DCEEFF]">
+                              Match {tasteMatchDetailData.comparison.matchScore}%
+                            </span>
+                            <span className="rounded-full border border-[#34503B] bg-[#173023] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#D9FFE6]">
+                              Ø Differenz {tasteMatchDetailData.comparison.averageDifference.toFixed(2)}
+                            </span>
+                            {tasteMatchDetailData.comparison.sharedFavoritesCount > 0 && (
+                              <span className="rounded-full border border-[#6B4156] bg-[#2A1722] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#FFE1EF]">
+                                {tasteMatchDetailData.comparison.sharedFavoritesCount} gemeinsame Favoriten
+                              </span>
+                            )}
+                          </div>
+
+                          <ul className="mt-5 grid gap-3 lg:grid-cols-2">
+                            {visibleTasteMatchProducts.map((item) => (
+                              <TasteOverlapListItem
+                                key={`taste-match-overlap-${item.productSlug}`}
+                                item={item}
+                                targetUsername={tasteMatchDetailData.target.username}
+                              />
+                            ))}
+                          </ul>
+
+                          {hiddenTasteMatchProductCount > 0 && (
+                            <p className="mt-4 text-sm text-[#9EB0C3]">
+                              Und noch {hiddenTasteMatchProductCount} weitere gemeinsame Bewertungen.
+                            </p>
+                          )}
+
+                          {tasteMatchDetailData.comparison.sharedFavoritesCount > 0 && (
+                            <div className="mt-5 rounded-[22px] border border-[#2A394B] bg-[#111925]/88 p-4">
+                              <p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">Gemeinsame Favoriten</p>
+                              <div className="mt-3 flex flex-wrap gap-2.5">
+                                {tasteMatchDetailData.comparison.sharedFavorites.map((item) => (
+                                  <Link
+                                    key={`taste-match-favorite-${item.productSlug}`}
+                                    href={`/produkt/${item.productSlug}`}
+                                    className="inline-flex items-center rounded-full border border-[#34503B] bg-[#173023] px-4 py-2 text-sm font-semibold text-[#D9FFE6] transition-colors hover:bg-[#21402E]"
+                                  >
+                                    {item.name}
+                                  </Link>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </>
+                      )}
+
+                      {!tasteMatchDetailLoading && !tasteMatchDetailError && tasteMatchDetailData && !tasteMatchDetailData.comparison && (
+                        <div className="mt-5">
+                          <EmptyPanel
+                            icon={FiTarget}
+                            title="Noch keine gemeinsame Basis"
+                            description="Sobald ihr ein paar Produkte beide bewertet habt, zeigen wir sie dir hier direkt an."
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {friendGameData.network.followingCount === 0 ? (
+                    <div className="mt-6">
+                      <EmptyPanel
+                        icon={FiUsers}
+                        title="Starte deine Liga"
+                        description="Folge ein paar Profilen, damit hier Vergleiche, Geschmacksmatches und kleine Ranglisten entstehen."
+                      />
+                    </div>
+                  ) : (
+                    <div className="mt-6 rounded-[28px] border border-[#2A394B] bg-[#111925]/88 p-5">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                        <div>
+                          <h3 className="text-lg font-semibold text-white">Liga-Tabelle</h3>
+                          <p className="mt-1 text-sm text-[#9EB0C3]">
+                            {friendGameData.network.comparedAsFriends
+                              ? "Gegenseitige Follows zählen hier als echte Food-Friends."
+                              : "Bis zu gegenseitigen Follows vergleichst du dich mit den Profilen, denen du folgst."}
+                          </p>
+                        </div>
+                        <span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#D6E2EF]">
+                          Top {leagueStandings.length}
+                        </span>
+                      </div>
+                      <ul className="mt-5 grid gap-3">
+                        {leagueStandings.map((entry) => (
+                          <li
+                            key={`league-${entry.userId}`}
+                            className={`flex items-center justify-between gap-3 rounded-[24px] border p-4 transition-all duration-300 ${
+                              entry.isViewer
+                                ? "border-[#5EE287] bg-[linear-gradient(135deg,rgba(94,226,135,0.14),rgba(20,28,39,0.96))]"
+                                : "border-[#2D3A4B] bg-[#101822] hover:-translate-y-1 hover:border-[#5EE287]/25"
+                            }`}
+                          >
+                            <div className="flex min-w-0 items-center gap-3">
+                              <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[#2D3A4B] bg-[#141C27] text-sm font-black text-white">
+                                #{entry.rank}
+                              </span>
+                              <div className="min-w-0">
+                                {entry.isViewer ? (
+                                  <p className="font-semibold text-white">Du</p>
+                                ) : (
+                                  <Link href={`/profil/${entry.userId}`} className="font-semibold text-white transition-colors hover:text-[#8AF5AC]">
+                                    {entry.username}
+                                  </Link>
+                                )}
+                                <p className="mt-1 text-xs text-[#8CA1B8]">
+                                  {entry.currentLevelName} | {entry.ratingCount} Bewertungen | {entry.commentCount} Kommentare | {entry.favoriteCount} Favoriten
+                                </p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-lg font-black text-[#8AF5AC]">{entry.points}</p>
+                              <p className="text-xs uppercase tracking-[0.16em] text-[#8CA1B8]">Punkte</p>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </>
+              )}
             </SectionShell>
           </>
         )}
@@ -1061,6 +1599,7 @@ export default function ProfilPage() {
 
                   <div className="flex w-full flex-col gap-2 sm:flex-row lg:w-auto">
                     <input
+                      ref={customListInputRef}
                       type="text"
                       value={customListInput}
                       maxLength={40}
@@ -1097,7 +1636,30 @@ export default function ProfilPage() {
                   Eigene Listen werden geladen...
                 </div>
               ) : customLists.length === 0 ? (
-                <EmptyPanel icon={FiGrid} title="Noch keine eigenen Listen" description="Lege hier deine erste benannte Liste an. Danach kannst du Produkte direkt auf den Produktseiten zuordnen." />
+                <div className="flex flex-col items-center rounded-[28px] border border-dashed border-[#35503D] bg-[linear-gradient(145deg,rgba(17,25,37,0.94),rgba(13,20,30,0.98))] px-6 py-8 text-center">
+                  <div aria-hidden="true" className="relative mb-5 h-20 w-24">
+                    <div className="absolute left-1 top-6 h-12 w-12 rotate-[-10deg] rounded-[16px] border border-[#35503D] bg-[#122118] shadow-[0_12px_24px_rgba(0,0,0,0.18)]" />
+                    <div className="absolute right-1 top-7 h-12 w-12 rotate-[10deg] rounded-[16px] border border-[#2D3A4B] bg-[#131C28] shadow-[0_12px_24px_rgba(0,0,0,0.16)]" />
+                    <div className="absolute left-1/2 top-1 flex h-14 w-14 -translate-x-1/2 items-center justify-center rounded-[18px] border border-[#4C7A5A] bg-[linear-gradient(145deg,rgba(94,226,135,0.18),rgba(22,35,27,0.96))] text-[#CFF9DC] shadow-[0_16px_32px_rgba(0,0,0,0.24)]">
+                      <FiGrid size={20} />
+                    </div>
+                  </div>
+                  <h3 className="text-lg font-semibold text-white">Noch keine eigenen Listen</h3>
+                  <p className="mt-2 max-w-md text-sm text-[#AFC1D3]">
+                    Starte mit einer ersten benannten Sammlung und sortiere danach Produkte direkt auf den Detailseiten ein.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      customListInputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+                      customListInputRef.current?.focus();
+                    }}
+                    className="mt-6 inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-[#5EE287] px-6 py-3 text-base font-semibold text-[#0C1910] transition-colors hover:bg-[#79F29C]"
+                  >
+                    <FiPlus size={18} />
+                    Erste Liste erstellen
+                  </button>
+                </div>
               ) : (
                 <div className="grid gap-4 lg:grid-cols-2">
                   {customLists.map((list) => (
@@ -1161,15 +1723,15 @@ export default function ProfilPage() {
 
             <div className="grid gap-6 xl:grid-cols-3">
               <SectionShell eyebrow="Favoriten" title="Deine Hall of Fame" description="Die Produkte, die du immer wieder empfehlen würdest.">
-                {!listsLoaded ? <div className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4 text-sm text-[#9EB0C3]">Favoriten werden geladen...</div> : favoriteProducts.length === 0 ? <EmptyPanel icon={FiHeart} title="Noch keine Favoriten" description="Sobald du auf Produktseiten Favoriten speicherst, entsteht hier deine persönliche Food Hall of Fame." /> : <ul className="grid gap-3">{favoriteProducts.map((item) => <li key={`favorite-${item.slug}`} className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4 transition-all duration-300 hover:-translate-y-1 hover:border-[#5EE287]/25"><Link href={`/produkt/${item.slug}`} className="font-semibold text-white transition-colors hover:text-[#8AF5AC]">{item.name}</Link><p className="mt-1 text-sm text-[#8CA1B8]">{item.category}</p></li>)}</ul>}
+                {!listsLoaded ? <div className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4 text-sm text-[#9EB0C3]">Favoriten werden geladen...</div> : favoriteProducts.length === 0 ? <EmptyPanel icon={FiHeart} title="Noch keine Favoriten" description="Sobald du auf Produktseiten Favoriten speicherst, entsteht hier deine persönliche Food Hall of Fame." /> : <ul className="grid gap-3">{favoriteProducts.map((item) => <CollectionProductCard key={`favorite-${item.slug}`} item={item} accent="mint" />)}</ul>}
               </SectionShell>
 
               <SectionShell eyebrow="Watchlist" title="Produkte für später" description="Hier landen die Dinge, die du als Nächstes testen möchtest.">
-                {!listsLoaded ? <div className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4 text-sm text-[#9EB0C3]">Watchlist wird geladen...</div> : wantToTryProducts.length === 0 ? <EmptyPanel icon={FiBookmark} title="Noch keine Watchlist" description="Speichere Produkte auf deiner Probieren-Liste, damit dein Profil mehr Tiefe und Zukunftspläne zeigt." /> : <ul className="grid gap-3">{wantToTryProducts.map((item) => <li key={`want-to-try-${item.slug}`} className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4 transition-all duration-300 hover:-translate-y-1 hover:border-[#5EE287]/25"><Link href={`/produkt/${item.slug}`} className="font-semibold text-white transition-colors hover:text-[#8AF5AC]">{item.name}</Link><p className="mt-1 text-sm text-[#8CA1B8]">{item.category}</p></li>)}</ul>}
+                {!listsLoaded ? <div className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4 text-sm text-[#9EB0C3]">Watchlist wird geladen...</div> : wantToTryProducts.length === 0 ? <EmptyPanel icon={FiBookmark} title="Noch keine Watchlist" description="Speichere Produkte auf deiner Probieren-Liste, damit dein Profil mehr Tiefe und Zukunftspläne zeigt." /> : <ul className="grid gap-3">{wantToTryProducts.map((item) => <CollectionProductCard key={`want-to-try-${item.slug}`} item={item} accent="amber" />)}</ul>}
               </SectionShell>
 
               <SectionShell eyebrow="Probiert" title="Bereits getestet" description="Produkte, die du schon probiert hast, auch wenn du noch keine Sterne vergeben willst.">
-                {!listsLoaded ? <div className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4 text-sm text-[#9EB0C3]">Probiert-Liste wird geladen...</div> : triedProducts.length === 0 ? <EmptyPanel icon={FiCheckCircle} title="Noch nichts als probiert markiert" description="Auf Produktseiten kannst du Lebensmittel einfach als bereits probiert abhaken, ohne direkt ein Rating abzugeben." /> : <ul className="grid gap-3">{triedProducts.map((item) => <li key={`tried-${item.slug}`} className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4 transition-all duration-300 hover:-translate-y-1 hover:border-[#7CC8FF]/35"><Link href={`/produkt/${item.slug}`} className="font-semibold text-white transition-colors hover:text-[#BDE4FF]">{item.name}</Link><p className="mt-1 text-sm text-[#8CA1B8]">{item.category}</p></li>)}</ul>}
+                {!listsLoaded ? <div className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4 text-sm text-[#9EB0C3]">Probiert-Liste wird geladen...</div> : triedProducts.length === 0 ? <EmptyPanel icon={FiCheckCircle} title="Noch nichts als probiert markiert" description="Auf Produktseiten kannst du Lebensmittel einfach als bereits probiert abhaken, ohne direkt ein Rating abzugeben." /> : <ul className="grid gap-3">{triedProducts.map((item) => <CollectionProductCard key={`tried-${item.slug}`} item={item} accent="sky" />)}</ul>}
               </SectionShell>
             </div>
           </>
@@ -1188,7 +1750,7 @@ export default function ProfilPage() {
               {ratingsLoaded && ratedProducts.length > 0 && <div className="grid gap-3 sm:grid-cols-2 mb-5"><select value={selectedRatedCategory} onChange={(event) => setSelectedRatedCategory(event.target.value)} className="w-full rounded-2xl border border-[#2D3A4B] bg-[#141C27] px-4 py-3 text-white outline-none transition-colors focus:border-[#5EE287]"><option value="all">Alle Produktarten</option>{ratedCategories.map((category) => <option key={category} value={category}>{category}</option>)}</select><select value={ratedSortMode} onChange={(event) => setRatedSortMode(event.target.value as RatedSortMode)} className="w-full rounded-2xl border border-[#2D3A4B] bg-[#141C27] px-4 py-3 text-white outline-none transition-colors focus:border-[#5EE287]"><option value="rating-desc">Bewertung: hoch zu niedrig</option><option value="rating-asc">Bewertung: niedrig zu hoch</option><option value="category-asc">Produktart: A-Z</option><option value="category-desc">Produktart: Z-A</option><option value="name-asc">Name: A-Z</option><option value="name-desc">Name: Z-A</option></select></div>}
               {ratingsLoaded && ratedProducts.length === 0 && <EmptyPanel icon={FiStar} title="Noch keine Aktivität" description="Sobald du Produkte bewertest oder kommentierst, baut sich hier automatisch deine persönliche Food-Historie auf." />}
               {ratingsLoaded && ratedProducts.length > 0 && visibleRatedProducts.length === 0 && <EmptyPanel icon={FiSliders} title="Kein Treffer für diesen Filter" description="In dieser Kategorie hast du aktuell noch keine Einträge." />}
-              {ratingsLoaded && visibleRatedProducts.length > 0 && <ul className="grid gap-3 sm:gap-4">{visibleRatedProducts.map((item) => <li key={item.slug} className="rounded-[26px] border border-[#2A394B] bg-[#111925]/88 p-4 transition-all duration-300 hover:-translate-y-1 hover:border-[#5EE287]/25"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><Link href={`/produkt/${item.slug}`} className="font-semibold text-white transition-colors hover:text-[#8AF5AC]">{item.name}</Link><p className="mt-1 text-sm text-[#8CA1B8]">{item.category}</p></div><span className="shrink-0 rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-sm font-semibold text-[#FFD86C]">{item.rating > 0 ? `Rating ${item.rating.toFixed(1)}/5` : "Nur Kommentar"}</span></div><p className="mt-4 text-sm leading-relaxed text-[#D3DFEB]">{item.comment || "Kein Kommentar hinterlegt."}</p></li>)}</ul>}
+              {ratingsLoaded && visibleRatedProducts.length > 0 && <ul className="grid gap-3 sm:gap-4">{visibleRatedProducts.map((item) => <li key={item.slug} className="rounded-[26px] border border-[#2A394B] bg-[#111925]/88 p-4 transition-all duration-300 hover:-translate-y-1 hover:border-[#5EE287]/25"><div className="flex items-start justify-between gap-3"><div className="flex min-w-0 items-start gap-3"><Link href={`/produkt/${item.slug}`} aria-label={`${item.name} öffnen`} className="relative mt-0.5 h-8 w-8 shrink-0 overflow-hidden rounded-xl border border-[#2D3A4B] bg-[#101822] shadow-[0_10px_20px_rgba(0,0,0,0.18)]"><ProductCardImage routeSlug={item.slug} alt={item.name} fallbackSrc={item.imageUrl} className="h-full w-full object-cover" /></Link><div className="min-w-0"><Link href={`/produkt/${item.slug}`} className="font-semibold text-white transition-colors hover:text-[#8AF5AC]">{item.name}</Link><p className="mt-1 text-sm text-[#8CA1B8]">{item.category}</p></div></div><span className="shrink-0 rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-sm font-semibold text-[#FFD86C]">{item.rating > 0 ? `Rating ${item.rating.toFixed(1)}/5` : "Nur Kommentar"}</span></div><p className="mt-4 text-sm leading-relaxed text-[#D3DFEB] sm:pl-11">{item.comment || "Kein Kommentar hinterlegt."}</p></li>)}</ul>}
             </SectionShell>
           </>
         )}

@@ -103,6 +103,18 @@ type NutritionOption = {
   values: ProductNutritionValues;
 };
 
+type SimilarProduct = {
+  slug: string;
+  name: string;
+  category: string;
+  imageUrl: string;
+  price?: string;
+  averageRating: number | null;
+  ratingCount: number;
+  overlapCount: number;
+  source: "co_rated" | "category";
+};
+
 type ProductDetails = {
   marke: string;
   gewicht: string;
@@ -115,7 +127,20 @@ type ProductDetails = {
   kommentare: ProductComment[];
   preisOptionen?: PriceOption[];
   naehrwertOptionen?: NutritionOption[];
+  aehnlicheProdukte?: SimilarProduct[];
   quelle: "online" | "placeholder";
+};
+
+type RatingSummary = {
+  durchschnittsbewertung: number | string;
+  kommentare: ProductComment[];
+  ratingRows: RatingRow[];
+};
+
+type SimilarProductRatingRow = {
+  user_id: string;
+  product_slug: string;
+  rating: number | null;
 };
 
 type NutritionFieldKey = keyof ProductNutritionValues;
@@ -1793,13 +1818,14 @@ function getManualDetails(product: Product): Partial<ProductDetails> | null {
   return manualDetailsByName[product.name] ?? null;
 }
 
-async function loadRatingSummary(routeSlug: string, currentUserId: string | null) {
+async function loadRatingSummary(routeSlug: string, currentUserId: string | null): Promise<RatingSummary> {
   const supabase = getSupabaseAdminClient();
 
   if (!supabase) {
     return {
       durchschnittsbewertung: PLACEHOLDER_NUMBER,
       kommentare: [],
+      ratingRows: [],
     };
   }
 
@@ -1813,6 +1839,7 @@ async function loadRatingSummary(routeSlug: string, currentUserId: string | null
     return {
       durchschnittsbewertung: PLACEHOLDER_NUMBER,
       kommentare: [],
+      ratingRows: [],
     };
   }
 
@@ -1836,6 +1863,7 @@ async function loadRatingSummary(routeSlug: string, currentUserId: string | null
     return {
       durchschnittsbewertung: average,
       kommentare: [],
+      ratingRows: rows,
     };
   }
 
@@ -1975,7 +2003,156 @@ async function loadRatingSummary(routeSlug: string, currentUserId: string | null
   return {
     durchschnittsbewertung: average,
     kommentare: comments,
+    ratingRows: rows,
   };
+}
+
+async function loadSimilarProducts(
+  routeSlug: string,
+  currentProduct: Product,
+  currentRatingRows: RatingRow[]
+): Promise<SimilarProduct[]> {
+  const supabase = getSupabaseAdminClient();
+
+  if (!supabase) {
+    return [];
+  }
+
+  const currentCategoryKey = normalizeText(currentProduct.category);
+  const categoryProducts = ALL_PRODUCTS.filter((candidate) => {
+    const candidateSlug = getProductRouteSlug(candidate);
+    return candidateSlug !== routeSlug && normalizeText(candidate.category) === currentCategoryKey;
+  });
+
+  if (categoryProducts.length === 0) {
+    return [];
+  }
+
+  const candidateBySlug = new Map(
+    categoryProducts.map((candidate) => [getProductRouteSlug(candidate), candidate] as const)
+  );
+  const candidateSlugs = Array.from(candidateBySlug.keys());
+  const currentRatingsByUser = new Map<string, number>();
+
+  for (const row of currentRatingRows) {
+    if (!row.user_id || typeof row.rating !== "number" || row.rating <= 0) {
+      continue;
+    }
+
+    currentRatingsByUser.set(row.user_id, row.rating);
+  }
+
+  const { data, error } = await supabase
+    .from(RATINGS_TABLE)
+    .select("user_id, product_slug, rating")
+    .in("product_slug", candidateSlugs);
+
+  if (error || !Array.isArray(data)) {
+    return [];
+  }
+
+  const aggregates = new Map<
+    string,
+    {
+      ratingSum: number;
+      ratingCount: number;
+      overlapUsers: Set<string>;
+      similaritySum: number;
+    }
+  >();
+
+  for (const row of data as SimilarProductRatingRow[]) {
+    if (
+      !row.product_slug ||
+      !row.user_id ||
+      typeof row.rating !== "number" ||
+      row.rating <= 0 ||
+      !candidateBySlug.has(row.product_slug)
+    ) {
+      continue;
+    }
+
+    const aggregate = aggregates.get(row.product_slug) ?? {
+      ratingSum: 0,
+      ratingCount: 0,
+      overlapUsers: new Set<string>(),
+      similaritySum: 0,
+    };
+
+    aggregate.ratingSum += row.rating;
+    aggregate.ratingCount += 1;
+
+    const currentUserRating = currentRatingsByUser.get(row.user_id);
+    if (typeof currentUserRating === "number") {
+      aggregate.overlapUsers.add(row.user_id);
+      aggregate.similaritySum += 1 - Math.min(1, Math.abs(currentUserRating - row.rating) / 5);
+    }
+
+    aggregates.set(row.product_slug, aggregate);
+  }
+
+  const similarProducts: Array<SimilarProduct & { score: number }> = [];
+
+  for (const [candidateSlug, aggregate] of aggregates.entries()) {
+    const candidate = candidateBySlug.get(candidateSlug);
+    if (!candidate || aggregate.ratingCount === 0) {
+      continue;
+    }
+
+    const overlapCount = aggregate.overlapUsers.size;
+    const averageRating = Number((aggregate.ratingSum / aggregate.ratingCount).toFixed(2));
+    const similarityAverage =
+      overlapCount > 0 ? aggregate.similaritySum / overlapCount : 0;
+    const score =
+      overlapCount > 0
+        ? overlapCount * 2.8 + averageRating * 1.2 + similarityAverage
+        : averageRating * 1.3 + Math.min(aggregate.ratingCount, 8) * 0.08;
+
+    similarProducts.push({
+      slug: candidateSlug,
+      name: candidate.name,
+      category: candidate.category,
+      imageUrl: candidate.imageUrl,
+      price: candidate.price,
+      averageRating,
+      ratingCount: aggregate.ratingCount,
+      overlapCount,
+      source: overlapCount > 0 ? "co_rated" : "category",
+      score,
+    });
+  }
+
+  similarProducts.sort((left, right) => {
+    if (right.overlapCount !== left.overlapCount) {
+      return right.overlapCount - left.overlapCount;
+    }
+
+    if (right.source !== left.source) {
+      return left.source === "co_rated" ? -1 : 1;
+    }
+
+    if (right.score !== left.score) {
+      return right.score - left.score;
+    }
+
+    if (right.ratingCount !== left.ratingCount) {
+      return right.ratingCount - left.ratingCount;
+    }
+
+    return left.name.localeCompare(right.name, "de");
+  });
+
+  return similarProducts.slice(0, 4).map((entry) => ({
+    slug: entry.slug,
+    name: entry.name,
+    category: entry.category,
+    imageUrl: entry.imageUrl,
+    price: entry.price,
+    averageRating: entry.averageRating,
+    ratingCount: entry.ratingCount,
+    overlapCount: entry.overlapCount,
+    source: entry.source,
+  }));
 }
 
 export async function GET(
@@ -2009,6 +2186,11 @@ export async function GET(
     merged = mergeDetails(merged, manualDetails);
   }
 
+  const aehnlicheProdukte = await loadSimilarProducts(
+    slug,
+    product,
+    ratingSummary.ratingRows
+  );
   const naehrwertOptionen = buildNutritionOptions(merged, product);
   const preisOptionen = buildPriceOptions(merged, product);
 
@@ -2018,6 +2200,7 @@ export async function GET(
     kommentare: ratingSummary.kommentare,
     naehrwertOptionen: naehrwertOptionen.length > 1 ? naehrwertOptionen : undefined,
     preisOptionen: preisOptionen.length > 1 ? preisOptionen : undefined,
+    aehnlicheProdukte: aehnlicheProdukte.length > 0 ? aehnlicheProdukte : undefined,
   };
 
   return NextResponse.json(payload, {

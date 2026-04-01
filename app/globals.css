@@ -24,9 +24,25 @@ body {
 }
 
 .home-shelf-carousel {
-  scrollbar-width: none;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(138, 245, 172, 0.55) rgba(16, 24, 34, 0.88);
 }
 
 .home-shelf-carousel::-webkit-scrollbar {
-  display: none;
+  height: 10px;
+}
+
+.home-shelf-carousel::-webkit-scrollbar-track {
+  background: rgba(16, 24, 34, 0.88);
+  border-radius: 999px;
+}
+
+.home-shelf-carousel::-webkit-scrollbar-thumb {
+  background: linear-gradient(90deg, rgba(94, 226, 135, 0.78), rgba(156, 201, 174, 0.72));
+  border-radius: 999px;
+  border: 2px solid rgba(16, 24, 34, 0.88);
+}
+
+.home-shelf-carousel::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(90deg, rgba(117, 243, 155, 0.9), rgba(207, 255, 224, 0.84));
 }
