@@ -46,6 +46,28 @@ export function getProductRouteSlug(
 
 export const DEFAULT_PRODUCT_IMAGE = "/images/placeholders/product-default.svg";
 
+export function getCategoryPlaceholderImage(category: string | null | undefined): string {
+  const normalizedCategory = category?.trim().toLowerCase() || "";
+
+  if (normalizedCategory.includes("pizza")) {
+    return "/images/placeholders/product-pizza.svg";
+  }
+
+  if (normalizedCategory.includes("chips")) {
+    return "/images/placeholders/product-chips.svg";
+  }
+
+  if (
+    normalizedCategory.includes("proteinriegel") ||
+    normalizedCategory.includes("protein bar") ||
+    normalizedCategory.includes("proteinsnack")
+  ) {
+    return "/images/placeholders/product-bar.svg";
+  }
+
+  return DEFAULT_PRODUCT_IMAGE;
+}
+
 function isGeneratedPlaceholderImage(imageUrl: string) {
   const normalizedPath = imageUrl.split("?")[0].trim().toLowerCase();
   return normalizedPath.startsWith("/images/generated/");

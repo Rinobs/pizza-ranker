@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import {
   ALL_PRODUCTS,
   DEFAULT_PRODUCT_IMAGE,
+  getCategoryPlaceholderImage,
   getProductImageUrl,
   getProductRouteSlug,
 } from "@/app/data/products";
@@ -55,9 +56,12 @@ export async function GET(
   }
 
   const sourceUrl = getProductImageUrl(product);
+  const placeholderImage = getCategoryPlaceholderImage(product.category);
 
   if (sourceUrl.startsWith("/")) {
-    return NextResponse.redirect(new URL(sourceUrl, request.url), 307);
+    const redirectUrl =
+      sourceUrl === DEFAULT_PRODUCT_IMAGE ? placeholderImage : sourceUrl;
+    return NextResponse.redirect(new URL(redirectUrl, request.url), 307);
   }
 
   const { imagePath, metaPath } = getCachePaths(slug);
@@ -81,11 +85,11 @@ export async function GET(
       next: { revalidate: CACHE_MAX_AGE_SECONDS },
     });
   } catch {
-    return NextResponse.redirect(new URL(DEFAULT_PRODUCT_IMAGE, request.url), 307);
+    return NextResponse.redirect(new URL(placeholderImage, request.url), 307);
   }
 
   if (!upstream.ok) {
-    return NextResponse.redirect(new URL(DEFAULT_PRODUCT_IMAGE, request.url), 307);
+    return NextResponse.redirect(new URL(placeholderImage, request.url), 307);
   }
 
   const contentType =

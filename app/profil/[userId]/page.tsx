@@ -291,12 +291,12 @@ export default function PublicProfilePage() {
   }, [profileData]);
 
   if (loading) {
-    return <div className="mx-auto -mt-10 max-w-6xl px-4 pb-24 text-white sm:-mt-12 sm:px-8 lg:px-12"><BackButton className="mb-5 sm:mb-6" /><div className="rounded-[30px] border border-[#2A394B] bg-[#141C27] p-5">Profil wird geladen...</div></div>;
+    return <div className="mx-auto max-w-6xl px-4 pb-24 text-white sm:px-8 lg:px-12"><BackButton className="mb-5 sm:mb-6" /><div className="rounded-[30px] border border-[#2A394B] bg-[#141C27] p-5">Profil wird geladen...</div></div>;
   }
 
   if (error || !profileData || !summary) {
     return (
-      <div className="mx-auto -mt-10 max-w-6xl px-4 pb-24 text-white sm:-mt-12 sm:px-8 lg:px-12">
+      <div className="mx-auto max-w-6xl px-4 pb-24 text-white sm:px-8 lg:px-12">
         <BackButton className="mb-5 sm:mb-6" />
         <div className="rounded-[30px] border border-[#2A394B] bg-[#141C27] p-6">
           <p className="text-red-200">{error || "Profil konnte nicht geladen werden."}</p>
@@ -307,7 +307,7 @@ export default function PublicProfilePage() {
   }
 
   return (
-    <div className="mx-auto -mt-10 max-w-7xl px-4 pb-24 text-white sm:-mt-12 sm:px-8 lg:px-12">
+    <div className="mx-auto max-w-7xl px-4 pb-24 text-white sm:px-8 lg:px-12">
       <BackButton className="mb-5 sm:mb-6" />
 
       <section className="overflow-hidden rounded-[36px] border border-[#2E4154] bg-[radial-gradient(circle_at_top_left,rgba(94,226,135,0.18),rgba(16,24,36,0.98)_40%),radial-gradient(circle_at_bottom_right,rgba(104,180,255,0.14),transparent_42%),linear-gradient(145deg,rgba(21,31,44,0.99),rgba(14,20,31,0.96))] p-6 shadow-[0_24px_64px_rgba(0,0,0,0.34)] sm:p-8 lg:p-10">

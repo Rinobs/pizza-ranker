@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { PROFILE_BIO_MAX_LENGTH } from "@/lib/profile-features";
+import { MAX_COMMENT_LENGTH, MIN_COMMENT_LENGTH } from "@/lib/review-comments";
 import { MAX_USERNAME_LENGTH, MIN_USERNAME_LENGTH } from "@/lib/username";
 
 type RatingRow = {
@@ -53,8 +54,6 @@ type SaveProfileResponse = {
   data?: ProfilePayload;
   error?: string;
 };
-
-const MAX_COMMENT_LENGTH = 1000;
 
 function normalizeHalfStepRating(value: number) {
   const safe = Number.isFinite(value) ? value : 0;
@@ -405,6 +404,15 @@ export function useUserRatings() {
 
     if (!draft) {
       const error = "Bitte schreibe erst einen Kommentar.";
+      setCommentErrors((prev) => ({ ...prev, [slug]: error }));
+      return {
+        success: false,
+        error,
+      } as SaveRatingResponse;
+    }
+
+    if (draft.length < MIN_COMMENT_LENGTH) {
+      const error = `Kommentare brauchen mindestens ${MIN_COMMENT_LENGTH} Zeichen.`;
       setCommentErrors((prev) => ({ ...prev, [slug]: error }));
       return {
         success: false,

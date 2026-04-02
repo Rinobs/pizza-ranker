@@ -8,10 +8,13 @@ import {
   REVIEW_REPLIES_TABLE,
 } from "@/lib/supabase";
 import { isReviewRepliesSchemaMissingError } from "@/lib/review-replies";
+import {
+  getReviewCommentValidationError,
+  normalizeReviewComment,
+} from "@/lib/review-comments";
 import { getStableUserId } from "@/lib/user-id";
 
 const PRODUCT_SLUG_PATTERN = /^[a-z0-9-]+$/;
-const MAX_COMMENT_LENGTH = 1000;
 
 function normalizeRating(value: unknown) {
   let parsed: number | null = null;
@@ -41,19 +44,6 @@ function normalizeRating(value: unknown) {
 
   return rounded;
 }
-function normalizeComment(value: unknown) {
-  if (typeof value !== "string") {
-    return null;
-  }
-
-  const trimmed = value.trim();
-  if (trimmed.length === 0) {
-    return null;
-  }
-
-  return trimmed.slice(0, MAX_COMMENT_LENGTH);
-}
-
 async function clearReviewLikes(
   supabase: NonNullable<ReturnType<typeof getSupabaseAdminClient>>,
   userId: string,
@@ -127,14 +117,15 @@ export async function POST(req: Request) {
     );
   }
 
-  if (typeof body.comment === "string" && body.comment.trim().length > MAX_COMMENT_LENGTH) {
+  const commentValidationError = getReviewCommentValidationError(body.comment);
+  if (commentValidationError) {
     return NextResponse.json(
-      { success: false, error: `Comment must be at most ${MAX_COMMENT_LENGTH} characters` },
+      { success: false, error: commentValidationError },
       { status: 400 }
     );
   }
 
-  const comment = normalizeComment(body.comment);
+  const comment = normalizeReviewComment(body.comment);
   const now = new Date().toISOString();
 
   const { data, error } = await supabase

@@ -264,6 +264,7 @@ export function MetricCard({
 export function SnapshotFeatureCard({
   icon: Icon,
   label,
+  media,
   title,
   description,
   support,
@@ -272,6 +273,7 @@ export function SnapshotFeatureCard({
 }: {
   icon: IconType;
   label: string;
+  media?: ReactNode;
   title: ReactNode;
   description: ReactNode;
   support?: ReactNode;
@@ -286,6 +288,8 @@ export function SnapshotFeatureCard({
           <Icon size={18} />
         </span>
       </div>
+
+      {media && <div className="mt-5">{media}</div>}
 
       <div className="mt-5 flex flex-1 flex-col">
         <div className="flex-1">

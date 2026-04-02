@@ -114,6 +114,21 @@ export const DISCOVER_QUICK_SEARCH_TAGS = [
   "Protein",
 ];
 
+const DISCOVER_QUICK_SEARCH_TAGS_BY_CATEGORY: Partial<
+  Record<CategoryNavigationItem["slug"], string[]>
+> = {
+  pizza: ["Salami", "Margherita", "Thunfisch", "Vier Käse", "Steinofen"],
+  chips: ["Paprika", "Salted", "Cheese", "Sour Cream", "Chili"],
+};
+
+export function getDiscoverQuickSearchTags(categorySlug: string | null | undefined) {
+  if (!categorySlug) {
+    return DISCOVER_QUICK_SEARCH_TAGS;
+  }
+
+  return DISCOVER_QUICK_SEARCH_TAGS_BY_CATEGORY[categorySlug] ?? DISCOVER_QUICK_SEARCH_TAGS;
+}
+
 export function isDiscoverSortMode(value: string | null): value is DiscoverSortMode {
   return value === "popular" || value === "best" || value === "new" || value === "price";
 }

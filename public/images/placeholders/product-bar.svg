@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">Produktplatzhalter Proteinriegel</title>
+  <desc id="desc">Dunkelgraue Silhouette eines neutralen Snack-Riegels.</desc>
+  <g fill="none" fill-rule="evenodd">
+    <path d="M76 72l-18 16v80l18 16h104l18-16V88l-18-16H76z" fill="#626C7B"/>
+    <path d="M76 72l12 24v64l-12 24M180 72l-12 24v64l12 24" stroke="#818C9D" stroke-linecap="round" stroke-linejoin="round" stroke-width="10"/>
+    <rect x="98" y="92" width="60" height="72" rx="18" fill="#4F5866"/>
+    <path d="M114 112h28M114 130h28M114 148h20" stroke="#8F99AA" stroke-linecap="round" stroke-width="8"/>
+  </g>
+</svg>

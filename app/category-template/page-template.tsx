@@ -10,6 +10,7 @@ import ProductComparisonPanel, {
   type ComparableProduct,
 } from "../components/ProductComparisonPanel";
 import {
+  DEFAULT_PRODUCT_IMAGE,
   getProductImageUrl,
   getProductPriceValue,
   getProductRouteSlug,
@@ -31,6 +32,7 @@ type RatingSummaryResponse = {
 };
 
 type CategoryProduct = ComparableProduct & {
+  hasImage: boolean;
   newIndex: number;
   priceValue: number | null;
 };
@@ -150,11 +152,13 @@ export default function CategoryPage({
     return products.map((item, index) => {
       const routeSlug = getProductRouteSlug(item);
       const stats = ratingStats[routeSlug];
+      const productImageUrl = getProductImageUrl(item);
       return {
         item,
         name: item.name,
         routeSlug,
-        originalImageUrl: getProductImageUrl(item),
+        originalImageUrl: productImageUrl,
+        hasImage: productImageUrl !== DEFAULT_PRODUCT_IMAGE,
         ratingAvg: stats?.ratingAvg ?? null,
         ratingCount: stats?.ratingCount ?? 0,
         newIndex: index,
@@ -180,6 +184,10 @@ export default function CategoryPage({
     }
 
     result.sort((left, right) => {
+      if (left.hasImage !== right.hasImage) {
+        return left.hasImage ? -1 : 1;
+      }
+
       const sortedByMode = compareByCategorySort(left, right, sortMode);
       if (sortedByMode !== 0) {
         return sortedByMode;
@@ -209,7 +217,6 @@ export default function CategoryPage({
     return new Set(selectedRouteSlugs);
   }, [selectedRouteSlugs]);
 
-  const activeSort = SORT_OPTIONS.find((option) => option.value === sortMode);
   const compareLimitReached = selectedRouteSlugs.length >= COMPARE_LIMIT;
 
   function toggleCompareSelection(routeSlug: string) {
@@ -243,77 +250,7 @@ export default function CategoryPage({
         </div>
       </div>
 
-      <section className="mb-8 rounded-[28px] border border-[#2D3A4B] bg-[linear-gradient(135deg,rgba(21,31,43,0.96),rgba(14,20,30,0.98))] p-5 sm:p-6 shadow-[0_18px_42px_rgba(0,0,0,0.22)]">
-        <p className="text-xs uppercase tracking-[0.22em] text-[#8CA1B8]">
-          Suche in {title}
-        </p>
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(event) => setSearchQuery(event.target.value)}
-          placeholder={`In ${title} suchen, z. B. Salami oder Vanille`}
-          className="mt-3 min-h-12 w-full rounded-2xl border border-[#2D3A4B] bg-[#101822]/90 px-4 text-white outline-none transition-colors placeholder:text-[#70839A] focus:border-[#5EE287]"
-        />
-        <p className="mt-3 text-sm text-[#8CA1B8]">
-          Suche nach Produktnamen, Marken oder typischen Begriffen. Die Sortierung findest du
-          direkt über den Kacheln per Dropdown.
-        </p>
-      </section>
-
       {!statsLoaded && <p className="text-[#8CA1B8] text-center mb-8">Lade Bewertungen...</p>}
-
-      <div className="mb-6 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-        <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em]">
-          <span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1.5 text-[#BFD0E2]">
-            {visibleProducts.length} Produkte
-          </span>
-          <span className="rounded-full border border-[#35506D] bg-[#122233] px-3 py-1.5 text-[#D9ECFF]">
-            Vergleich {comparedProducts.length}/{COMPARE_LIMIT}
-          </span>
-          {activeSearchQuery && (
-            <span className="rounded-full border border-[#3F5C7A] bg-[#122233] px-3 py-1.5 text-[#D9ECFF]">
-              Suche aktiv
-            </span>
-          )}
-          {comparedProducts.length >= 2 && (
-            <span className="rounded-full border border-[#2D5C3D] bg-[#102116] px-3 py-1.5 text-[#BFF2CF]">
-              Direktvergleich bereit
-            </span>
-          )}
-          {compareLimitReached && (
-            <span className="rounded-full border border-[#5A4630] bg-[#2C2115] px-3 py-1.5 text-[#F5D69A]">
-              Maximal {COMPARE_LIMIT} Produkte gleichzeitig
-            </span>
-          )}
-        </div>
-
-        <div className="w-full max-w-[240px]">
-          <label className="block text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8CA1B8]">
-            Sortieren
-          </label>
-          <div className="relative mt-2">
-            <select
-              value={sortMode}
-              onChange={(event) => setSortMode(event.target.value as CategorySortMode)}
-              aria-label="Produkte sortieren"
-              className="min-h-11 w-full appearance-none rounded-2xl border border-[#2D3A4B] bg-[#141C27] px-4 pr-11 text-sm font-semibold text-white outline-none transition-colors focus:border-[#5EE287]"
-            >
-              {SORT_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-            <FiChevronDown
-              size={18}
-              className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#8CA1B8]"
-            />
-          </div>
-          <p className="mt-2 text-xs text-[#8CA1B8]">
-            {activeSort?.hint ?? "Sortierung aktiv"}
-          </p>
-        </div>
-      </div>
 
       <ProductComparisonPanel
         title={title}
@@ -322,6 +259,55 @@ export default function CategoryPage({
         onRemove={toggleCompareSelection}
         onClear={() => setSelectedRouteSlugs([])}
       />
+
+      <section className="mb-6 rounded-[24px] border border-[#2D3A4B] bg-[linear-gradient(145deg,rgba(19,27,38,0.96),rgba(12,18,27,0.98))] p-4 shadow-[0_18px_42px_rgba(0,0,0,0.2)]">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="min-w-[220px] flex-1">
+            <label htmlFor="category-search" className="sr-only">
+              In {title} suchen
+            </label>
+            <input
+              id="category-search"
+              type="text"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder={`In ${title} suchen, z. B. Salami oder Vanille`}
+              className="min-h-11 w-full rounded-2xl border border-[#2D3A4B] bg-[#101822]/90 px-4 text-white outline-none transition-colors placeholder:text-[#70839A] focus:border-[#5EE287]"
+            />
+          </div>
+
+          <span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#BFD0E2]">
+            {visibleProducts.length} Produkte
+          </span>
+
+          <span className="rounded-full border border-[#35506D] bg-[#122233] px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#D9ECFF]">
+            Vergleich {comparedProducts.length}/{COMPARE_LIMIT}
+          </span>
+
+          <div className="relative w-full sm:w-[220px]">
+            <label htmlFor="category-sort" className="sr-only">
+              Produkte sortieren
+            </label>
+            <select
+              id="category-sort"
+              value={sortMode}
+              onChange={(event) => setSortMode(event.target.value as CategorySortMode)}
+              aria-label="Produkte sortieren"
+              className="min-h-11 w-full appearance-none rounded-2xl border border-[#2D3A4B] bg-[#141C27] px-4 pr-11 text-sm font-semibold text-white outline-none transition-colors focus:border-[#5EE287]"
+            >
+              {SORT_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  Sortieren: {option.label}
+                </option>
+              ))}
+            </select>
+            <FiChevronDown
+              size={18}
+              className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#8CA1B8]"
+            />
+          </div>
+        </div>
+      </section>
 
       {visibleProducts.length > 0 ? (
         <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5 md:gap-7">

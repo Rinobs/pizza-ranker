@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">Produktplatzhalter Pizza</title>
+  <desc id="desc">Dunkelgraue Pizza-Silhouette als Fallback-Bild.</desc>
+  <g fill="none" fill-rule="evenodd">
+    <circle cx="128" cy="128" r="82" fill="#5E6877"/>
+    <circle cx="128" cy="128" r="68" stroke="#8893A5" stroke-width="10"/>
+    <path d="M128 46v164M57 96l142 64M57 160l142-64" stroke="#8791A3" stroke-linecap="round" stroke-width="8"/>
+    <circle cx="104" cy="96" r="10" fill="#49515F"/>
+    <circle cx="153" cy="107" r="11" fill="#49515F"/>
+    <circle cx="98" cy="152" r="12" fill="#49515F"/>
+    <circle cx="154" cy="155" r="9" fill="#49515F"/>
+    <circle cx="126" cy="126" r="11" fill="#49515F"/>
+  </g>
+</svg>

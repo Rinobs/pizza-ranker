@@ -9,6 +9,7 @@ import {
   FiCheckCircle,
   FiChevronDown,
   FiClock,
+  FiCoffee,
   FiEdit3,
   FiGrid,
   FiHeart,
@@ -27,7 +28,12 @@ import {
 import BackButton from "@/app/components/BackButton";
 import ProductCardImage from "@/app/components/ProductCardImage";
 import ProfileAvatar from "@/app/components/ProfileAvatar";
-import { ALL_PRODUCTS, getProductImageUrl, getProductRouteSlug } from "@/app/data/products";
+import {
+  ALL_PRODUCTS,
+  DEFAULT_PRODUCT_IMAGE,
+  getProductImageUrl,
+  getProductRouteSlug,
+} from "@/app/data/products";
 import { useUserCustomLists } from "@/app/hooks/useUserCustomLists";
 import { useUserRatings } from "@/app/hooks/useUserRatings";
 import { useUserProductLists } from "@/app/hooks/useUserProductLists";
@@ -706,11 +712,45 @@ export default function ProfilPage() {
   const currentLevelProgress = !levelInfo.nextLevelMinPoints
     ? 100
     : Math.max(0, Math.min(100, ((profilePoints - levelInfo.currentLevelMinPoints) / (levelInfo.nextLevelMinPoints - levelInfo.currentLevelMinPoints)) * 100));
+  const signatureProductHasImage =
+    topRatedProduct?.imageUrl !== undefined &&
+    topRatedProduct.imageUrl !== DEFAULT_PRODUCT_IMAGE;
   const profileSnapshotCards = (
     <div className="grid gap-4 lg:auto-rows-fr lg:grid-cols-3">
       <SnapshotFeatureCard
         icon={FiStar}
         label="Signature Produkt"
+        media={
+          topRatedProduct ? (
+            <Link
+              href={`/produkt/${topRatedProduct.slug}`}
+              aria-label={`${topRatedProduct.name} öffnen`}
+              className="block"
+            >
+              <div className="relative flex h-20 items-center justify-center overflow-hidden rounded-[22px] border border-[#243242] bg-[linear-gradient(180deg,rgba(12,18,27,0.98),rgba(16,24,34,0.96))] px-3">
+                {signatureProductHasImage ? (
+                  <ProductCardImage
+                    routeSlug={topRatedProduct.slug}
+                    alt={topRatedProduct.name}
+                    fallbackSrc={topRatedProduct.imageUrl}
+                    className="h-full w-full object-contain p-2"
+                    eager
+                  />
+                ) : (
+                  <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-[#314254] bg-[#182230] text-[#B8C7D6]">
+                    <FiCoffee size={24} />
+                  </span>
+                )}
+              </div>
+            </Link>
+          ) : (
+            <div className="flex h-20 items-center justify-center overflow-hidden rounded-[22px] border border-[#243242] bg-[linear-gradient(180deg,rgba(12,18,27,0.98),rgba(16,24,34,0.96))] px-3">
+              <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-[#314254] bg-[#182230] text-[#B8C7D6]">
+                <FiCoffee size={24} />
+              </span>
+            </div>
+          )
+        }
         title={topRatedProduct ? <Link href={`/produkt/${topRatedProduct.slug}`} className="block text-xl font-semibold leading-tight text-white transition-colors hover:text-[#8AF5AC]">{topRatedProduct.name}</Link> : "Noch offen"}
         titleClassName={topRatedProduct ? undefined : "text-xl font-semibold text-white"}
         description={topRatedProduct ? "Dein aktuell bestbewerteter Pick und damit das Aushängeschild deines Profils." : "Sobald du dein erstes Produkt bewertest, landet hier automatisch dein persönliches Highlight."}
@@ -1006,7 +1046,7 @@ export default function ProfilPage() {
 
   if (!profileLoaded) {
     return (
-      <div className="mx-auto -mt-10 max-w-7xl px-4 pb-24 text-white sm:-mt-12 sm:px-8 lg:px-12">
+      <div className="mx-auto max-w-7xl px-4 pb-24 text-white sm:px-8 lg:px-12">
         <BackButton className="mb-5 sm:mb-6" />
         <div className="rounded-[30px] border border-[#2A394B] bg-[#141C27] p-5">
           Profil wird geladen...
@@ -1017,7 +1057,7 @@ export default function ProfilPage() {
 
   if (!user) {
     return (
-      <div className="mx-auto -mt-10 max-w-6xl px-4 pb-24 text-white sm:-mt-12 sm:px-8 lg:px-12">
+      <div className="mx-auto max-w-6xl px-4 pb-24 text-white sm:px-8 lg:px-12">
         <BackButton className="mb-5 sm:mb-6" />
         <div className="overflow-hidden rounded-[34px] border border-[#2D3A4B] bg-[radial-gradient(circle_at_top_left,rgba(94,226,135,0.18),rgba(20,28,39,0.97)_42%),linear-gradient(145deg,rgba(19,28,40,0.98),rgba(15,22,33,0.95))] p-8 shadow-[0_18px_42px_rgba(0,0,0,0.34)]">
           <p className="text-xs uppercase tracking-[0.22em] text-[#8CA1B8]">Profil</p>
@@ -1039,7 +1079,7 @@ export default function ProfilPage() {
   }
 
   return (
-    <div className="mx-auto -mt-10 max-w-7xl px-4 pb-24 text-white sm:-mt-12 sm:px-8 lg:px-12">
+    <div className="mx-auto max-w-7xl px-4 pb-24 text-white sm:px-8 lg:px-12">
       <BackButton className="mb-5 sm:mb-6" />
 
       <input

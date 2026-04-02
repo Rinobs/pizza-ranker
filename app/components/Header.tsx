@@ -10,8 +10,8 @@ import LoginButton from "./LoginButton";
 import {
   CATEGORY_NAV_ITEMS,
   DEFAULT_DISCOVER_SORT,
-  DISCOVER_QUICK_SEARCH_TAGS,
   DISCOVER_SORT_OPTIONS,
+  getDiscoverQuickSearchTags,
   isCategoryFilter,
   isDiscoverSortMode,
   type DiscoverSortMode,
@@ -52,7 +52,10 @@ export default function Header() {
   const mobileSheetRef = useRef<HTMLDivElement | null>(null);
   const { data: session } = useSession();
 
-  const isCategoryRoute = CATEGORY_NAV_ITEMS.some((category) => Boolean(pathname?.startsWith(category.href)));
+  const currentCategoryRoute =
+    CATEGORY_NAV_ITEMS.find((category) => Boolean(pathname?.startsWith(category.href))) ?? null;
+  const quickSearchTags = getDiscoverQuickSearchTags(currentCategoryRoute?.slug);
+  const isCategoryRoute = Boolean(currentCategoryRoute);
   const isProfileRoute = pathname === "/profil";
 
   const closeCategories = () => setIsCategoriesOpen(false);
@@ -185,6 +188,32 @@ export default function Header() {
     );
   }
 
+  function applyQuickSearchTag(
+    tag: string,
+    options?: {
+      closeDiscover?: boolean;
+      closeCategories?: boolean;
+    }
+  ) {
+    setDiscoverQuery(tag);
+
+    navigateDiscover(
+      currentCategoryRoute
+        ? {
+            q: tag,
+            category: currentCategoryRoute.slug,
+          }
+        : {
+            q: tag,
+          },
+      {
+        closeCategories: options?.closeCategories,
+        closeDiscover: options?.closeDiscover,
+        replace: pathname === "/",
+      }
+    );
+  }
+
   const navItemClass = (active: boolean) =>
     `min-h-11 touch-manipulation flex items-center gap-2 px-3 py-2 rounded-xl transition-all duration-300 ${
       active
@@ -232,17 +261,11 @@ export default function Header() {
             Schnellsuche
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
-            {DISCOVER_QUICK_SEARCH_TAGS.map((tag) => (
+            {quickSearchTags.map((tag) => (
               <button
                 key={tag}
                 type="button"
-                onClick={() => {
-                  setDiscoverQuery(tag);
-                  navigateDiscover(
-                    { q: tag },
-                    { closeDiscover: true, replace: pathname === "/" }
-                  );
-                }}
+                onClick={() => applyQuickSearchTag(tag, { closeDiscover: true })}
                 className="rounded-full border border-[#2D3A4B] bg-[#141C27]/90 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-[#BFD0E2] transition-colors hover:border-[#5EE287] hover:text-white"
               >
                 {tag}
@@ -398,14 +421,11 @@ export default function Header() {
             Beliebte Suchen
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
-            {DISCOVER_QUICK_SEARCH_TAGS.map((tag) => (
+            {quickSearchTags.map((tag) => (
               <button
                 key={`mobile-${tag}`}
                 type="button"
-                onClick={() => {
-                  setDiscoverQuery(tag);
-                  navigateDiscover({ q: tag }, { closeCategories: true });
-                }}
+                onClick={() => applyQuickSearchTag(tag, { closeCategories: true })}
                 className="rounded-full border border-[#2D3A4B] bg-[#141C27]/90 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-[#BFD0E2] transition-colors hover:border-[#5EE287] hover:text-white"
               >
                 {tag}
@@ -480,11 +500,11 @@ export default function Header() {
                     href={category.href}
                     onClick={closeCategories}
                     className={`
-                      flex items-center gap-3 rounded-xl border px-3 py-3 transition-all duration-300
+                      flex cursor-pointer items-center gap-3 rounded-xl border border-l-[3px] px-3 py-3 transition-[background-color] duration-150 ease-[ease]
                       ${
                         isActive
-                          ? "border-[#5EE287] bg-[#1E2A3A]"
-                          : "border-[#2D3A4B] bg-[#121B27] hover:border-[#5EE287] hover:bg-[#1B2736]"
+                          ? "border-[#2D3A4B] border-l-[#5EE287] bg-[#2A2A2A] hover:bg-[#343434]"
+                          : "border-[#2D3A4B] border-l-transparent bg-[#121B27] hover:bg-[#252F3B]"
                       }
                     `}
                   >
@@ -544,7 +564,7 @@ export default function Header() {
                   setIsDiscoverOpen((previous) => !previous);
                 }}
                 aria-expanded={isDiscoverOpen}
-                className={`min-h-11 touch-manipulation inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-semibold transition-all duration-300 ${
+                className={`relative min-h-11 touch-manipulation inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-semibold transition-all duration-300 ${
                   isDiscoverOpen || activeFilterCount > 0
                     ? "border-[#5EE287] bg-[#173023] text-[#D9FFE6]"
                     : "border-[#2D3A4B] bg-[#141C27] text-white hover:border-[#5EE287]"
@@ -553,7 +573,7 @@ export default function Header() {
                 <FiSliders size={17} />
                 <span>Filter</span>
                 {activeFilterCount > 0 && (
-                  <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-white/10 px-1.5 text-xs text-[#E8F6ED]">
+                  <span className="absolute -right-1.5 -top-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#5EE287] px-1 text-[10px] font-bold leading-none text-[#0C1910]">
                     {activeFilterCount}
                   </span>
                 )}
@@ -624,11 +644,11 @@ export default function Header() {
                             href={category.href}
                             onClick={closeCategories}
                             className={`
-                              group rounded-xl border px-3 py-3 transition-all duration-300
+                              group cursor-pointer rounded-xl border border-l-[3px] px-3 py-3 transition-[background-color] duration-150 ease-[ease]
                               ${
                                 isActive
-                                  ? "border-[#5EE287] bg-[#1E2A3A]"
-                                  : "border-[#2D3A4B] bg-[#121B27] hover:border-[#5EE287] hover:bg-[#1B2736]"
+                                  ? "border-[#2D3A4B] border-l-[#5EE287] bg-[#2A2A2A] hover:bg-[#343434]"
+                                  : "border-[#2D3A4B] border-l-transparent bg-[#121B27] hover:bg-[#252F3B]"
                               }
                             `}
                           >

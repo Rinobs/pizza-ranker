@@ -54,7 +54,7 @@ export default function ProductSuggestionPage() {
   return (
     <Suspense
       fallback={
-        <main className="mx-auto max-w-4xl px-4 pb-24 pt-6 text-white sm:px-8 lg:px-12">
+        <main className="mx-auto max-w-4xl px-4 pb-24 text-white sm:px-8 lg:px-12">
           <BackButton />
           <div className="rounded-[30px] border border-[#2A394B] bg-[#111925]/92 p-6 text-sm text-[#AFC1D3]">
             Formular wird geladen...
@@ -149,7 +149,7 @@ function ProductSuggestionPageContent() {
   }
 
   return (
-    <main className="mx-auto max-w-4xl px-4 pb-24 pt-6 text-white sm:px-8 lg:px-12">
+    <main className="mx-auto max-w-4xl px-4 pb-24 text-white sm:px-8 lg:px-12">
       <BackButton />
 
       <section className="overflow-hidden rounded-[34px] border border-[#314258] bg-[radial-gradient(circle_at_top_left,rgba(94,226,135,0.16),rgba(9,14,21,0.98)_40%),linear-gradient(145deg,rgba(18,26,38,0.99),rgba(8,12,18,0.97))] p-6 shadow-[0_24px_70px_rgba(0,0,0,0.32)] sm:p-8">

@@ -9,6 +9,7 @@ import BuyButton from "@/app/components/BuyButton";
 import ReviewLikeButton from "@/app/components/ReviewLikeButton";
 import {
   ALL_PRODUCTS,
+  getCategoryPlaceholderImage,
   getProductBuyLink,
   getProductImageUrl,
   getProductRouteSlug,
@@ -19,6 +20,7 @@ import { useReviewLikes } from "@/app/hooks/useReviewLikes";
 import { useUserRatings } from "@/app/hooks/useUserRatings";
 import { useUserProductLists } from "@/app/hooks/useUserProductLists";
 import { getCategoryAccent } from "@/lib/category-accents";
+import { MAX_COMMENT_LENGTH, MIN_COMMENT_LENGTH } from "@/lib/review-comments";
 
 const PLACEHOLDER_TEXT = "9999";
 const PLACEHOLDER_NUMBER = 9999;
@@ -135,6 +137,33 @@ function SegmentToggle({
   if (options.length <= 1) {
     return null;
   }
+
+  /* function handleStartEditingOwnComment() {
+    updateCommentDraft(routeSlug, savedComment);
+    setIsEditingOwnComment(true);
+    setIsOwnCommentMenuOpen(false);
+    setCommentMessage(null);
+  } */
+
+  /* async function handleDeleteOwnComment() {
+    if (typeof window !== "undefined") {
+      const confirmed = window.confirm("Möchtest du deinen Kommentar wirklich löschen?");
+      if (!confirmed) {
+        return;
+      }
+    }
+
+    const response = await deleteComment(routeSlug);
+    if (!response.success) {
+      setCommentMessage(response.error || "Kommentar konnte nicht gelÃ¶scht werden.");
+      return;
+    }
+
+    setIsEditingOwnComment(false);
+    setIsOwnCommentMenuOpen(false);
+    setCommentMessage("Kommentar erfolgreich gelÃ¶scht.");
+    setDetailsReloadToken((prev) => prev + 1);
+  } */
 
   return (
     <div className="inline-flex flex-wrap gap-2 rounded-full border border-[#2D3A4B] bg-[#111823] p-1">
@@ -489,6 +518,9 @@ export default function ProductPage() {
   }, [routeSlug, product, detailsReloadToken]);
 
   const savedComment = (comments[routeSlug] || "").trim();
+  const commentDraft = commentDrafts[routeSlug] || "";
+  const trimmedCommentDraft = commentDraft.trim();
+  const isCommentLongEnough = trimmedCommentDraft.length >= MIN_COMMENT_LENGTH;
   const hasSavedComment = savedComment.length > 0;
   const showCommentEditor = !user || !hasSavedComment || isEditingOwnComment;
 
@@ -768,13 +800,40 @@ export default function ProductPage() {
     }
   }
 
+  function handleStartEditingOwnComment() {
+    updateCommentDraft(routeSlug, savedComment);
+    setIsEditingOwnComment(true);
+    setIsOwnCommentMenuOpen(false);
+    setCommentMessage(null);
+  }
+
+  async function handleDeleteOwnComment() {
+    if (typeof window !== "undefined") {
+      const confirmed = window.confirm("Möchtest du deinen Kommentar wirklich löschen?");
+      if (!confirmed) {
+        return;
+      }
+    }
+
+    const response = await deleteComment(routeSlug);
+    if (!response.success) {
+      setCommentMessage(response.error || "Kommentar konnte nicht gelöscht werden.");
+      return;
+    }
+
+    setIsEditingOwnComment(false);
+    setIsOwnCommentMenuOpen(false);
+    setCommentMessage("Kommentar erfolgreich gelöscht.");
+    setDetailsReloadToken((prev) => prev + 1);
+  }
+
   if (!routeSlug) return null;
 
   if (!product || !mergedDetails) {
     const suggestionName = humanizeRouteSlug(routeSlug);
 
     return (
-      <div className="max-w-5xl mx-auto px-4 sm:px-8 lg:px-12 pb-24 text-white">
+      <div className="-mt-2 max-w-5xl mx-auto px-4 sm:px-8 lg:px-12 pb-24 text-white">
         <BackButton />
         <div className="rounded-[30px] border border-[#2D3A4B] bg-[linear-gradient(145deg,rgba(27,34,45,0.98),rgba(15,22,32,0.96))] p-8 text-center shadow-[0_18px_44px_rgba(0,0,0,0.28)]">
           <h1 className="mb-4 text-3xl font-bold">Produkt nicht gefunden</h1>
@@ -952,7 +1011,7 @@ export default function ProductPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-8 lg:px-12 pb-24 text-white">
+    <div className="-mt-2 max-w-6xl mx-auto px-4 sm:px-8 lg:px-12 pb-24 text-white">
       <BackButton />
 
       <div className="rounded-3xl border border-[#2D3A4B] bg-[#1B222D]/95 p-5 sm:p-8 shadow-[0_14px_34px_rgba(0,0,0,0.28)]">
@@ -998,56 +1057,56 @@ export default function ProductPage() {
         </div>
 
         <div className="grid gap-8 lg:grid-cols-[1.1fr_1fr] lg:items-start">
-          <div className="group lg:sticky lg:top-28 lg:self-start">
+          <div className="group lg:sticky lg:top-20 lg:self-start">
             <div className="rounded-[34px] border border-[#314254] bg-[radial-gradient(circle_at_top,rgba(124,200,255,0.16),transparent_48%),radial-gradient(circle_at_bottom,rgba(94,226,135,0.16),transparent_42%),linear-gradient(160deg,rgba(26,35,47,0.98),rgba(17,24,36,0.96))] p-4 shadow-[0_24px_60px_rgba(0,0,0,0.34)] sm:p-6">
-              <div className="relative overflow-hidden rounded-[28px] border border-[#3A4B5D] bg-[linear-gradient(180deg,rgba(31,42,56,0.94),rgba(18,25,37,0.98))] px-2 py-2 sm:px-4 sm:py-4">
-                <div className="pointer-events-none absolute -left-6 -top-6 h-44 w-44 rounded-full bg-[radial-gradient(circle,rgba(124,200,255,0.22),transparent_68%)] blur-3xl sm:h-52 sm:w-52" />
-                <div className="pointer-events-none absolute left-10 top-20 h-28 w-28 rounded-full bg-[radial-gradient(circle,rgba(94,226,135,0.18),transparent_72%)] blur-3xl sm:h-32 sm:w-32" />
-                <div className="pointer-events-none absolute inset-x-8 top-0 h-24 rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.12),transparent_68%)] blur-2xl" />
-                <div className="pointer-events-none absolute bottom-6 left-1/2 h-10 w-3/4 -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(0,0,0,0.34),transparent_72%)] blur-2xl" />
+              <div className="space-y-4">
+                <div className="relative overflow-hidden rounded-[28px] border border-[#3A4B5D] bg-[linear-gradient(180deg,rgba(31,42,56,0.94),rgba(18,25,37,0.98))] px-2 py-2 sm:px-4 sm:py-4">
+                  <div className="pointer-events-none absolute -left-6 -top-6 h-44 w-44 rounded-full bg-[radial-gradient(circle,rgba(124,200,255,0.22),transparent_68%)] blur-3xl sm:h-52 sm:w-52" />
+                  <div className="pointer-events-none absolute left-10 top-20 h-28 w-28 rounded-full bg-[radial-gradient(circle,rgba(94,226,135,0.18),transparent_72%)] blur-3xl sm:h-32 sm:w-32" />
+                  <div className="pointer-events-none absolute inset-x-8 top-0 h-24 rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.12),transparent_68%)] blur-2xl" />
+                  <div className="pointer-events-none absolute bottom-6 left-1/2 h-10 w-3/4 -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(0,0,0,0.34),transparent_72%)] blur-2xl" />
 
-                <div className="absolute left-4 top-4 z-[2] max-w-[14rem] sm:left-6 sm:top-6 sm:max-w-[18rem]">
-                  <div className="overflow-hidden rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(15,22,33,0.88),rgba(15,22,33,0.5))] shadow-[0_18px_32px_rgba(0,0,0,0.24)] backdrop-blur-md">
-                    <div className={`h-1.5 w-full ${categoryAccent.accentBarClass}`} />
-                    <div className="space-y-3 px-4 py-3.5">
-                      <p className="text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-[#94A9BF]">
-                        Produktansicht
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        <span
-                          className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[0.68rem] font-semibold ${categoryAccent.badgeClass}`}
-                        >
-                          {displayCategory || product.category}
-                        </span>
-                        {displayBrand ? (
-                          <span className="inline-flex items-center rounded-full border border-[#41556A] bg-[#13202C]/88 px-2.5 py-1 text-[0.68rem] font-semibold text-[#DCE7F3]">
-                            {displayBrand}
-                          </span>
-                        ) : null}
-                      </div>
-                      <p className="max-w-[14rem] text-sm font-semibold leading-snug text-[#F1F7FD]">
-                        Verpackung, Marke und Kategorie sofort im Blick.
-                      </p>
-                    </div>
+                  <div className="flex min-h-[300px] items-center justify-center px-3 py-6 sm:min-h-[360px] sm:px-4">
+                    <img
+                      src={cachedImageUrl}
+                      className="relative z-[1] h-full min-h-[300px] max-h-[420px] w-full object-contain drop-shadow-[0_26px_46px_rgba(0,0,0,0.42)] transition-transform duration-500 group-hover:scale-[1.04]"
+                      alt={product.name}
+                      decoding="async"
+                      onError={(e) => {
+                        const image = e.currentTarget;
+                        if (image.dataset.fallbackApplied === "1") {
+                          image.src = "/images/placeholders/product-default.svg";
+                          return;
+                        }
+                        image.dataset.fallbackApplied = "1";
+                        image.src = originalImageUrl;
+                      }}
+                    />
                   </div>
                 </div>
 
-                <div className="flex min-h-[320px] items-center justify-center py-4 sm:min-h-[440px] lg:min-h-[calc(100vh-11rem)] lg:items-end lg:px-4 lg:pb-8 lg:pt-40">
-                  <img
-                    src={cachedImageUrl}
-                    className="relative z-[1] h-[260px] w-auto max-w-full object-contain drop-shadow-[0_26px_46px_rgba(0,0,0,0.42)] transition-transform duration-500 group-hover:scale-[1.04] sm:h-[360px] lg:h-auto lg:max-h-[68vh]"
-                    alt={product.name}
-                    decoding="async"
-                    onError={(e) => {
-                      const image = e.currentTarget;
-                      if (image.dataset.fallbackApplied === "1") {
-                        image.src = "/images/placeholders/product-default.svg";
-                        return;
-                      }
-                      image.dataset.fallbackApplied = "1";
-                      image.src = originalImageUrl;
-                    }}
-                  />
+                <div className="overflow-hidden rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(15,22,33,0.88),rgba(15,22,33,0.5))] shadow-[0_18px_32px_rgba(0,0,0,0.24)] backdrop-blur-md">
+                  <div className={`h-1.5 w-full ${categoryAccent.accentBarClass}`} />
+                  <div className="space-y-3 px-4 py-3.5">
+                    <p className="text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-[#94A9BF]">
+                      Produktansicht
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      <span
+                        className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[0.68rem] font-semibold ${categoryAccent.badgeClass}`}
+                      >
+                        {displayCategory || product.category}
+                      </span>
+                      {displayBrand ? (
+                        <span className="inline-flex items-center rounded-full border border-[#41556A] bg-[#13202C]/88 px-2.5 py-1 text-[0.68rem] font-semibold text-[#DCE7F3]">
+                          {displayBrand}
+                        </span>
+                      ) : null}
+                    </div>
+                    <p className="text-sm font-semibold leading-snug text-[#F1F7FD]">
+                      Verpackung, Marke und Kategorie sofort im Blick.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1069,21 +1128,6 @@ export default function ProductPage() {
                     <strong className="text-white">{key}:</strong> {value}
                   </li>
                 ))}
-                <li className="rounded-lg border border-[#2D3A4B] bg-[#141C27] px-3 py-2 sm:col-span-2">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <strong className="text-white">Durchschnittsbewertung:</strong>
-                    {averageRatingValue !== null ? (
-                      <div className="flex items-center gap-3">
-                        <ReadOnlyRatingStars rating={averageRatingValue} />
-                        <span className="rounded-full border border-[#3B4E64] bg-[#101925] px-2.5 py-1 text-sm font-semibold text-[#F6F8FB]">
-                          {formatRatingValue(averageRatingValue)}/5
-                        </span>
-                      </div>
-                    ) : (
-                      <span className="text-sm text-[#8CA1B8]">Noch keine Bewertung</span>
-                    )}
-                  </div>
-                </li>
               </ul>
             </section>
 
@@ -1236,11 +1280,15 @@ export default function ProductPage() {
                               onError={(event) => {
                                 const image = event.currentTarget;
                                 if (image.dataset.fallbackApplied === "1") {
-                                  image.src = "/images/placeholders/product-default.svg";
+                                  image.src = getCategoryPlaceholderImage(similarProduct.category);
                                   return;
                                 }
                                 image.dataset.fallbackApplied = "1";
-                                image.src = getProductImageUrl({ imageUrl: similarProduct.imageUrl });
+                                image.src =
+                                  getProductImageUrl({ imageUrl: similarProduct.imageUrl }) ===
+                                  "/images/placeholders/product-default.svg"
+                                    ? getCategoryPlaceholderImage(similarProduct.category)
+                                    : getProductImageUrl({ imageUrl: similarProduct.imageUrl });
                               }}
                             />
                           </div>
@@ -1543,10 +1591,7 @@ export default function ProductPage() {
                                   className="flex w-full items-center rounded-xl px-3 py-2 text-left text-sm font-semibold text-[#D9FFE6] transition-colors hover:bg-[#173023] disabled:cursor-not-allowed disabled:opacity-60"
                                   disabled={submittingComments[routeSlug] === true}
                                   onClick={() => {
-                                    updateCommentDraft(routeSlug, savedComment);
-                                    setIsEditingOwnComment(true);
-                                    setIsOwnCommentMenuOpen(false);
-                                    setCommentMessage(null);
+                                    handleStartEditingOwnComment();
                                   }}
                                 >
                                   Bearbeiten
@@ -1700,26 +1745,42 @@ export default function ProductPage() {
                     </span>
                   </div>
 
-                  <button
-                    type="button"
-                    disabled={!user || creatingList}
-                    onClick={() => {
-                      setIsCustomListCreatorOpen((current) => !current);
-                      setCustomListMessage(null);
-                    }}
-                    className="inline-flex items-center rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-2 text-xs font-semibold text-[#D6E2EF] transition-colors hover:border-[#5EE287] hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
-                  >
+                  {!(customListsLoaded && customLists.length === 0) ? (
+                    <button
+                      type="button"
+                      disabled={!user || creatingList}
+                      onClick={() => {
+                        setIsCustomListCreatorOpen((current) => !current);
+                        setCustomListMessage(null);
+                      }}
+                      className="inline-flex items-center rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-2 text-xs font-semibold text-[#D6E2EF] transition-colors hover:border-[#5EE287] hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                    >
                     {isCustomListCreatorOpen
                       ? "Neue Liste schließen"
                       : customLists.length === 0
                         ? "Erste Liste"
                         : "Neue Liste"}
-                  </button>
+                    </button>
+                  ) : null}
                 </div>
 
                 {!customListsLoaded && (
                   <p className="mt-4 text-sm text-[#8CA1B8]">Eigene Listen werden geladen...</p>
                 )}
+
+                {customListsLoaded && user && customLists.length === 0 && !isCustomListCreatorOpen ? (
+                  <button
+                    type="button"
+                    disabled={creatingList}
+                    onClick={() => {
+                      setIsCustomListCreatorOpen(true);
+                      setCustomListMessage(null);
+                    }}
+                    className="mt-3 inline-flex items-center text-sm font-semibold text-[#8AF5AC] transition-colors hover:text-[#B7FFD0] disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    + Erste Liste erstellen
+                  </button>
+                ) : null}
 
                 {customListsLoaded && customLists.length > 0 ? (
                   <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -1830,10 +1891,6 @@ export default function ProductPage() {
                   <p className="mt-4 rounded-[20px] border border-dashed border-[#35503D] bg-[#0F1722] px-4 py-3 text-sm text-[#AFC1D3]">
                     Einloggen für eigene Listen.
                   </p>
-                ) : customListsLoaded && customLists.length === 0 ? (
-                  <p className="mt-4 rounded-[20px] border border-dashed border-[#35503D] bg-[#0F1722] px-4 py-3 text-sm text-[#AFC1D3]">
-                    Keine Liste vorhanden.
-                  </p>
                 ) : null}
               </div>
 
@@ -1916,6 +1973,31 @@ export default function ProductPage() {
                           ? "Teile Geschmack, Konsistenz oder Preis-Leistung. Der grüne Button speichert deinen Kommentar."
                           : "Logge dich ein, um einen Kommentar zu schreiben und abzusenden."}
                       </p>
+                      <div className="mt-3 flex flex-wrap items-center gap-3">
+                        <button
+                          type="button"
+                          disabled={submittingComments[routeSlug] === true}
+                          onClick={() => {
+                            handleStartEditingOwnComment();
+                          }}
+                          className="inline-flex items-center gap-2 rounded-full border border-[#2D3A4B] bg-[#141C27] px-4 py-2 text-sm font-semibold text-[#D9FFE6] transition-colors hover:border-[#5EE287] hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          <span aria-hidden="true">✏</span>
+                          <span>Bearbeiten</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          disabled={submittingComments[routeSlug] === true}
+                          onClick={async () => {
+                            await handleDeleteOwnComment();
+                          }}
+                          className="inline-flex items-center gap-2 rounded-full border border-[#5A2A2A] bg-[#2A1111] px-4 py-2 text-sm font-semibold text-red-200 transition-colors hover:border-red-300 hover:text-red-100 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          <span aria-hidden="true">🗑</span>
+                          <span>{submittingComments[routeSlug] === true ? "Lösche..." : "Löschen"}</span>
+                        </button>
+                      </div>
                     </div>
 
                     <span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-xs font-semibold text-[#D6E2EF]">
@@ -1926,8 +2008,8 @@ export default function ProductPage() {
                   <textarea
                     className="mt-4 min-h-32 w-full rounded-xl border border-[#2D3A4B] bg-[#141C27] p-3 text-white placeholder:text-[#8CA1B8]"
                     placeholder="Was hat dir gefallen oder nicht gefallen?"
-                    value={commentDrafts[routeSlug] || ""}
-                    maxLength={1000}
+                    value={commentDraft}
+                    maxLength={MAX_COMMENT_LENGTH}
                     onChange={(e) => {
                       if (!user) return;
                       updateCommentDraft(routeSlug, e.target.value);
@@ -1936,9 +2018,13 @@ export default function ProductPage() {
                     disabled={!user}
                   />
 
+                  <p className="mt-2 text-xs text-[#8CA1B8]">
+                    Beschreibe kurz, was du probiert hast (min. 10 Zeichen).
+                  </p>
+
                   <div className="mt-3 flex items-center justify-between gap-3">
                     <p className="text-xs text-[#8CA1B8]">
-                      {(commentDrafts[routeSlug] || "").length}/1000 Zeichen
+                      {commentDraft.length}/{MAX_COMMENT_LENGTH} Zeichen
                     </p>
 
                     <div className="flex items-center gap-2">
@@ -1960,7 +2046,11 @@ export default function ProductPage() {
                       <button
                         type="button"
                         className="px-4 py-2 rounded-lg bg-[#5EE287] text-[#0C1910] font-semibold hover:bg-[#75F39B] disabled:opacity-60 disabled:cursor-not-allowed"
-                        disabled={!user || submittingComments[routeSlug] === true}
+                        disabled={
+                          !user ||
+                          submittingComments[routeSlug] === true ||
+                          !isCommentLongEnough
+                        }
                         onClick={async () => {
                           const response = await submitComment(routeSlug);
                           if (!response.success) {
@@ -1984,14 +2074,39 @@ export default function ProductPage() {
                 </div>
               ) : (
                 <div className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4">
-                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
                     <div>
                       <h3 className="text-base font-semibold text-white">Dein Kommentar</h3>
-                      <p className="mt-1 text-sm text-[#9EB0C3]">
+                      <p className="hidden">
                         Dein Kommentar ist bereits gespeichert. Über die drei Punkte am Kommentar kannst du ihn bearbeiten oder löschen.
                       </p>
+                      <div className="mt-3 flex flex-wrap items-center gap-3">
+                        <button
+                          type="button"
+                          disabled={submittingComments[routeSlug] === true}
+                          onClick={() => {
+                            handleStartEditingOwnComment();
+                          }}
+                          className="inline-flex items-center gap-2 rounded-full border border-[#2D3A4B] bg-[#141C27] px-4 py-2 text-sm font-semibold text-[#D9FFE6] transition-colors hover:border-[#5EE287] hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          <span aria-hidden="true">✏</span>
+                          <span>Bearbeiten</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          disabled={submittingComments[routeSlug] === true}
+                          onClick={async () => {
+                            await handleDeleteOwnComment();
+                          }}
+                          className="inline-flex items-center gap-2 rounded-full border border-[#5A2A2A] bg-[#2A1111] px-4 py-2 text-sm font-semibold text-red-200 transition-colors hover:border-red-300 hover:text-red-100 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          <span aria-hidden="true">🗑</span>
+                          <span>{submittingComments[routeSlug] === true ? "Lösche..." : "Löschen"}</span>
+                        </button>
+                      </div>
                     </div>
-                    <span className="rounded-full border border-[#2D5B41] bg-[#173023] px-3 py-1 text-xs font-semibold text-[#D9FFE6]">
+                    <span className="hidden">
                       Bereits veröffentlicht
                     </span>
                   </div>
