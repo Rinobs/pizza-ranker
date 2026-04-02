@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import BackButton from "@/app/components/BackButton";
+import MobileBarcodeScanner from "@/app/components/MobileBarcodeScanner";
 import {
   CATEGORY_NAV_ITEMS,
   getCategoryNavigationItem,
@@ -28,6 +29,10 @@ function normalizeNamePrefill(value: string | null) {
   }
 
   return decodeURIComponent(value).replace(/-/g, " ").trim().slice(0, 120);
+}
+
+function normalizeBarcodePrefill(value: string | null) {
+  return (value ?? "").replace(/[^\d]/g, "").trim().slice(0, 14);
 }
 
 function getCategoryPrefill(value: string | null) {
@@ -79,13 +84,17 @@ function ProductSuggestionPageContent() {
     () => getCategoryPrefill(searchParams.get("category")),
     [searchParams]
   );
+  const barcodePrefill = useMemo(
+    () => normalizeBarcodePrefill(searchParams.get("barcode")),
+    [searchParams]
+  );
 
   const [productName, setProductName] = useState(initialProductName);
   const [brand, setBrand] = useState("");
   const [category, setCategory] = useState(initialCategory || "");
   const [customCategory, setCustomCategory] = useState("");
   const [contactEmail, setContactEmail] = useState(session?.user?.email ?? "");
-  const [barcode, setBarcode] = useState("");
+  const [barcode, setBarcode] = useState(barcodePrefill);
   const [productUrl, setProductUrl] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [notes, setNotes] = useState("");
@@ -95,6 +104,12 @@ function ProductSuggestionPageContent() {
 
   const isLoggedIn = Boolean(session?.user?.email);
   const showCustomCategory = category === OTHER_CATEGORY_VALUE;
+
+  useEffect(() => {
+    if (barcodePrefill) {
+      setBarcode(barcodePrefill);
+    }
+  }, [barcodePrefill]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -183,6 +198,13 @@ function ProductSuggestionPageContent() {
           className="rounded-[30px] border border-[#2A394B] bg-[linear-gradient(145deg,rgba(19,27,38,0.96),rgba(12,18,27,0.98))] p-5 shadow-[0_18px_44px_rgba(0,0,0,0.24)] sm:p-6"
         >
           <div className="grid gap-4">
+            <MobileBarcodeScanner
+              variant="button"
+              label="📷 Barcode scannen"
+              className="w-full"
+              onBarcodeDetected={setBarcode}
+            />
+
             <label className="grid gap-2">
               <span className="text-sm font-semibold text-white">Produktname</span>
               <input

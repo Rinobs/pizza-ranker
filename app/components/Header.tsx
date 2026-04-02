@@ -7,6 +7,7 @@ import { useState, type FormEvent, useCallback, useEffect, useRef } from "react"
 import { createPortal } from "react-dom";
 import { useSession, signOut } from "next-auth/react";
 import LoginButton from "./LoginButton";
+import MobileBarcodeScanner from "./MobileBarcodeScanner";
 import {
   CATEGORY_NAV_ITEMS,
   DEFAULT_DISCOVER_SORT,
@@ -396,6 +397,10 @@ export default function Header() {
               onChange={(event) => setDiscoverQuery(event.target.value)}
               placeholder="Produkte und Kategorien suchen..."
               className="w-full bg-transparent text-sm text-white outline-none placeholder:text-[#6E8198]"
+            />
+            <MobileBarcodeScanner
+              ariaLabel="Barcode in der Suche scannen"
+              className="h-9 w-9 rounded-lg"
             />
           </div>
 
