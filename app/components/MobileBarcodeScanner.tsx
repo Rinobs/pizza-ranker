@@ -68,6 +68,11 @@ type Html5QrcodeConfig = {
   formatsToSupport?: unknown[];
 };
 
+type Html5QrcodeCameraDevice = {
+  id: string;
+  label: string;
+};
+
 type Html5QrcodeInstance = {
   start: (
     cameraIdOrConfig: string | MediaTrackConstraints,
@@ -84,8 +89,12 @@ type Html5QrcodeConstructor = new (
   verbose?: boolean
 ) => Html5QrcodeInstance;
 
+type Html5QrcodeClass = Html5QrcodeConstructor & {
+  getCameras?: () => Promise<Html5QrcodeCameraDevice[]>;
+};
+
 type Html5QrcodeWindow = Window & {
-  Html5Qrcode?: Html5QrcodeConstructor;
+  Html5Qrcode?: Html5QrcodeClass;
   Html5QrcodeSupportedFormats?: {
     EAN_13: unknown;
   };
@@ -116,9 +125,18 @@ function isCameraPermissionError(error: unknown) {
   return /notallowed|permission|denied|securityerror|permission denied/i.test(message);
 }
 
+function pickPreferredRearCameraId(devices: Html5QrcodeCameraDevice[]) {
+  return (
+    devices.find((device) => /(back|rear|environment|hinten|ruck|rueck)/i.test(device.label))
+      ?.id ??
+    devices[0]?.id ??
+    null
+  );
+}
+
 function loadHtml5QrcodeCdn() {
   if (typeof window === "undefined") {
-    return Promise.reject(new Error("Scanner ist nur im Browser verfügbar."));
+    return Promise.reject(new Error("Scanner ist nur im Browser verfuegbar."));
   }
 
   const scannerWindow = window as Html5QrcodeWindow;
@@ -137,6 +155,11 @@ function loadHtml5QrcodeCdn() {
     );
 
     if (existingScript) {
+      if ((window as Html5QrcodeWindow).Html5Qrcode) {
+        resolve(window as Html5QrcodeWindow);
+        return;
+      }
+
       existingScript.addEventListener("load", () => resolve(window as Html5QrcodeWindow), {
         once: true,
       });
@@ -198,7 +221,7 @@ export default function MobileBarcodeScanner({
     try {
       await scanner.stop();
     } catch {
-      // Ignore stop errors if the stream was already torn down.
+      // Ignore stop errors if the stream was already stopped.
     }
 
     try {
@@ -210,6 +233,7 @@ export default function MobileBarcodeScanner({
 
   const closeScanner = useCallback(() => {
     setIsOpen(false);
+    setIsPreparing(false);
     setIsStartingScanner(false);
     hasHandledDecodeRef.current = false;
     void stopScanner();
@@ -276,7 +300,7 @@ export default function MobileBarcodeScanner({
           setFeedback({
             type: "not_found",
             title: "Produkt nicht gefunden",
-            message: "Produkt nicht gefunden. Möchtest du es manuell hinzufügen?",
+            message: "Produkt nicht gefunden. Moechtest du es manuell hinzufuegen?",
             manualHref: json.manualHref,
             barcode,
           });
@@ -321,6 +345,7 @@ export default function MobileBarcodeScanner({
     let isCancelled = false;
 
     async function startScanner() {
+      setIsPreparing(false);
       setIsStartingScanner(true);
 
       try {
@@ -331,6 +356,16 @@ export default function MobileBarcodeScanner({
           !scannerWindow.Html5Qrcode ||
           !scannerWindow.Html5QrcodeSupportedFormats?.EAN_13
         ) {
+          return;
+        }
+
+        const cameraDevices = scannerWindow.Html5Qrcode.getCameras
+          ? await scannerWindow.Html5Qrcode.getCameras()
+          : [];
+
+        preferredCameraIdRef.current = pickPreferredRearCameraId(cameraDevices);
+
+        if (isCancelled) {
           return;
         }
 
@@ -381,8 +416,8 @@ export default function MobileBarcodeScanner({
         setFeedback({
           type: isCameraPermissionError(error) ? "permission" : "error",
           title: isCameraPermissionError(error)
-            ? "Kamerazugriff benötigt"
-            : "Scanner nicht verfügbar",
+            ? "Kamerazugriff benoetigt"
+            : "Scanner nicht verfuegbar",
           message: isCameraPermissionError(error)
             ? "Kamerazugriff erforderlich um Barcodes zu scannen."
             : "Die Kamera konnte gerade nicht gestartet werden.",
@@ -410,51 +445,15 @@ export default function MobileBarcodeScanner({
     stopScanner,
   ]);
 
-  async function handleOpenScanner() {
-    if (!isSupported || isBusy || typeof navigator === "undefined" || !navigator.mediaDevices) {
+  function handleOpenScanner() {
+    if (!isSupported || isBusy) {
       return;
     }
 
     setFeedback(null);
     setIsPreparing(true);
-
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: {
-            ideal: "environment",
-          },
-        },
-      });
-
-      const preferredTrack = stream.getVideoTracks()[0] ?? null;
-      const grantedDeviceId = preferredTrack?.getSettings().deviceId ?? null;
-      const videoDevices = await navigator.mediaDevices.enumerateDevices();
-      const cameraDevices = videoDevices.filter((device) => device.kind === "videoinput");
-
-      const rearCamera =
-        cameraDevices.find((device) =>
-          /(back|rear|environment|hinten|ruck|rück)/i.test(device.label)
-        ) ?? null;
-
-      preferredCameraIdRef.current =
-        rearCamera?.deviceId || grantedDeviceId || cameraDevices[0]?.deviceId || null;
-
-      stream.getTracks().forEach((track) => track.stop());
-      setIsOpen(true);
-    } catch (error) {
-      setFeedback({
-        type: isCameraPermissionError(error) ? "permission" : "error",
-        title: isCameraPermissionError(error)
-          ? "Kamerazugriff benötigt"
-          : "Scanner nicht verfügbar",
-        message: isCameraPermissionError(error)
-          ? "Kamerazugriff erforderlich um Barcodes zu scannen."
-          : "Die Kamera konnte gerade nicht vorbereitet werden.",
-      });
-    } finally {
-      setIsPreparing(false);
-    }
+    preferredCameraIdRef.current = null;
+    setIsOpen(true);
   }
 
   if (!isSupported) {
@@ -505,7 +504,7 @@ export default function MobileBarcodeScanner({
                 <div id={scannerElementId} className="h-full w-full" />
                 <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_48%,rgba(0,0,0,0.28)_100%)]" />
                 <div className="pointer-events-none absolute inset-[14%] rounded-[26px] border-2 border-[#F24848] shadow-[0_0_0_1px_rgba(242,72,72,0.24),0_0_28px_rgba(242,72,72,0.18)]" />
-                {isStartingScanner ? (
+                {isPreparing || isStartingScanner ? (
                   <div className="absolute inset-0 flex items-center justify-center bg-[#0B1118]/70 text-sm text-[#D6E2EF]">
                     <span className="inline-flex items-center gap-2 rounded-full border border-[#2D3A4B] bg-[#111925] px-4 py-2">
                       <FiLoader className="animate-spin" size={16} />
@@ -550,7 +549,7 @@ export default function MobileBarcodeScanner({
                   type="button"
                   onClick={() => setFeedback(null)}
                   className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#2D3A4B] bg-[#121B27] text-white transition-colors hover:border-[#5EE287]"
-                  aria-label="Hinweis schließen"
+                  aria-label="Hinweis schliessen"
                 >
                   <FiX size={18} />
                 </button>
@@ -572,7 +571,7 @@ export default function MobileBarcodeScanner({
                     }}
                     className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-[#5EE287] px-4 py-2 text-sm font-semibold text-[#0C1910] transition-colors hover:bg-[#79F29C]"
                   >
-                    Manuell hinzufügen
+                    Manuell hinzufuegen
                   </button>
                 ) : null}
 
@@ -581,7 +580,7 @@ export default function MobileBarcodeScanner({
                   onClick={() => setFeedback(null)}
                   className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-[#2D3A4B] bg-[#141C27] px-4 py-2 text-sm font-semibold text-white transition-colors hover:border-[#5EE287] hover:text-[#D9FFE6]"
                 >
-                  Schließen
+                  Schliessen
                 </button>
               </div>
             </div>
