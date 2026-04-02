@@ -359,16 +359,6 @@ export default function MobileBarcodeScanner({
           return;
         }
 
-        const cameraDevices = scannerWindow.Html5Qrcode.getCameras
-          ? await scannerWindow.Html5Qrcode.getCameras()
-          : [];
-
-        preferredCameraIdRef.current = pickPreferredRearCameraId(cameraDevices);
-
-        if (isCancelled) {
-          return;
-        }
-
         const scanner = new scannerWindow.Html5Qrcode(scannerElementId, false);
         scannerRef.current = scanner;
 
@@ -412,6 +402,7 @@ export default function MobileBarcodeScanner({
           return;
         }
 
+        console.error("Barcode scanner start failed", error);
         setIsOpen(false);
         setFeedback({
           type: isCameraPermissionError(error) ? "permission" : "error",
@@ -445,7 +436,7 @@ export default function MobileBarcodeScanner({
     stopScanner,
   ]);
 
-  function handleOpenScanner() {
+  async function handleOpenScanner() {
     if (!isSupported || isBusy) {
       return;
     }
@@ -453,7 +444,34 @@ export default function MobileBarcodeScanner({
     setFeedback(null);
     setIsPreparing(true);
     preferredCameraIdRef.current = null;
-    setIsOpen(true);
+
+    try {
+      const scannerWindow = await loadHtml5QrcodeCdn();
+
+      if (!scannerWindow.Html5Qrcode) {
+        throw new Error("Scanner-Bibliothek nicht verfuegbar.");
+      }
+
+      const cameraDevices = scannerWindow.Html5Qrcode.getCameras
+        ? await scannerWindow.Html5Qrcode.getCameras()
+        : [];
+
+      preferredCameraIdRef.current = pickPreferredRearCameraId(cameraDevices);
+      setIsOpen(true);
+    } catch (error) {
+      console.error("Barcode scanner open failed", error);
+      setFeedback({
+        type: isCameraPermissionError(error) ? "permission" : "error",
+        title: isCameraPermissionError(error)
+          ? "Kamerazugriff benoetigt"
+          : "Scanner nicht verfuegbar",
+        message: isCameraPermissionError(error)
+          ? "Kamerazugriff erforderlich um Barcodes zu scannen."
+          : "Die Kamera konnte gerade nicht gestartet werden.",
+      });
+    } finally {
+      setIsPreparing(false);
+    }
   }
 
   if (!isSupported) {
