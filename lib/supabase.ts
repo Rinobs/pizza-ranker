@@ -21,6 +21,8 @@ export const REVIEW_REPLIES_TABLE =
   process.env.SUPABASE_REVIEW_REPLIES_TABLE?.trim() || "review_replies";
 export const PRODUCT_SUBMISSIONS_TABLE =
   process.env.SUPABASE_PRODUCT_SUBMISSIONS_TABLE?.trim() || "product_submissions";
+export const IMPORTED_PRODUCTS_TABLE =
+  process.env.SUPABASE_IMPORTED_PRODUCTS_TABLE?.trim() || "imported_products";
 
 function createSupabaseAdminClient() {
   const supabaseUrl = process.env.SUPABASE_URL;

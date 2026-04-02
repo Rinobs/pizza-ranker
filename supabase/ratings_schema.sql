@@ -192,3 +192,42 @@ create index if not exists product_submissions_user_idx
 
 create index if not exists product_submissions_inserted_at_idx
   on public.product_submissions (inserted_at desc);
+
+create table if not exists public.imported_products (
+  route_slug text primary key,
+  source text not null default 'open_food_facts',
+  source_id text not null,
+  source_url text,
+  name text not null,
+  brand text,
+  category text not null,
+  category_slug text,
+  image_url text,
+  kcal numeric,
+  protein numeric,
+  fat numeric,
+  carbs numeric,
+  sugar numeric,
+  salt numeric,
+  quantity text,
+  ingredients_text text,
+  inserted_at timestamptz default now(),
+  updated_at timestamptz default now(),
+  constraint imported_products_source_check
+    check (source in ('open_food_facts'))
+);
+
+create unique index if not exists imported_products_source_unique
+  on public.imported_products (source, source_id);
+
+create index if not exists imported_products_category_slug_idx
+  on public.imported_products (category_slug);
+
+create index if not exists imported_products_name_lower_idx
+  on public.imported_products (lower(name));
+
+create index if not exists imported_products_brand_lower_idx
+  on public.imported_products (lower(brand));
+
+create index if not exists imported_products_updated_at_idx
+  on public.imported_products (updated_at desc);

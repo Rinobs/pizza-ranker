@@ -8,6 +8,15 @@ import {
   getProductImageUrl,
   getProductRouteSlug,
 } from "@/app/data/products";
+import {
+  getImportedProductByRouteSlug,
+  toImportedCatalogProduct,
+} from "@/lib/imported-products";
+import {
+  fetchOpenFoodFactsProductByBarcode,
+  mapOpenFoodFactsProductToImportedDraft,
+  parseOpenFoodFactsRouteSlug,
+} from "@/lib/open-food-facts";
 
 export const runtime = "nodejs";
 
@@ -47,16 +56,39 @@ export async function GET(
     return NextResponse.json({ error: "ungültiger slug" }, { status: 400 });
   }
 
-  const product = ALL_PRODUCTS.find(
-    (item) => getProductRouteSlug(item) === slug
-  );
+  const localProduct = ALL_PRODUCTS.find((item) => getProductRouteSlug(item) === slug);
+  const importedProduct =
+    !localProduct &&
+    (await (async () => {
+      const storedProduct = await getImportedProductByRouteSlug(slug);
+      if (storedProduct) {
+        return toImportedCatalogProduct(storedProduct);
+      }
 
-  if (!product) {
+      const barcode = parseOpenFoodFactsRouteSlug(slug);
+      if (!barcode) {
+        return null;
+      }
+
+      const offProduct = await fetchOpenFoodFactsProductByBarcode(barcode);
+      const importedDraft = offProduct
+        ? mapOpenFoodFactsProductToImportedDraft(offProduct, {
+            routeSlugOverride: slug,
+            barcodeOverride: barcode,
+          })
+        : null;
+
+      return importedDraft ? toImportedCatalogProduct(importedDraft) : null;
+    })());
+
+  const resolvedProduct = localProduct ?? importedProduct;
+
+  if (!resolvedProduct) {
     return NextResponse.json({ error: "produkt nicht gefunden" }, { status: 404 });
   }
 
-  const sourceUrl = getProductImageUrl(product);
-  const placeholderImage = getCategoryPlaceholderImage(product.category);
+  const sourceUrl = getProductImageUrl(resolvedProduct);
+  const placeholderImage = getCategoryPlaceholderImage(resolvedProduct.category);
 
   if (sourceUrl.startsWith("/")) {
     const redirectUrl =

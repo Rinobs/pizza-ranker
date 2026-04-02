@@ -55,6 +55,22 @@ type BrowseProduct = RankedProduct & {
   priceValue: number | null;
 };
 
+type DiscoverFallbackSuggestion = {
+  routeSlug: string;
+  name: string;
+  brand: string | null;
+  category: string;
+  imageUrl: string | null;
+  sourceUrl: string;
+  searchScore: number;
+};
+
+type DiscoverFallbackResponse = {
+  success: boolean;
+  source: "database" | "open_food_facts" | "none";
+  suggestions: DiscoverFallbackSuggestion[];
+};
+
 type HomeSectionsResponse = {
   topPizza: RankedProduct[];
   newlyAdded: RankedProduct[];
@@ -1296,6 +1312,13 @@ export default function HomeContent() {
   const [topListsLoading, setTopListsLoading] = useState(true);
   const [topListsError, setTopListsError] = useState<string | null>(null);
   const [communityTab, setCommunityTab] = useState<"feed" | "top-lists">("feed");
+  const [discoverFallbackSuggestions, setDiscoverFallbackSuggestions] = useState<
+    DiscoverFallbackSuggestion[]
+  >([]);
+  const [discoverFallbackSource, setDiscoverFallbackSource] = useState<
+    "database" | "open_food_facts" | "none"
+  >("none");
+  const [discoverFallbackLoading, setDiscoverFallbackLoading] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -1448,6 +1471,63 @@ export default function HomeContent() {
     };
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    if (searchQuery.length < 2) {
+      setDiscoverFallbackSuggestions([]);
+      setDiscoverFallbackSource("none");
+      setDiscoverFallbackLoading(false);
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    async function loadDiscoverFallback() {
+      setDiscoverFallbackLoading(true);
+
+      try {
+        const params = new URLSearchParams({ q: searchQuery });
+        if (selectedCategory !== "all") {
+          params.set("category", selectedCategory);
+        }
+
+        const response = await fetch(`/api/discover/search?${params.toString()}`, {
+          cache: "no-store",
+        });
+        const json = (await response.json()) as DiscoverFallbackResponse;
+
+        if (cancelled) {
+          return;
+        }
+
+        if (!response.ok || !json.success) {
+          setDiscoverFallbackSuggestions([]);
+          setDiscoverFallbackSource("none");
+          return;
+        }
+
+        setDiscoverFallbackSuggestions(json.suggestions ?? []);
+        setDiscoverFallbackSource(json.source ?? "none");
+      } catch {
+        if (!cancelled) {
+          setDiscoverFallbackSuggestions([]);
+          setDiscoverFallbackSource("none");
+        }
+      } finally {
+        if (!cancelled) {
+          setDiscoverFallbackLoading(false);
+        }
+      }
+    }
+
+    void loadDiscoverFallback();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [searchQuery, selectedCategory]);
+
   const browseProducts = useMemo(() => {
     const items: BrowseProduct[] = [];
 
@@ -1485,6 +1565,79 @@ export default function HomeContent() {
 
     return items;
   }, [ratingStats, searchQuery, selectedCategory, sortMode]);
+
+  const importedBrowseProducts = useMemo(() => {
+    if (searchQuery.length < 2 || discoverFallbackSource !== "database") {
+      return [] as BrowseProduct[];
+    }
+
+    return discoverFallbackSuggestions.map((suggestion) => ({
+      name: suggestion.name,
+      category: suggestion.category,
+      routeSlug: suggestion.routeSlug,
+      imageUrl: suggestion.imageUrl || "",
+      ratingAvg: ratingStats[suggestion.routeSlug]?.ratingAvg ?? null,
+      ratingCount: ratingStats[suggestion.routeSlug]?.ratingCount ?? 0,
+      weekRatingAvg: null,
+      weekRatingCount: 0,
+      newIndex: -1,
+      searchScore: suggestion.searchScore,
+      priceValue: null,
+    }));
+  }, [discoverFallbackSource, discoverFallbackSuggestions, ratingStats, searchQuery.length]);
+
+  const displayedBrowseProducts = useMemo(() => {
+    if (importedBrowseProducts.length === 0) {
+      return browseProducts;
+    }
+
+    const merged = [...browseProducts];
+    const seen = new Set(merged.map((product) => product.routeSlug));
+
+    for (const product of importedBrowseProducts) {
+      if (!seen.has(product.routeSlug)) {
+        merged.push(product);
+      }
+    }
+
+    merged.sort((left, right) => {
+      if (searchQuery && left.searchScore !== right.searchScore) {
+        return right.searchScore - left.searchScore;
+      }
+
+      return compareByDiscoverSort(left, right, sortMode);
+    });
+
+    return merged;
+  }, [browseProducts, importedBrowseProducts, searchQuery, sortMode]);
+
+  const openFoodFactsSuggestions = useMemo(() => {
+    if (
+      searchQuery.length < 2 ||
+      browseProducts.length > 0 ||
+      importedBrowseProducts.length > 0 ||
+      discoverFallbackSource !== "open_food_facts"
+    ) {
+      return [] as RankedProduct[];
+    }
+
+    return discoverFallbackSuggestions.map((suggestion) => ({
+      name: suggestion.name,
+      category: suggestion.category,
+      routeSlug: suggestion.routeSlug,
+      imageUrl: suggestion.imageUrl || "",
+      ratingAvg: null,
+      ratingCount: 0,
+      weekRatingAvg: null,
+      weekRatingCount: 0,
+    }));
+  }, [
+    browseProducts.length,
+    discoverFallbackSource,
+    discoverFallbackSuggestions,
+    importedBrowseProducts.length,
+    searchQuery.length,
+  ]);
 
   const ratedProductCount = useMemo(
     () => Object.values(ratingStats).filter((entry) => entry.ratingCount > 0).length,
@@ -1542,7 +1695,7 @@ export default function HomeContent() {
 
               <div className="mt-5 flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-[0.14em]">
                 <span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1.5 text-[#BFD0E2]">
-                  {browseProducts.length} Treffer
+                  {displayedBrowseProducts.length} Treffer
                 </span>
                 {activeCategory ? (
                   <span className="rounded-full border border-[#5EE287]/35 bg-[#173023] px-3 py-1.5 text-[#D9FFE6]">
@@ -1557,6 +1710,11 @@ export default function HomeContent() {
                 <span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1.5 text-[#BFD0E2]">
                   Sortierung: {sortLabel}
                 </span>
+                {openFoodFactsSuggestions.length > 0 ? (
+                  <span className="rounded-full border border-[#35503D] bg-[#122619] px-3 py-1.5 text-[#D9FFE6]">
+                    {openFoodFactsSuggestions.length} OFF-Vorschläge
+                  </span>
+                ) : null}
               </div>
             </section>
 
@@ -1582,15 +1740,39 @@ export default function HomeContent() {
                 ) : null}
               </div>
 
-              {browseProducts.length > 0 ? (
+              {displayedBrowseProducts.length > 0 ? (
                 <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
-                  {browseProducts.map((product, index) => (
+                  {displayedBrowseProducts.map((product, index) => (
                     <ProductCard
                       key={`browse-${product.routeSlug}`}
                       product={product}
                       eager={index < 4}
                     />
                   ))}
+                </div>
+              ) : discoverFallbackLoading && searchQuery.length >= 2 ? (
+                <div className="rounded-[28px] border border-[#2A394B] bg-[#111925]/90 p-6 text-[#C4D0DE]">
+                  <p>Wir erweitern deine Suche gerade mit externen Produktdaten...</p>
+                </div>
+              ) : openFoodFactsSuggestions.length > 0 ? (
+                <div className="space-y-5">
+                  <div className="rounded-[28px] border border-[#35503D] bg-[linear-gradient(145deg,rgba(18,38,28,0.9),rgba(10,19,16,0.96))] p-6 text-[#D6E2EF]">
+                    <p className="text-sm leading-relaxed">
+                      Im eigenen Katalog gibt es noch keine passenden Treffer. Diese Vorschläge
+                      kommen über Open Food Facts. Beim Öffnen übernehmen wir das Produkt
+                      automatisch in die eigene Datenbank.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
+                    {openFoodFactsSuggestions.map((product, index) => (
+                      <ProductCard
+                        key={`off-${product.routeSlug}`}
+                        product={product}
+                        eager={index < 4}
+                      />
+                    ))}
+                  </div>
                 </div>
               ) : (
                 <div className="rounded-[28px] border border-[#2A394B] bg-[#111925]/90 p-6 text-[#C4D0DE]">
@@ -1722,7 +1904,9 @@ export default function HomeContent() {
 
         <p className="mt-10 text-center text-xs text-[#8CA1B8]">
           {isDiscoverMode
-            ? `${browseProducts.length} Lebensmittel passen aktuell zu deiner Suche oder deinen Filtern.`
+            ? openFoodFactsSuggestions.length > 0
+              ? `${openFoodFactsSuggestions.length} Vorschläge kommen aktuell direkt von Open Food Facts.`
+              : `${displayedBrowseProducts.length} Lebensmittel passen aktuell zu deiner Suche oder deinen Filtern.`
             : sections.hasLiveRatings
               ? "Highlights und Startseiten-Shelves greifen auf vorhandene Community-Bewertungen zurück."
               : "Solange noch wenige Live-Bewertungen vorliegen, mischt die Homepage kuratierte Standard-Highlights mit Community-Signalen."}

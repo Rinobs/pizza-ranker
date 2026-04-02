@@ -12,6 +12,19 @@ import { MORE_NUTRITION_PROTEIN_DETAILS } from "@/app/data/more-nutrition-protei
 import { OFFICIAL_PROTEINRIEGEL_DETAILS } from "@/app/data/official-protein-bars";
 import { ALL_PRODUCTS, getProductRouteSlug, type Product } from "@/app/data/products";
 import {
+  getImportedProductByRouteSlug,
+  persistImportedProduct,
+  toImportedCatalogProduct,
+  type ImportedCatalogProduct,
+  type ImportedProductDraft,
+  type ImportedProductRecord,
+} from "@/lib/imported-products";
+import {
+  fetchOpenFoodFactsProductByBarcode,
+  mapOpenFoodFactsProductToImportedDraft,
+  parseOpenFoodFactsRouteSlug,
+} from "@/lib/open-food-facts";
+import {
   buildReviewLikeKey,
   buildReviewLikeStateMap,
   type ReviewLikeRow,
@@ -129,6 +142,14 @@ type ProductDetails = {
   naehrwertOptionen?: NutritionOption[];
   aehnlicheProdukte?: SimilarProduct[];
   quelle: "online" | "placeholder";
+};
+
+type ProductPayload = Product & {
+  routeSlug: string;
+  brand?: string | null;
+  source: "catalog" | "open_food_facts";
+  sourceLabel?: string | null;
+  sourceUrl?: string | null;
 };
 
 type RatingSummary = {
@@ -565,6 +586,75 @@ function getDefaultDetails(product: Product): ProductDetails {
     durchschnittsbewertung: PLACEHOLDER_NUMBER,
     kommentare: [],
     quelle: "placeholder",
+  };
+}
+
+function createCatalogProductPayload(product: Product): ProductPayload {
+  return {
+    ...product,
+    routeSlug: getProductRouteSlug(product),
+    brand: null,
+    source: "catalog",
+    sourceLabel: null,
+    sourceUrl: null,
+  };
+}
+
+function createImportedProductPayload(product: ImportedCatalogProduct): ProductPayload {
+  return {
+    name: product.name,
+    imageUrl: product.imageUrl,
+    category: product.category,
+    slug: product.slug,
+    price: product.price,
+    kcal: product.kcal,
+    protein: product.protein,
+    fat: product.fat,
+    carbs: product.carbs,
+    routeSlug: product.routeSlug,
+    brand: product.brand,
+    source: "open_food_facts",
+    sourceLabel: product.sourceLabel,
+    sourceUrl: product.sourceUrl,
+  };
+}
+
+function buildImportedProductDetails(
+  product: ImportedProductDraft | ImportedProductRecord
+): Partial<ProductDetails> {
+  const naehrwerte: Partial<ProductNutritionValues> = {};
+
+  if (typeof product.kcal === "number") {
+    naehrwerte.kcal = product.kcal;
+  }
+
+  if (typeof product.protein === "number") {
+    naehrwerte.protein = product.protein;
+  }
+
+  if (typeof product.fat === "number") {
+    naehrwerte.fat = product.fat;
+  }
+
+  if (typeof product.carbs === "number") {
+    naehrwerte.carbs = product.carbs;
+  }
+
+  if (typeof product.sugar === "number") {
+    naehrwerte.sugar = product.sugar;
+  }
+
+  if (typeof product.salt === "number") {
+    naehrwerte.salz = product.salt;
+  }
+
+  return {
+    marke: asText(product.brand),
+    gewicht: asText(product.quantity),
+    kategorie: product.category,
+    zutaten: asText(product.ingredientsText),
+    naehrwerte,
+    quelle: "online",
   };
 }
 
@@ -2167,21 +2257,67 @@ export async function GET(
     return NextResponse.json({ error: "ungueltiger slug" }, { status: 400 });
   }
 
-  const product = ALL_PRODUCTS.find((item) => getProductRouteSlug(item) === slug);
+  const localProduct = ALL_PRODUCTS.find((item) => getProductRouteSlug(item) === slug);
+  let importedProductSource: ImportedProductRecord | ImportedProductDraft | null = null;
+  let product = localProduct ? createCatalogProductPayload(localProduct) : null;
+
+  if (!product) {
+    const storedImportedProduct = await getImportedProductByRouteSlug(slug);
+
+    if (storedImportedProduct) {
+      importedProductSource = storedImportedProduct;
+      product = createImportedProductPayload(toImportedCatalogProduct(storedImportedProduct));
+    }
+  }
+
+  if (!product) {
+    const barcode = parseOpenFoodFactsRouteSlug(slug);
+
+    if (barcode) {
+      const offProduct = await fetchOpenFoodFactsProductByBarcode(barcode);
+      const importedDraft = offProduct
+        ? mapOpenFoodFactsProductToImportedDraft(offProduct, {
+            routeSlugOverride: slug,
+            barcodeOverride: barcode,
+          })
+        : null;
+
+      if (importedDraft) {
+        importedProductSource =
+          (await persistImportedProduct(importedDraft)) ?? importedDraft;
+        product = createImportedProductPayload(
+          toImportedCatalogProduct(importedProductSource)
+        );
+      }
+    }
+  }
 
   if (!product) {
     return NextResponse.json({ error: "produkt nicht gefunden" }, { status: 404 });
   }
 
   const base = getDefaultDetails(product);
-  const manualDetails = getManualDetails(product);
+  const manualDetails = product.source === "catalog" ? getManualDetails(product) : null;
 
   const [onlineMatch, ratingSummary] = await Promise.all([
-    manualDetails ? Promise.resolve(null) : findOpenFoodFactsMatch(product),
+    manualDetails
+      ? Promise.resolve(null)
+      : product.source === "open_food_facts" && importedProductSource
+        ? fetchOpenFoodFactsProductByBarcode(importedProductSource.barcode)
+        : findOpenFoodFactsMatch(product),
     loadRatingSummary(slug, currentUserId),
   ]);
 
-  let merged = onlineMatch ? mergeOnlineDetails(base, onlineMatch) : base;
+  let merged = base;
+
+  if (importedProductSource) {
+    merged = mergeDetails(merged, buildImportedProductDetails(importedProductSource));
+  }
+
+  if (onlineMatch) {
+    merged = mergeOnlineDetails(merged, onlineMatch);
+  }
+
   if (manualDetails) {
     merged = mergeDetails(merged, manualDetails);
   }
@@ -2195,6 +2331,7 @@ export async function GET(
   const preisOptionen = buildPriceOptions(merged, product);
 
   const payload = {
+    product,
     ...merged,
     durchschnittsbewertung: ratingSummary.durchschnittsbewertung,
     kommentare: ratingSummary.kommentare,

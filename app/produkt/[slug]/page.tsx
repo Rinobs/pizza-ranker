@@ -99,7 +99,16 @@ type SimilarProductSummary = {
   source: "co_rated" | "category";
 };
 
+type ProductPayload = Product & {
+  routeSlug: string;
+  brand?: string | null;
+  source: "catalog" | "open_food_facts";
+  sourceLabel?: string | null;
+  sourceUrl?: string | null;
+};
+
 type ProductDetailsPayload = {
+  product?: ProductPayload;
   marke: string;
   gewicht: string;
   preis: string;
@@ -414,6 +423,50 @@ function mergeDetails(
   };
 }
 
+function normalizeProductPayload(value: unknown): ProductPayload | null {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  const product = value as Partial<ProductPayload>;
+  const name = typeof product.name === "string" ? product.name.trim() : "";
+  const imageUrl = typeof product.imageUrl === "string" ? product.imageUrl.trim() : "";
+  const category = typeof product.category === "string" ? product.category.trim() : "";
+  const slug = typeof product.slug === "string" ? product.slug.trim() : "";
+  const routeSlug = typeof product.routeSlug === "string" ? product.routeSlug.trim() : "";
+
+  if (!name || !imageUrl || !category || !slug || !routeSlug) {
+    return null;
+  }
+
+  return {
+    name,
+    imageUrl,
+    category,
+    slug,
+    price: typeof product.price === "string" ? product.price.trim() : undefined,
+    kcal: typeof product.kcal === "number" ? product.kcal : undefined,
+    protein: typeof product.protein === "number" ? product.protein : undefined,
+    fat: typeof product.fat === "number" ? product.fat : undefined,
+    carbs: typeof product.carbs === "number" ? product.carbs : undefined,
+    routeSlug,
+    brand:
+      typeof product.brand === "string" && product.brand.trim().length > 0
+        ? product.brand.trim()
+        : null,
+    source:
+      product.source === "open_food_facts" ? "open_food_facts" : "catalog",
+    sourceLabel:
+      typeof product.sourceLabel === "string" && product.sourceLabel.trim().length > 0
+        ? product.sourceLabel.trim()
+        : null,
+    sourceUrl:
+      typeof product.sourceUrl === "string" && product.sourceUrl.trim().length > 0
+        ? product.sourceUrl.trim()
+        : null,
+  };
+}
+
 export default function ProductPage() {
   const {
     ratings,
@@ -454,7 +507,7 @@ export default function ProductPage() {
   const params = useParams<{ slug: string }>();
   const routeSlug = params?.slug || "";
 
-  const product = useMemo(
+  const localProduct = useMemo(
     () => ALL_PRODUCTS.find((item) => getProductRouteSlug(item) === routeSlug) ?? null,
     [routeSlug]
   );
@@ -482,16 +535,36 @@ export default function ProductPage() {
   const [selectedNutritionOptionId, setSelectedNutritionOptionId] = useState<string | null>(null);
   const ownCommentMenuRef = useRef<HTMLDivElement | null>(null);
   const replyHashHandledRef = useRef<string | null>(null);
+  const remoteProduct = useMemo(
+    () => normalizeProductPayload((details as { product?: unknown } | null)?.product),
+    [details]
+  );
+  const product = useMemo<ProductPayload | null>(() => {
+    if (localProduct) {
+      return {
+        ...localProduct,
+        routeSlug,
+        brand: null,
+        source: "catalog",
+        sourceLabel: null,
+        sourceUrl: null,
+      };
+    }
+
+    return remoteProduct;
+  }, [localProduct, remoteProduct, routeSlug]);
 
   useEffect(() => {
     let cancelled = false;
 
     async function loadDetails() {
-      if (!routeSlug || !product) {
+      if (!routeSlug) {
+        setDetails(null);
         setDetailsLoading(false);
         return;
       }
 
+      setDetails(null);
       setDetailsLoading(true);
 
       try {
@@ -499,7 +572,9 @@ export default function ProductPage() {
           cache: "no-store",
         });
 
-        if (!response.ok) return;
+        if (!response.ok) {
+          return;
+        }
 
         const json = (await response.json()) as Partial<ProductDetailsPayload>;
         if (cancelled) return;
@@ -515,7 +590,7 @@ export default function ProductPage() {
     return () => {
       cancelled = true;
     };
-  }, [routeSlug, product, detailsReloadToken]);
+  }, [routeSlug, detailsReloadToken]);
 
   const savedComment = (comments[routeSlug] || "").trim();
   const commentDraft = commentDrafts[routeSlug] || "";
@@ -829,6 +904,21 @@ export default function ProductPage() {
 
   if (!routeSlug) return null;
 
+  if (detailsLoading && !product) {
+    return (
+      <div className="-mt-2 max-w-5xl mx-auto px-4 sm:px-8 lg:px-12 pb-24 text-white">
+        <BackButton />
+        <div className="rounded-[30px] border border-[#2D3A4B] bg-[linear-gradient(145deg,rgba(27,34,45,0.98),rgba(15,22,32,0.96))] p-8 text-center shadow-[0_18px_44px_rgba(0,0,0,0.28)]">
+          <h1 className="mb-4 text-3xl font-bold">Produkt wird geladen</h1>
+          <p className="mx-auto max-w-2xl text-sm leading-relaxed text-[#AFC1D3] sm:text-base">
+            Wir prüfen gerade den Katalog und erweitern die Suche bei Bedarf mit Open
+            Food Facts.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   if (!product || !mergedDetails) {
     const suggestionName = humanizeRouteSlug(routeSlug);
 
@@ -867,6 +957,8 @@ export default function ProductPage() {
   const favoriteActive = isFavorite(routeSlug);
   const wantToTryActive = isWantToTry(routeSlug);
   const triedActive = isTried(routeSlug);
+  const sourceLabel = product.sourceLabel?.trim() || "Open Food Facts";
+  const sourceUrl = product.source === "open_food_facts" ? product.sourceUrl?.trim() || null : null;
 
   const originalImageUrl = getProductImageUrl(product);
   const buyLink = getProductBuyLink(product);
@@ -1046,6 +1138,20 @@ export default function ProductPage() {
             <p className="text-sm text-[#9EB0C3]">
               Auf einen Blick sehen, wie die Community dieses Produkt bewertet.
             </p>
+
+            {sourceUrl ? (
+              <p className="text-xs text-[#8CA1B8]">
+                Daten via{" "}
+                <a
+                  href={sourceUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="font-semibold text-[#8AF5AC] transition-colors hover:text-[#B7FFD0]"
+                >
+                  {sourceLabel}
+                </a>
+              </p>
+            ) : null}
           </div>
           {buyLink ? (
             <BuyButton

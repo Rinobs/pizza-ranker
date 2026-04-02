@@ -1,0 +1,354 @@
+import { DEFAULT_PRODUCT_IMAGE, type Product } from "@/app/data/products";
+import { normalizeSearchText, type CategoryNavigationItem } from "@/lib/product-navigation";
+import { IMPORTED_PRODUCTS_TABLE, getSupabaseAdminClient } from "@/lib/supabase";
+import { type ImportedProductDraft } from "@/lib/open-food-facts";
+
+type ImportedProductRow = {
+  route_slug: string;
+  source: string;
+  source_id: string;
+  source_url: string | null;
+  name: string;
+  brand: string | null;
+  category: string;
+  category_slug: string | null;
+  image_url: string | null;
+  kcal: number | null;
+  protein: number | null;
+  fat: number | null;
+  carbs: number | null;
+  sugar: number | null;
+  salt: number | null;
+  quantity: string | null;
+  ingredients_text: string | null;
+  inserted_at: string | null;
+  updated_at: string | null;
+};
+
+export type ImportedProductRecord = ImportedProductDraft & {
+  insertedAt: string | null;
+  updatedAt: string | null;
+};
+
+export type ImportedProductSearchResult = ImportedProductRecord & {
+  searchScore: number;
+};
+
+export type ImportedCatalogProduct = Product & {
+  routeSlug: string;
+  brand: string | null;
+  sourceType: "open_food_facts";
+  sourceLabel: string;
+  sourceUrl: string;
+  barcode: string;
+  quantity: string | null;
+  ingredientsText: string | null;
+  sugar: number | null;
+  salt: number | null;
+};
+
+const SELECT_FIELDS = [
+  "route_slug",
+  "source",
+  "source_id",
+  "source_url",
+  "name",
+  "brand",
+  "category",
+  "category_slug",
+  "image_url",
+  "kcal",
+  "protein",
+  "fat",
+  "carbs",
+  "sugar",
+  "salt",
+  "quantity",
+  "ingredients_text",
+  "inserted_at",
+  "updated_at",
+].join(", ");
+
+function mapImportedProductRow(row: ImportedProductRow): ImportedProductRecord {
+  return {
+    routeSlug: row.route_slug,
+    barcode: row.source_id,
+    name: row.name,
+    brand: row.brand,
+    category: row.category,
+    categorySlug:
+      typeof row.category_slug === "string" &&
+      row.category_slug.trim().length > 0
+        ? (row.category_slug.trim() as CategoryNavigationItem["slug"])
+        : null,
+    imageUrl: row.image_url,
+    kcal: row.kcal,
+    protein: row.protein,
+    fat: row.fat,
+    carbs: row.carbs,
+    sugar: row.sugar,
+    salt: row.salt,
+    quantity: row.quantity,
+    ingredientsText: row.ingredients_text,
+    sourceUrl: row.source_url || "",
+    insertedAt: row.inserted_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+function scoreImportedProduct(query: string, product: ImportedProductRecord) {
+  const normalizedQuery = normalizeSearchText(query);
+  const queryTokens = normalizedQuery.split(" ").filter(Boolean);
+  const name = normalizeSearchText(product.name);
+  const brand = normalizeSearchText(product.brand ?? "");
+  const category = normalizeSearchText(product.category);
+
+  if (!name || !normalizedQuery) {
+    return 0;
+  }
+
+  let score = 0;
+
+  if (name === normalizedQuery) score += 220;
+  if (name.startsWith(normalizedQuery)) score += 160;
+  if (name.includes(normalizedQuery)) score += 120;
+  if (brand.includes(normalizedQuery)) score += 60;
+  if (category.includes(normalizedQuery)) score += 30;
+
+  let tokenHits = 0;
+
+  for (const token of queryTokens) {
+    if (name.includes(token)) {
+      score += 44;
+      tokenHits += 1;
+      continue;
+    }
+
+    if (brand.includes(token)) {
+      score += 26;
+      tokenHits += 1;
+      continue;
+    }
+
+    if (category.includes(token)) {
+      score += 16;
+      tokenHits += 1;
+    }
+  }
+
+  if (queryTokens.length > 0 && tokenHits === 0) {
+    return 0;
+  }
+
+  return score;
+}
+
+export function isImportedProductsSchemaMissingError(message: string) {
+  const normalized = message.toLowerCase();
+
+  return (
+    normalized.includes("imported_products") &&
+    (normalized.includes("relation") ||
+      normalized.includes("table") ||
+      normalized.includes("column") ||
+      normalized.includes("schema cache"))
+  );
+}
+
+export async function getImportedProductByRouteSlug(routeSlug: string) {
+  const supabase = getSupabaseAdminClient();
+
+  if (!supabase) {
+    return null;
+  }
+
+  const { data, error } = await supabase
+    .from(IMPORTED_PRODUCTS_TABLE)
+    .select(SELECT_FIELDS)
+    .eq("route_slug", routeSlug)
+    .maybeSingle();
+
+  if (error || !data) {
+    return null;
+  }
+
+  return mapImportedProductRow(data as ImportedProductRow);
+}
+
+export async function getImportedProductByBarcode(barcode: string) {
+  const supabase = getSupabaseAdminClient();
+
+  if (!supabase) {
+    return null;
+  }
+
+  const { data, error } = await supabase
+    .from(IMPORTED_PRODUCTS_TABLE)
+    .select(SELECT_FIELDS)
+    .eq("source_id", barcode)
+    .maybeSingle();
+
+  if (error || !data) {
+    return null;
+  }
+
+  return mapImportedProductRow(data as ImportedProductRow);
+}
+
+export async function getExistingImportedBarcodes(barcodes: string[]) {
+  const supabase = getSupabaseAdminClient();
+
+  if (!supabase || barcodes.length === 0) {
+    return new Set<string>();
+  }
+
+  const normalizedBarcodes = Array.from(
+    new Set(
+      barcodes
+        .map((barcode) => barcode.replace(/[^\d]/g, "").trim())
+        .filter((barcode) => barcode.length > 0)
+    )
+  );
+
+  if (normalizedBarcodes.length === 0) {
+    return new Set<string>();
+  }
+
+  const { data, error } = await supabase
+    .from(IMPORTED_PRODUCTS_TABLE)
+    .select("source_id")
+    .in("source_id", normalizedBarcodes);
+
+  if (error || !Array.isArray(data)) {
+    return new Set<string>();
+  }
+
+  return new Set(
+    data
+      .map((entry) =>
+        typeof (entry as { source_id?: unknown }).source_id === "string"
+          ? (entry as { source_id: string }).source_id
+          : null
+      )
+      .filter((barcode): barcode is string => Boolean(barcode))
+  );
+}
+
+export async function persistImportedProduct(draft: ImportedProductDraft) {
+  const existing = await getImportedProductByBarcode(draft.barcode);
+  if (existing) {
+    return existing;
+  }
+
+  const supabase = getSupabaseAdminClient();
+
+  if (!supabase) {
+    return null;
+  }
+
+  const now = new Date().toISOString();
+  const payload = {
+    route_slug: draft.routeSlug,
+    source: "open_food_facts",
+    source_id: draft.barcode,
+    source_url: draft.sourceUrl,
+    name: draft.name,
+    brand: draft.brand,
+    category: draft.category,
+    category_slug: draft.categorySlug,
+    image_url: draft.imageUrl,
+    kcal: draft.kcal,
+    protein: draft.protein,
+    fat: draft.fat,
+    carbs: draft.carbs,
+    sugar: draft.sugar,
+    salt: draft.salt,
+    quantity: draft.quantity,
+    ingredients_text: draft.ingredientsText,
+    inserted_at: now,
+    updated_at: now,
+  };
+
+  const { data, error } = await supabase
+    .from(IMPORTED_PRODUCTS_TABLE)
+    .insert(payload)
+    .select(SELECT_FIELDS)
+    .single();
+
+  if (error || !data) {
+    return null;
+  }
+
+  return mapImportedProductRow(data as ImportedProductRow);
+}
+
+export async function searchImportedProducts(
+  query: string,
+  options?: {
+    categorySlug?: CategoryNavigationItem["slug"] | null;
+    limit?: number;
+  }
+) {
+  const supabase = getSupabaseAdminClient();
+
+  if (!supabase) {
+    return [] as ImportedProductSearchResult[];
+  }
+
+  let builder = supabase
+    .from(IMPORTED_PRODUCTS_TABLE)
+    .select(SELECT_FIELDS)
+    .order("updated_at", { ascending: false })
+    .limit(150);
+
+  if (options?.categorySlug) {
+    builder = builder.eq("category_slug", options.categorySlug);
+  }
+
+  const { data, error } = await builder;
+
+  if (error || !Array.isArray(data)) {
+    return [];
+  }
+
+  return (data as ImportedProductRow[])
+    .map((row) => mapImportedProductRow(row))
+    .map((product) => ({
+      ...product,
+      searchScore: scoreImportedProduct(query, product),
+    }))
+    .filter((product) => product.searchScore > 0)
+    .sort((left, right) => {
+      if (right.searchScore !== left.searchScore) {
+        return right.searchScore - left.searchScore;
+      }
+
+      return left.name.localeCompare(right.name, "de");
+    })
+    .slice(0, options?.limit ?? 8);
+}
+
+export function toImportedCatalogProduct(
+  product: ImportedProductDraft | ImportedProductRecord
+): ImportedCatalogProduct {
+  return {
+    routeSlug: product.routeSlug,
+    name: product.name,
+    imageUrl: product.imageUrl || DEFAULT_PRODUCT_IMAGE,
+    category: product.category,
+    slug: product.categorySlug ?? "imported",
+    kcal: product.kcal ?? undefined,
+    protein: product.protein ?? undefined,
+    fat: product.fat ?? undefined,
+    carbs: product.carbs ?? undefined,
+    brand: product.brand,
+    sourceType: "open_food_facts",
+    sourceLabel: "Open Food Facts",
+    sourceUrl: product.sourceUrl,
+    barcode: product.barcode,
+    quantity: product.quantity,
+    ingredientsText: product.ingredientsText,
+    sugar: product.sugar,
+    salt: product.salt,
+  };
+}
