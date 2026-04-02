@@ -19,6 +19,7 @@ import {
 import {
   compareByDiscoverSort,
   getProductSearchScore,
+  type CategoryNavigationItem,
 } from "@/lib/product-navigation";
 
 type RatingStat = {
@@ -39,6 +40,15 @@ type CategoryProduct = ComparableProduct & {
 
 type VisibleProduct = CategoryProduct & {
   searchScore: number;
+};
+
+type CategoryPageProduct = Product & {
+  routeSlug?: string;
+};
+
+type CategoryProductsResponse = {
+  success?: boolean;
+  data?: CategoryPageProduct[];
 };
 
 type CategorySortMode = "best" | "price" | "new" | "name";
@@ -98,11 +108,13 @@ function compareByCategorySort(
 export default function CategoryPage({
   title,
   icon,
+  categorySlug,
   products,
 }: {
   title: string;
   icon: string;
-  products: Product[];
+  categorySlug: CategoryNavigationItem["slug"];
+  products: CategoryPageProduct[];
 }) {
   const [sortMode, setSortMode] = React.useState<CategorySortMode>("best");
   const [searchQuery, setSearchQuery] = React.useState("");
@@ -110,7 +122,15 @@ export default function CategoryPage({
   const [ratingStats, setRatingStats] = React.useState<Record<string, RatingStat>>({});
   const [statsLoaded, setStatsLoaded] = React.useState(false);
   const [selectedRouteSlugs, setSelectedRouteSlugs] = React.useState<string[]>([]);
+  const [importedProducts, setImportedProducts] = React.useState<CategoryPageProduct[]>([]);
   const activeSearchQuery = deferredSearchQuery.trim();
+
+  const getRouteSlug = React.useCallback((product: CategoryPageProduct) => {
+    const explicitRouteSlug = product.routeSlug?.trim();
+    return explicitRouteSlug && explicitRouteSlug.length > 0
+      ? explicitRouteSlug
+      : getProductRouteSlug(product);
+  }, []);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -140,17 +160,71 @@ export default function CategoryPage({
   }, []);
 
   React.useEffect(() => {
-    const availableRouteSlugs = new Set(products.map((item) => getProductRouteSlug(item)));
+    let cancelled = false;
+
+    async function loadImportedProducts() {
+      try {
+        const response = await fetch(`/api/categories/${categorySlug}/products`, {
+          cache: "no-store",
+        });
+
+        if (!response.ok) {
+          return;
+        }
+
+        const json = (await response.json()) as CategoryProductsResponse;
+        if (cancelled || !json.success) {
+          return;
+        }
+
+        setImportedProducts(Array.isArray(json.data) ? json.data : []);
+      } catch {
+        if (!cancelled) {
+          setImportedProducts([]);
+        }
+      }
+    }
+
+    void loadImportedProducts();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [categorySlug]);
+
+  const allProducts = React.useMemo(() => {
+    const seenRouteSlugs = new Set<string>();
+    const combinedProducts: CategoryPageProduct[] = [];
+
+    for (const product of [...products, ...importedProducts]) {
+      const routeSlug = getRouteSlug(product);
+
+      if (seenRouteSlugs.has(routeSlug)) {
+        continue;
+      }
+
+      seenRouteSlugs.add(routeSlug);
+      combinedProducts.push({
+        ...product,
+        routeSlug,
+      });
+    }
+
+    return combinedProducts;
+  }, [getRouteSlug, importedProducts, products]);
+
+  React.useEffect(() => {
+    const availableRouteSlugs = new Set(allProducts.map((item) => getRouteSlug(item)));
 
     setSelectedRouteSlugs((current) => {
       const next = current.filter((slug) => availableRouteSlugs.has(slug));
       return next.length === current.length ? current : next;
     });
-  }, [products]);
+  }, [allProducts, getRouteSlug]);
 
   const categoryProducts = React.useMemo(() => {
-    return products.map((item, index) => {
-      const routeSlug = getProductRouteSlug(item);
+    return allProducts.map((item, index) => {
+      const routeSlug = getRouteSlug(item);
       const stats = ratingStats[routeSlug];
       const productImageUrl = getProductImageUrl(item);
       return {
@@ -165,7 +239,7 @@ export default function CategoryPage({
         priceValue: getProductPriceValue(item),
       };
     });
-  }, [products, ratingStats]);
+  }, [allProducts, getRouteSlug, ratingStats]);
 
   const visibleProducts = React.useMemo(() => {
     const result: VisibleProduct[] = [];

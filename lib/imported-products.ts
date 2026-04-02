@@ -404,6 +404,35 @@ export async function searchImportedProducts(
     .slice(0, options?.limit ?? 8);
 }
 
+export async function getImportedCatalogProductsByCategorySlug(
+  categorySlug: CategoryNavigationItem["slug"],
+  options?: {
+    limit?: number;
+  }
+) {
+  const supabase = getSupabaseAdminClient();
+
+  if (!supabase) {
+    return [] as ImportedCatalogProduct[];
+  }
+
+  const { data, error } = await supabase
+    .from(IMPORTED_PRODUCTS_TABLE)
+    .select(SELECT_FIELDS)
+    .eq("category_slug", categorySlug)
+    .order("updated_at", { ascending: false })
+    .limit(Math.max(1, Math.min(options?.limit ?? 400, 1000)));
+
+  if (error || !Array.isArray(data)) {
+    return [] as ImportedCatalogProduct[];
+  }
+
+  return (data as unknown[])
+    .filter(isImportedProductRow)
+    .map((row) => mapImportedProductRow(row))
+    .map((product) => toImportedCatalogProduct(product));
+}
+
 export async function resolveProductSummariesByRouteSlug(routeSlugs: string[]) {
   const normalizedRouteSlugs = Array.from(
     new Set(
