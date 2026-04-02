@@ -96,6 +96,22 @@ function mapImportedProductRow(row: ImportedProductRow): ImportedProductRecord {
   };
 }
 
+function isImportedProductRow(value: unknown): value is ImportedProductRow {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const row = value as Partial<ImportedProductRow>;
+
+  return (
+    typeof row.route_slug === "string" &&
+    typeof row.source === "string" &&
+    typeof row.source_id === "string" &&
+    typeof row.name === "string" &&
+    typeof row.category === "string"
+  );
+}
+
 function scoreImportedProduct(query: string, product: ImportedProductRecord) {
   const normalizedQuery = normalizeSearchText(query);
   const queryTokens = normalizedQuery.split(" ").filter(Boolean);
@@ -168,11 +184,11 @@ export async function getImportedProductByRouteSlug(routeSlug: string) {
     .eq("route_slug", routeSlug)
     .maybeSingle();
 
-  if (error || !data) {
+  if (error || !isImportedProductRow(data)) {
     return null;
   }
 
-  return mapImportedProductRow(data as ImportedProductRow);
+  return mapImportedProductRow(data);
 }
 
 export async function getImportedProductByBarcode(barcode: string) {
@@ -188,11 +204,11 @@ export async function getImportedProductByBarcode(barcode: string) {
     .eq("source_id", barcode)
     .maybeSingle();
 
-  if (error || !data) {
+  if (error || !isImportedProductRow(data)) {
     return null;
   }
 
-  return mapImportedProductRow(data as ImportedProductRow);
+  return mapImportedProductRow(data);
 }
 
 export async function getExistingImportedBarcodes(barcodes: string[]) {
@@ -275,11 +291,11 @@ export async function persistImportedProduct(draft: ImportedProductDraft) {
     .select(SELECT_FIELDS)
     .single();
 
-  if (error || !data) {
+  if (error || !isImportedProductRow(data)) {
     return null;
   }
 
-  return mapImportedProductRow(data as ImportedProductRow);
+  return mapImportedProductRow(data);
 }
 
 export async function searchImportedProducts(
@@ -311,7 +327,10 @@ export async function searchImportedProducts(
     return [];
   }
 
-  return (data as ImportedProductRow[])
+  const rows = data as unknown[];
+
+  return rows
+    .filter(isImportedProductRow)
     .map((row) => mapImportedProductRow(row))
     .map((product) => ({
       ...product,

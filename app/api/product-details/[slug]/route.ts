@@ -16,13 +16,13 @@ import {
   persistImportedProduct,
   toImportedCatalogProduct,
   type ImportedCatalogProduct,
-  type ImportedProductDraft,
   type ImportedProductRecord,
 } from "@/lib/imported-products";
 import {
   fetchOpenFoodFactsProductByBarcode,
   mapOpenFoodFactsProductToImportedDraft,
   parseOpenFoodFactsRouteSlug,
+  type ImportedProductDraft,
 } from "@/lib/open-food-facts";
 import {
   buildReviewLikeKey,
@@ -142,6 +142,10 @@ type ProductDetails = {
   naehrwertOptionen?: NutritionOption[];
   aehnlicheProdukte?: SimilarProduct[];
   quelle: "online" | "placeholder";
+};
+
+type ProductDetailsOverride = Partial<Omit<ProductDetails, "naehrwerte">> & {
+  naehrwerte?: Partial<ProductNutritionValues>;
 };
 
 type ProductPayload = Product & {
@@ -621,7 +625,7 @@ function createImportedProductPayload(product: ImportedCatalogProduct): ProductP
 
 function buildImportedProductDetails(
   product: ImportedProductDraft | ImportedProductRecord
-): Partial<ProductDetails> {
+): ProductDetailsOverride {
   const naehrwerte: Partial<ProductNutritionValues> = {};
 
   if (typeof product.kcal === "number") {
@@ -799,7 +803,7 @@ function mergeOnlineDetails(base: ProductDetails, online: OpenFoodFactsProduct):
   };
 }
 
-function mergeDetails(base: ProductDetails, override: Partial<ProductDetails>): ProductDetails {
+function mergeDetails(base: ProductDetails, override: ProductDetailsOverride): ProductDetails {
   return {
     ...base,
     ...override,
