@@ -6,6 +6,11 @@ import {
   getProductRouteSlug,
   type Product,
 } from "@/app/data/products";
+import {
+  getImportedCatalogProducts,
+  getImportedCatalogProductsByCategorySlug,
+  type ImportedCatalogProduct,
+} from "@/lib/imported-products";
 import { getSupabaseAdminClient, RATINGS_TABLE } from "@/lib/supabase";
 
 type RankedProduct = {
@@ -35,11 +40,17 @@ type Agg = {
 
 const LIMIT = 10;
 
-function toRankedProduct(product: Product): RankedProduct {
+type HomeCatalogProduct = Product | ImportedCatalogProduct;
+
+function getRouteSlug(product: HomeCatalogProduct) {
+  return "routeSlug" in product ? product.routeSlug : getProductRouteSlug(product);
+}
+
+function toRankedProduct(product: HomeCatalogProduct): RankedProduct {
   return {
     name: product.name,
     category: product.category,
-    routeSlug: getProductRouteSlug(product),
+    routeSlug: getRouteSlug(product),
     imageUrl: getProductImageUrl(product),
     ratingAvg: null,
     ratingCount: 0,
@@ -49,7 +60,7 @@ function toRankedProduct(product: Product): RankedProduct {
 }
 
 function withStats(
-  product: Product,
+  product: HomeCatalogProduct,
   aggregateMap: Map<string, Agg>
 ): RankedProduct {
   const base = toRankedProduct(product);
@@ -145,9 +156,22 @@ function fallbackSections() {
 export async function GET() {
   const fallback = fallbackSections();
 
+  const [importedProducts, importedPizzaProducts] = await Promise.all([
+    getImportedCatalogProducts({ limit: 2000 }),
+    getImportedCatalogProductsByCategorySlug("pizza", { limit: 400 }),
+  ]);
+
   const supabase = getSupabaseAdminClient();
   if (!supabase) {
-    return NextResponse.json(fallback);
+    return NextResponse.json({
+      ...fallback,
+      newlyAdded: [...importedProducts, ...ALL_PRODUCTS.slice(-LIMIT)]
+        .map(toRankedProduct)
+        .slice(0, LIMIT),
+      topPizza: [...importedPizzaProducts, ...PIZZA_PRODUCTS]
+        .map(toRankedProduct)
+        .slice(0, LIMIT),
+    });
   }
 
   const { data, error } = await supabase
@@ -155,19 +179,54 @@ export async function GET() {
     .select("product_slug, rating, updated_at");
 
   if (error || !Array.isArray(data)) {
-    return NextResponse.json(fallback);
+    return NextResponse.json({
+      ...fallback,
+      newlyAdded: [...importedProducts, ...ALL_PRODUCTS.slice(-LIMIT)]
+        .map(toRankedProduct)
+        .slice(0, LIMIT),
+      topPizza: [...importedPizzaProducts, ...PIZZA_PRODUCTS]
+        .map(toRankedProduct)
+        .slice(0, LIMIT),
+    });
   }
 
   const aggregateMap = aggregateRatings(data as RatingRow[]);
 
-  const pizzaRanked = PIZZA_PRODUCTS.map((product) => withStats(product, aggregateMap));
-  const allRanked = ALL_PRODUCTS.map((product) => withStats(product, aggregateMap));
+  const allCatalogProducts = [...ALL_PRODUCTS, ...importedProducts];
+  const pizzaCatalogProducts = [...PIZZA_PRODUCTS, ...importedPizzaProducts];
+
+  const dedupeByRouteSlug = <T extends HomeCatalogProduct>(products: T[]) => {
+    const seen = new Set<string>();
+
+    return products.filter((product) => {
+      const routeSlug = getRouteSlug(product);
+
+      if (seen.has(routeSlug)) {
+        return false;
+      }
+
+      seen.add(routeSlug);
+      return true;
+    });
+  };
+
+  const pizzaRanked = dedupeByRouteSlug(pizzaCatalogProducts).map((product) =>
+    withStats(product, aggregateMap)
+  );
+  const allRanked = dedupeByRouteSlug(allCatalogProducts).map((product) =>
+    withStats(product, aggregateMap)
+  );
 
   const topPizza = [...pizzaRanked].sort(byAllTimeScore).slice(0, LIMIT);
 
-  const newlyAdded = ALL_PRODUCTS.slice(-LIMIT).reverse().map((product) =>
-    withStats(product, aggregateMap)
-  );
+  const newlyAdded = [
+    ...importedProducts.map((product) => withStats(product, aggregateMap)),
+    ...ALL_PRODUCTS.slice(-LIMIT).reverse().map((product) => withStats(product, aggregateMap)),
+  ]
+    .filter((product, index, products) =>
+      products.findIndex((entry) => entry.routeSlug === product.routeSlug) === index
+    )
+    .slice(0, LIMIT);
 
   const trendingCandidates = allRanked.filter((item) => item.weekRatingCount > 0);
   const trending =

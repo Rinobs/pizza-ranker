@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import {
+  applyProductBaseToCustomLists,
   buildCustomLists,
   isCustomListSchemaMissingError,
   type CustomListItemRow,
   type CustomListRow,
 } from "@/lib/custom-lists";
+import { resolveProductSummariesByRouteSlug } from "@/lib/imported-products";
 import {
   USER_CUSTOM_LIST_ITEMS_TABLE,
   USER_CUSTOM_LISTS_TABLE,
@@ -159,6 +161,13 @@ export async function GET() {
     customListRows,
     (itemsResult.data ?? []) as CustomListItemRow[]
   );
+  const resolvedProducts = await resolveProductSummariesByRouteSlug(
+    customLists.flatMap((list) => list.items.map((item) => item.productSlug))
+  );
+  const resolvedCustomLists = applyProductBaseToCustomLists(
+    customLists,
+    resolvedProducts
+  );
 
   const profileByUserId = new Map(
     profilesResult.rows.map((row) => [
@@ -176,7 +185,7 @@ export async function GET() {
     ])
   );
 
-  const lists = customLists
+  const lists = resolvedCustomLists
     .filter((list) => list.itemCount > 0)
     .sort((left, right) => {
       if (right.itemCount !== left.itemCount) {

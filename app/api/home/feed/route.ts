@@ -2,16 +2,12 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import {
-  ALL_PRODUCTS,
-  getProductImageUrl,
-  getProductRouteSlug,
-} from "@/app/data/products";
-import {
   isCustomListSchemaMissingError,
   normalizeCustomListName,
   type CustomListItemRow,
   type CustomListRow,
 } from "@/lib/custom-lists";
+import { resolveProductSummariesByRouteSlug } from "@/lib/imported-products";
 import {
   buildReviewLikeKey,
   buildReviewLikeStateMap,
@@ -91,10 +87,6 @@ type FeedActivity = {
   createdAt: string | null;
 };
 
-const productByRouteSlug = new Map(
-  ALL_PRODUCTS.map((product) => [getProductRouteSlug(product), product] as const)
-);
-
 function isMissingAvatarFieldError(message: string) {
   const normalized = message.toLowerCase();
   return normalized.includes("column") && normalized.includes("avatar_url");
@@ -151,17 +143,6 @@ function buildProfileByUserId(rows: ProfileRow[]) {
   }
 
   return map;
-}
-
-function mapProductBase(slug: string) {
-  const product = productByRouteSlug.get(slug);
-
-  return {
-    routeSlug: slug,
-    name: product?.name ?? slug,
-    category: product?.category ?? "Unbekannt",
-    imageUrl: getProductImageUrl(product ?? { imageUrl: null }),
-  };
 }
 
 function getTimestampValue(value: string | null) {
@@ -302,6 +283,7 @@ export async function GET() {
 
   const profileByUserId = buildProfileByUserId(profilesResult.rows);
   const customListRows = (customListsResult.data ?? []) as CustomListRow[];
+  let customListItemRows = [] as CustomListItemRow[];
 
   const ratingRows = (ratingsResult.data ?? []) as RatingRow[];
   const reviewRows = ratingRows.filter(
@@ -342,6 +324,51 @@ export async function GET() {
         viewerUserId
       );
     }
+  }
+
+  if (customListRows.length > 0) {
+    const customListItemsResult = await supabase
+      .from(USER_CUSTOM_LIST_ITEMS_TABLE)
+      .select("list_id, product_slug, inserted_at, updated_at")
+      .in(
+        "list_id",
+        customListRows.map((row) => row.id)
+      )
+      .order("updated_at", { ascending: false })
+      .limit(CUSTOM_LIST_ITEM_FETCH_LIMIT);
+
+    if (
+      customListItemsResult.error &&
+      !isCustomListSchemaMissingError(customListItemsResult.error.message)
+    ) {
+      return NextResponse.json(
+        { success: false, error: customListItemsResult.error.message },
+        { status: 400 }
+      );
+    }
+
+    customListItemRows = (customListItemsResult.data ?? []) as CustomListItemRow[];
+  }
+
+  const resolvedProducts = await resolveProductSummariesByRouteSlug(
+    [
+      ...ratingRows.map((row) => row.product_slug),
+      ...((productListsResult.data ?? []) as ProductListRow[]).map(
+        (row) => row.product_slug
+      ),
+      ...customListItemRows.map((row) => row.product_slug),
+    ].filter((slug): slug is string => typeof slug === "string" && slug.trim().length > 0)
+  );
+
+  function mapProductBase(slug: string) {
+    const product = resolvedProducts.get(slug);
+
+    return {
+      routeSlug: slug,
+      name: product?.name ?? slug,
+      category: product?.category ?? "Unbekannt",
+      imageUrl: product?.imageUrl ?? "",
+    };
   }
 
   const followingPreview = followingRows.slice(0, FOLLOWING_PREVIEW_LIMIT).map((row) => {
@@ -414,29 +441,9 @@ export async function GET() {
   let customListActivities: FeedActivity[] = [];
 
   if (customListRows.length > 0) {
-    const customListItemsResult = await supabase
-      .from(USER_CUSTOM_LIST_ITEMS_TABLE)
-      .select("list_id, product_slug, inserted_at, updated_at")
-      .in(
-        "list_id",
-        customListRows.map((row) => row.id)
-      )
-      .order("updated_at", { ascending: false })
-      .limit(CUSTOM_LIST_ITEM_FETCH_LIMIT);
-
-    if (
-      customListItemsResult.error &&
-      !isCustomListSchemaMissingError(customListItemsResult.error.message)
-    ) {
-      return NextResponse.json(
-        { success: false, error: customListItemsResult.error.message },
-        { status: 400 }
-      );
-    }
-
     const customListById = new Map(customListRows.map((row) => [row.id, row] as const));
 
-    customListActivities = ((customListItemsResult.data ?? []) as CustomListItemRow[])
+    customListActivities = customListItemRows
       .map((row) => {
         if (!row.product_slug) return null;
 

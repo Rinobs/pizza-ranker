@@ -55,6 +55,10 @@ type BrowseProduct = RankedProduct & {
   priceValue: number | null;
 };
 
+type CatalogProduct = Product & {
+  routeSlug?: string;
+};
+
 type DiscoverFallbackSuggestion = {
   routeSlug: string;
   name: string;
@@ -69,6 +73,12 @@ type DiscoverFallbackResponse = {
   success: boolean;
   source: "database" | "open_food_facts" | "none";
   suggestions: DiscoverFallbackSuggestion[];
+};
+
+type DiscoverCatalogProductsResponse = {
+  success: boolean;
+  data?: CatalogProduct[];
+  error?: string;
 };
 
 type HomeSectionsResponse = {
@@ -184,11 +194,16 @@ const CATEGORY_ORDER = new Map(
   CATEGORY_NAV_ITEMS.map((item, index) => [item.name, index] as const)
 );
 
-function toRankedProduct(product: Product): RankedProduct {
+function toRankedProduct(product: CatalogProduct): RankedProduct {
+  const routeSlug =
+    typeof product.routeSlug === "string" && product.routeSlug.trim().length > 0
+      ? product.routeSlug
+      : getProductRouteSlug(product);
+
   return {
     name: product.name,
     category: product.category,
-    routeSlug: getProductRouteSlug(product),
+    routeSlug,
     imageUrl: getProductImageUrl(product),
     ratingAvg: null,
     ratingCount: 0,
@@ -1160,6 +1175,7 @@ function CategoryPanel() {
 
 function HomeHero({
   heroProducts,
+  catalogProductCount,
   ratedProductCount,
   totalRatingCount,
   feedData,
@@ -1167,6 +1183,7 @@ function HomeHero({
   hasLiveRatings,
 }: {
   heroProducts: RankedProduct[];
+  catalogProductCount: number;
   ratedProductCount: number;
   totalRatingCount: number;
   feedData: HomeFeedData;
@@ -1214,7 +1231,7 @@ function HomeHero({
 
           <div className="mt-6 flex flex-wrap gap-2.5 text-sm">
             <span className="rounded-full border border-[#34503B] bg-[#173023] px-4 py-2 font-semibold text-[#D9FFE6]">
-              {ALL_PRODUCTS.length}+ Lebensmittel im Katalog
+              {catalogProductCount}+ Lebensmittel im Katalog
             </span>
             <span className="rounded-full border border-[#2D3A4B] bg-[#111925]/90 px-4 py-2 font-semibold text-[#D6E2EF]">
               {CATEGORY_NAV_ITEMS.length} Kategorien
@@ -1319,6 +1336,7 @@ export default function HomeContent() {
     "database" | "open_food_facts" | "none"
   >("none");
   const [discoverFallbackLoading, setDiscoverFallbackLoading] = useState(false);
+  const [importedCatalogProducts, setImportedCatalogProducts] = useState<CatalogProduct[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1474,6 +1492,63 @@ export default function HomeContent() {
   useEffect(() => {
     let cancelled = false;
 
+    async function loadImportedCatalogProducts() {
+      try {
+        const response = await fetch("/api/discover/catalog-products", {
+          cache: "no-store",
+        });
+        const json = (await response.json()) as DiscoverCatalogProductsResponse;
+
+        if (cancelled || !response.ok || !json.success) {
+          return;
+        }
+
+        setImportedCatalogProducts(Array.isArray(json.data) ? json.data : []);
+      } catch {
+        if (!cancelled) {
+          setImportedCatalogProducts([]);
+        }
+      }
+    }
+
+    void loadImportedCatalogProducts();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const mergedCatalogProducts = useMemo(() => {
+    const seen = new Set<string>();
+    const merged: CatalogProduct[] = [];
+    const catalogProducts: CatalogProduct[] = [
+      ...ALL_PRODUCTS,
+      ...[...importedCatalogProducts].reverse(),
+    ];
+
+    for (const product of catalogProducts) {
+      const routeSlug =
+        typeof product.routeSlug === "string" && product.routeSlug.trim().length > 0
+          ? product.routeSlug
+          : getProductRouteSlug(product);
+
+      if (seen.has(routeSlug)) {
+        continue;
+      }
+
+      seen.add(routeSlug);
+      merged.push({
+        ...product,
+        routeSlug,
+      });
+    }
+
+    return merged;
+  }, [importedCatalogProducts]);
+
+  useEffect(() => {
+    let cancelled = false;
+
     if (searchQuery.length < 2) {
       setDiscoverFallbackSuggestions([]);
       setDiscoverFallbackSource("none");
@@ -1531,12 +1606,12 @@ export default function HomeContent() {
   const browseProducts = useMemo(() => {
     const items: BrowseProduct[] = [];
 
-    for (const [index, product] of ALL_PRODUCTS.entries()) {
+    for (const [index, product] of mergedCatalogProducts.entries()) {
       if (selectedCategory !== "all" && product.slug !== selectedCategory) {
         continue;
       }
 
-      const routeSlug = getProductRouteSlug(product);
+      const routeSlug = product.routeSlug ?? getProductRouteSlug(product);
       const base = toRankedProduct(product);
       const stats = ratingStats[routeSlug];
       const searchScore = searchQuery ? getProductSearchScore(product, searchQuery) : 0;
@@ -1564,7 +1639,7 @@ export default function HomeContent() {
     });
 
     return items;
-  }, [ratingStats, searchQuery, selectedCategory, sortMode]);
+  }, [mergedCatalogProducts, ratingStats, searchQuery, selectedCategory, sortMode]);
 
   const importedBrowseProducts = useMemo(() => {
     if (searchQuery.length < 2 || discoverFallbackSource !== "database") {
@@ -1809,6 +1884,7 @@ export default function HomeContent() {
           <>
             <HomeHero
               heroProducts={heroProducts}
+              catalogProductCount={ALL_PRODUCTS.length + importedCatalogProducts.length}
               ratedProductCount={ratedProductCount}
               totalRatingCount={totalRatingCount}
               feedData={feedData}
