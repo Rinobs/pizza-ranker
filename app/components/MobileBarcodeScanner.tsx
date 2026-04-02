@@ -94,6 +94,12 @@ type Html5QrcodeClass = Html5QrcodeConstructor & {
 
 type Html5QrcodeWindow = Window & {
   Html5Qrcode?: Html5QrcodeClass;
+  Html5QrcodeSupportedFormats?: {
+    EAN_13?: unknown;
+    EAN_8?: unknown;
+    UPC_A?: unknown;
+    UPC_E?: unknown;
+  };
 };
 
 type MobileBarcodeScannerProps = {
@@ -116,6 +122,39 @@ function normalizeBarcode(value: string) {
 
 function isEan13Barcode(value: string) {
   return /^\d{13}$/.test(value);
+}
+
+function normalizeDetectedBarcode(value: string) {
+  const normalized = normalizeBarcode(value);
+
+  if (isEan13Barcode(normalized)) {
+    return normalized;
+  }
+
+  if (/^\d{12}$/.test(normalized)) {
+    return `0${normalized}`;
+  }
+
+  if (/^\d{8}$/.test(normalized)) {
+    return normalized;
+  }
+
+  return null;
+}
+
+function getSupportedBarcodeFormats(scannerWindow: Html5QrcodeWindow) {
+  const supportedFormats = scannerWindow.Html5QrcodeSupportedFormats;
+
+  if (!supportedFormats) {
+    return undefined;
+  }
+
+  return [
+    supportedFormats.EAN_13,
+    supportedFormats.EAN_8,
+    supportedFormats.UPC_A,
+    supportedFormats.UPC_E,
+  ].filter((format): format is unknown => format !== undefined);
 }
 
 function isCameraPermissionError(error: unknown) {
@@ -392,6 +431,7 @@ export default function MobileBarcodeScanner({
           );
         });
 
+        const supportedFormats = getSupportedBarcodeFormats(scannerWindow);
         let lastError: unknown = null;
 
         for (const target of dedupedTargets) {
@@ -408,14 +448,18 @@ export default function MobileBarcodeScanner({
               {
                 fps: 10,
                 qrbox: {
-                  width: 240,
-                  height: 240,
+                  width: 280,
+                  height: 140,
                 },
+                formatsToSupport:
+                  supportedFormats && supportedFormats.length > 0
+                    ? supportedFormats
+                    : undefined,
               },
               (decodedText) => {
-                const barcode = normalizeBarcode(decodedText);
+                const barcode = normalizeDetectedBarcode(decodedText);
 
-                if (hasHandledDecodeRef.current || !isEan13Barcode(barcode)) {
+                if (hasHandledDecodeRef.current || !barcode) {
                   return;
                 }
 
