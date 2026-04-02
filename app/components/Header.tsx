@@ -216,7 +216,7 @@ export default function Header() {
   }
 
   const navItemClass = (active: boolean) =>
-    `min-h-11 touch-manipulation flex items-center gap-2 px-3 py-2 rounded-xl transition-all duration-300 ${
+    `min-h-11 shrink-0 touch-manipulation flex items-center gap-1.5 rounded-xl px-2.5 py-2 text-sm transition-all duration-300 sm:gap-2 sm:px-3 ${
       active
         ? "bg-[#1B222D] border border-[#2D3A4B] text-white"
         : "text-[#B7C4D3] hover:text-white hover:bg-[#1B222D]/70"
@@ -530,10 +530,10 @@ export default function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full backdrop-blur-md bg-[#101722]/80 border-b border-[#233042]/80 shadow-[0_10px_30px_rgba(0,0,0,0.25)]">
+      <header className="sticky top-0 z-50 w-full overflow-x-clip border-b border-[#233042]/80 bg-[#101722]/80 shadow-[0_10px_30px_rgba(0,0,0,0.25)] backdrop-blur-md">
         <div className="relative max-w-7xl mx-auto px-4 sm:px-8 lg:px-12">
-          <nav className="h-20 flex items-center justify-between gap-4">
-            <Link href="/" onClick={closeOverlays} className="flex items-center gap-3 group">
+          <nav className="flex h-20 items-center justify-between gap-3 sm:gap-4">
+            <Link href="/" onClick={closeOverlays} className="group flex shrink-0 items-center gap-3">
               <span className="text-2xl">{"\u{1F355}"}</span>
               <span className="hidden sm:inline text-xl font-semibold tracking-wide text-white group-hover:text-[#8AF5AC] transition-colors select-none">
                 FoodRanker
@@ -587,8 +587,12 @@ export default function Header() {
               {discoverPanel}
             </div>
 
-            <div className="flex items-center gap-1.5 sm:gap-2 text-sm font-medium">
-              <Link href="/" onClick={closeOverlays} className={navItemClass(pathname === "/")}>
+            <div className="flex min-w-0 flex-1 items-center justify-end gap-1.5 text-sm font-medium sm:flex-none sm:gap-2">
+              <Link
+                href="/"
+                onClick={closeOverlays}
+                className={`${navItemClass(pathname === "/")} hidden sm:flex`}
+              >
                 <FiHome size={18} />
                 <span className="hidden md:inline">Home</span>
               </Link>
@@ -602,10 +606,11 @@ export default function Header() {
                   }}
                   aria-expanded={isCategoriesOpen}
                   aria-controls="categories-flyout"
+                  aria-label="Entdecken"
                   className={navItemClass(isCategoryRoute || isCategoriesOpen)}
                 >
                   <FiGrid size={18} />
-                  <span className="inline">Entdecken</span>
+                  <span className="hidden sm:inline">Entdecken</span>
                   <FiChevronDown
                     size={16}
                     className={`transition-transform duration-300 ${
@@ -682,7 +687,7 @@ export default function Header() {
                     closeOverlays();
                     signOut();
                   }}
-                  className="min-h-11 touch-manipulation px-3 sm:px-4 py-2 rounded-xl bg-[#1B222D] border border-[#2D3A4B] text-white hover:bg-[#212B38] hover:border-[#5EE287] transition-all duration-300"
+                  className="min-h-11 shrink-0 touch-manipulation rounded-xl border border-[#2D3A4B] bg-[#1B222D] px-3 py-2 text-sm text-white transition-all duration-300 hover:border-[#5EE287] hover:bg-[#212B38] sm:px-4"
                 >
                   Logout
                 </button>

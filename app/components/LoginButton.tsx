@@ -7,8 +7,8 @@ export default function LoginButton() {
     <button
       onClick={() => signIn("google")}
       className="
-        px-4 py-2 rounded-xl
-        bg-[#1B222D] text-white font-medium border border-[#2D3A4B]
+        min-h-11 rounded-xl border border-[#2D3A4B]
+        bg-[#1B222D] px-3 py-2 text-sm font-medium text-white sm:px-4
         hover:bg-[#212B38] hover:border-[#5EE287] hover:text-[#CFFFE0]
         transition-all duration-300
       "
