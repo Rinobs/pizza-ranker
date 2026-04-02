@@ -5,8 +5,7 @@ import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { FiCamera, FiLoader, FiX } from "react-icons/fi";
 
-const HTML5_QRCODE_CDN_URL =
-  "https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js";
+const HTML5_QRCODE_CDN_URL = "https://unpkg.com/html5-qrcode";
 
 type BarcodeLookupResponse =
   | {
@@ -95,9 +94,6 @@ type Html5QrcodeClass = Html5QrcodeConstructor & {
 
 type Html5QrcodeWindow = Window & {
   Html5Qrcode?: Html5QrcodeClass;
-  Html5QrcodeSupportedFormats?: {
-    EAN_13: unknown;
-  };
 };
 
 type MobileBarcodeScannerProps = {
@@ -118,11 +114,27 @@ function normalizeBarcode(value: string) {
   return value.replace(/[^\d]/g, "").trim();
 }
 
+function isEan13Barcode(value: string) {
+  return /^\d{13}$/.test(value);
+}
+
 function isCameraPermissionError(error: unknown) {
   const message =
     error instanceof Error ? error.message : typeof error === "string" ? error : "";
 
   return /notallowed|permission|denied|securityerror|permission denied/i.test(message);
+}
+
+function formatScannerError(error: unknown) {
+  if (error instanceof Error && error.message.trim().length > 0) {
+    return error.message.trim();
+  }
+
+  if (typeof error === "string" && error.trim().length > 0) {
+    return error.trim();
+  }
+
+  return null;
 }
 
 function pickPreferredRearCameraId(devices: Html5QrcodeCameraDevice[]) {
@@ -141,7 +153,7 @@ function loadHtml5QrcodeCdn() {
 
   const scannerWindow = window as Html5QrcodeWindow;
 
-  if (scannerWindow.Html5Qrcode && scannerWindow.Html5QrcodeSupportedFormats?.EAN_13) {
+  if (scannerWindow.Html5Qrcode) {
     return Promise.resolve(scannerWindow);
   }
 
@@ -353,50 +365,87 @@ export default function MobileBarcodeScanner({
 
         if (
           isCancelled ||
-          !scannerWindow.Html5Qrcode ||
-          !scannerWindow.Html5QrcodeSupportedFormats?.EAN_13
+          !scannerWindow.Html5Qrcode
         ) {
           return;
         }
 
-        const scanner = new scannerWindow.Html5Qrcode(scannerElementId, false);
-        scannerRef.current = scanner;
+        const startTargets: Array<string | MediaTrackConstraints> = [];
+        const preferredTarget = getPreferredCameraSelection();
 
-        await scanner.start(
-          getPreferredCameraSelection(),
-          {
-            fps: 10,
-            aspectRatio: 1,
-            disableFlip: true,
-            qrbox: (viewfinderWidth, viewfinderHeight) => {
-              const edge = Math.floor(Math.min(viewfinderWidth, viewfinderHeight) * 0.72);
+        startTargets.push(preferredTarget);
+        startTargets.push({ facingMode: { exact: "environment" } });
+        startTargets.push({ facingMode: "environment" });
 
-              return {
-                width: edge,
-                height: edge,
-              };
-            },
-            formatsToSupport: [scannerWindow.Html5QrcodeSupportedFormats.EAN_13],
-          },
-          (decodedText) => {
-            const barcode = normalizeBarcode(decodedText);
+        const dedupedTargets = startTargets.filter((target, index, allTargets) => {
+          const serializedTarget =
+            typeof target === "string" ? target : JSON.stringify(target);
 
-            if (hasHandledDecodeRef.current || barcode.length < 8) {
-              return;
+          return (
+            index ===
+            allTargets.findIndex((candidate) => {
+              const serializedCandidate =
+                typeof candidate === "string" ? candidate : JSON.stringify(candidate);
+
+              return serializedCandidate === serializedTarget;
+            })
+          );
+        });
+
+        let lastError: unknown = null;
+
+        for (const target of dedupedTargets) {
+          if (isCancelled) {
+            return;
+          }
+
+          const scanner = new scannerWindow.Html5Qrcode(scannerElementId, true);
+          scannerRef.current = scanner;
+
+          try {
+            await scanner.start(
+              target,
+              {
+                fps: 10,
+                qrbox: {
+                  width: 240,
+                  height: 240,
+                },
+              },
+              (decodedText) => {
+                const barcode = normalizeBarcode(decodedText);
+
+                if (hasHandledDecodeRef.current || !isEan13Barcode(barcode)) {
+                  return;
+                }
+
+                hasHandledDecodeRef.current = true;
+                onBarcodeDetected?.(barcode);
+                setIsOpen(false);
+
+                void (async () => {
+                  await stopScanner();
+                  await handleLookup(barcode);
+                  hasHandledDecodeRef.current = false;
+                })();
+              },
+              () => undefined
+            );
+
+            return;
+          } catch (error) {
+            lastError = error;
+            scannerRef.current = null;
+
+            try {
+              await Promise.resolve(scanner.clear());
+            } catch {
+              // Ignore cleanup errors between fallback attempts.
             }
+          }
+        }
 
-            hasHandledDecodeRef.current = true;
-            onBarcodeDetected?.(barcode);
-            setIsOpen(false);
-
-            void (async () => {
-              await stopScanner();
-              await handleLookup(barcode);
-              hasHandledDecodeRef.current = false;
-            })();
-          },
-          () => undefined
-        );
+        throw lastError ?? new Error("Keine kompatible Kamera gefunden.");
       } catch (error) {
         if (isCancelled) {
           return;
@@ -411,7 +460,7 @@ export default function MobileBarcodeScanner({
             : "Scanner nicht verfuegbar",
           message: isCameraPermissionError(error)
             ? "Kamerazugriff erforderlich um Barcodes zu scannen."
-            : "Die Kamera konnte gerade nicht gestartet werden.",
+            : formatScannerError(error) || "Die Kamera konnte gerade nicht gestartet werden.",
         });
       } finally {
         if (!isCancelled) {
@@ -452,11 +501,20 @@ export default function MobileBarcodeScanner({
         throw new Error("Scanner-Bibliothek nicht verfuegbar.");
       }
 
-      const cameraDevices = scannerWindow.Html5Qrcode.getCameras
-        ? await scannerWindow.Html5Qrcode.getCameras()
-        : [];
+      if (scannerWindow.Html5Qrcode.getCameras) {
+        try {
+          const cameraDevices = await scannerWindow.Html5Qrcode.getCameras();
+          preferredCameraIdRef.current = pickPreferredRearCameraId(cameraDevices);
+        } catch (error) {
+          if (isCameraPermissionError(error)) {
+            throw error;
+          }
 
-      preferredCameraIdRef.current = pickPreferredRearCameraId(cameraDevices);
+          console.error("Barcode scanner camera enumeration failed", error);
+          preferredCameraIdRef.current = null;
+        }
+      }
+
       setIsOpen(true);
     } catch (error) {
       console.error("Barcode scanner open failed", error);
@@ -467,7 +525,7 @@ export default function MobileBarcodeScanner({
           : "Scanner nicht verfuegbar",
         message: isCameraPermissionError(error)
           ? "Kamerazugriff erforderlich um Barcodes zu scannen."
-          : "Die Kamera konnte gerade nicht gestartet werden.",
+          : formatScannerError(error) || "Die Kamera konnte gerade nicht gestartet werden.",
       });
     } finally {
       setIsPreparing(false);
