@@ -49,8 +49,7 @@ export type OpenFoodFactsCategorySearchResponse = {
 };
 
 const OPEN_FOOD_FACTS_USER_AGENT =
-  process.env.OPEN_FOOD_FACTS_USER_AGENT?.trim() ||
-  "FoodRanker/1.0 (https://foodranker.local)";
+  process.env.OPEN_FOOD_FACTS_USER_AGENT?.trim() || null;
 
 const DEFAULT_SEARCH_LIMIT = 8;
 
@@ -243,18 +242,27 @@ function scoreOpenFoodFactsCandidate(
   return score;
 }
 
-async function fetchOpenFoodFactsJson(url: URL) {
+async function fetchOpenFoodFactsJsonRequest(
+  url: URL,
+  options?: {
+    withCustomUserAgent?: boolean;
+  }
+) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 8000);
+  const headers: Record<string, string> = {
+    Accept: "application/json",
+  };
+
+  if (options?.withCustomUserAgent && OPEN_FOOD_FACTS_USER_AGENT) {
+    headers["User-Agent"] = OPEN_FOOD_FACTS_USER_AGENT;
+  }
 
   try {
     const response = await fetch(url, {
       signal: controller.signal,
       cache: "no-store",
-      headers: {
-        Accept: "application/json",
-        "User-Agent": OPEN_FOOD_FACTS_USER_AGENT,
-      },
+      headers,
     });
 
     if (!response.ok) {
@@ -267,6 +275,20 @@ async function fetchOpenFoodFactsJson(url: URL) {
   } finally {
     clearTimeout(timeout);
   }
+}
+
+async function fetchOpenFoodFactsJson(url: URL) {
+  if (OPEN_FOOD_FACTS_USER_AGENT) {
+    const responseWithCustomUserAgent = await fetchOpenFoodFactsJsonRequest(url, {
+      withCustomUserAgent: true,
+    });
+
+    if (responseWithCustomUserAgent) {
+      return responseWithCustomUserAgent;
+    }
+  }
+
+  return fetchOpenFoodFactsJsonRequest(url);
 }
 
 export function buildOpenFoodFactsSourceUrl(barcode: string) {
