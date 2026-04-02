@@ -176,6 +176,7 @@ export default function MobileBarcodeScanner({
   const scannerElementId = `barcode-scanner-${reactId.replace(/[:]/g, "")}`;
   const scannerRef = useRef<Html5QrcodeInstance | null>(null);
   const hasHandledDecodeRef = useRef(false);
+  const preferredCameraIdRef = useRef<string | null>(null);
 
   const [isSupported, setIsSupported] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -300,6 +301,18 @@ export default function MobileBarcodeScanner({
     [router]
   );
 
+  const getPreferredCameraSelection = useCallback((): string | MediaTrackConstraints => {
+    if (preferredCameraIdRef.current) {
+      return preferredCameraIdRef.current;
+    }
+
+    return {
+      facingMode: {
+        ideal: "environment",
+      },
+    };
+  }, []);
+
   useEffect(() => {
     if (!isOpen) {
       return;
@@ -325,7 +338,7 @@ export default function MobileBarcodeScanner({
         scannerRef.current = scanner;
 
         await scanner.start(
-          { facingMode: { ideal: "environment" } },
+          getPreferredCameraSelection(),
           {
             fps: 10,
             aspectRatio: 1,
@@ -388,7 +401,14 @@ export default function MobileBarcodeScanner({
       hasHandledDecodeRef.current = false;
       void stopScanner();
     };
-  }, [handleLookup, isOpen, onBarcodeDetected, scannerElementId, stopScanner]);
+  }, [
+    getPreferredCameraSelection,
+    handleLookup,
+    isOpen,
+    onBarcodeDetected,
+    scannerElementId,
+    stopScanner,
+  ]);
 
   async function handleOpenScanner() {
     if (!isSupported || isBusy || typeof navigator === "undefined" || !navigator.mediaDevices) {
@@ -406,6 +426,19 @@ export default function MobileBarcodeScanner({
           },
         },
       });
+
+      const preferredTrack = stream.getVideoTracks()[0] ?? null;
+      const grantedDeviceId = preferredTrack?.getSettings().deviceId ?? null;
+      const videoDevices = await navigator.mediaDevices.enumerateDevices();
+      const cameraDevices = videoDevices.filter((device) => device.kind === "videoinput");
+
+      const rearCamera =
+        cameraDevices.find((device) =>
+          /(back|rear|environment|hinten|ruck|rück)/i.test(device.label)
+        ) ?? null;
+
+      preferredCameraIdRef.current =
+        rearCamera?.deviceId || grantedDeviceId || cameraDevices[0]?.deviceId || null;
 
       stream.getTracks().forEach((track) => track.stop());
       setIsOpen(true);
