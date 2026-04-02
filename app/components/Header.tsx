@@ -2,7 +2,16 @@
 
 import Link from "next/link";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { FiHome, FiGrid, FiUser, FiSearch, FiChevronDown, FiSliders, FiX } from "react-icons/fi";
+import {
+  FiHome,
+  FiGrid,
+  FiUser,
+  FiSearch,
+  FiChevronDown,
+  FiSliders,
+  FiX,
+  FiLogOut,
+} from "react-icons/fi";
 import { useState, type FormEvent, useCallback, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useSession, signOut } from "next-auth/react";
@@ -532,7 +541,7 @@ export default function Header() {
     <>
       <header className="sticky top-0 z-50 w-full overflow-x-clip border-b border-[#233042]/80 bg-[#101722]/80 shadow-[0_10px_30px_rgba(0,0,0,0.25)] backdrop-blur-md">
         <div className="relative max-w-7xl mx-auto px-4 sm:px-8 lg:px-12">
-          <nav className="flex h-20 items-center justify-between gap-3 sm:gap-4">
+          <nav className="flex h-16 items-center justify-between gap-3 sm:h-20 sm:gap-4">
             <Link href="/" onClick={closeOverlays} className="group flex shrink-0 items-center gap-3">
               <span className="text-2xl">{"\u{1F355}"}</span>
               <span className="hidden sm:inline text-xl font-semibold tracking-wide text-white group-hover:text-[#8AF5AC] transition-colors select-none">
@@ -687,9 +696,13 @@ export default function Header() {
                     closeOverlays();
                     signOut();
                   }}
-                  className="min-h-11 shrink-0 touch-manipulation rounded-xl border border-[#2D3A4B] bg-[#1B222D] px-3 py-2 text-sm text-white transition-all duration-300 hover:border-[#5EE287] hover:bg-[#212B38] sm:px-4"
+                  aria-label="Logout"
+                  className="min-h-11 shrink-0 touch-manipulation rounded-xl border border-[#2D3A4B] bg-[#1B222D] px-2.5 py-2 text-sm text-white transition-all duration-300 hover:border-[#5EE287] hover:bg-[#212B38] sm:px-4"
                 >
-                  Logout
+                  <span className="inline-flex items-center gap-2">
+                    <FiLogOut size={17} />
+                    <span className="hidden sm:inline">Logout</span>
+                  </span>
                 </button>
               ) : (
                 <LoginButton />
@@ -706,6 +719,34 @@ export default function Header() {
               </Link>
             </div>
           </nav>
+
+          <form
+            onSubmit={handleSubmit}
+            className="flex items-center gap-2 pb-3 md:hidden"
+          >
+            <div className="flex min-w-0 flex-1 items-center gap-2 rounded-xl border border-[#2D3A4B] bg-[#141C27] px-3 py-2.5 focus-within:border-[#5EE287] transition-colors">
+              <FiSearch className="shrink-0 text-[#8CA1B8]" />
+              <input
+                type="text"
+                name="q"
+                value={discoverQuery}
+                onChange={(event) => setDiscoverQuery(event.target.value)}
+                placeholder="Produkte suchen..."
+                className="min-w-0 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-[#6E8198]"
+              />
+              <MobileBarcodeScanner
+                ariaLabel="Barcode in der Suche scannen"
+                className="h-9 w-9 rounded-lg"
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="min-h-11 shrink-0 rounded-xl bg-[#5EE287] px-3.5 text-sm font-semibold text-[#0C1910] transition-colors hover:bg-[#79F29C]"
+            >
+              Suchen
+            </button>
+          </form>
         </div>
       </header>
 
