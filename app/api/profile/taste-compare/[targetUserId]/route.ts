@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { ALL_PRODUCTS, getProductImageUrl, getProductRouteSlug } from "@/app/data/products";
 import {
   RATINGS_TABLE,
   USER_PRODUCT_LISTS_TABLE,
   USER_PROFILES_TABLE,
   getSupabaseAdminClient,
 } from "@/lib/supabase";
+import { resolveProductSummariesByRouteSlug } from "@/lib/imported-products";
 import { buildTasteComparison } from "@/lib/profile-gamification";
 import { getStableUserId } from "@/lib/user-id";
 
@@ -31,23 +31,8 @@ type ProductListRow = {
   list_type: "favorites" | "want_to_try" | "tried" | null;
 };
 
-const productBySlug = new Map(
-  ALL_PRODUCTS.map((product) => [getProductRouteSlug(product), product] as const)
-);
-
 function isUuid(value: string) {
   return UUID_PATTERN.test(value);
-}
-
-function mapProductBase(slug: string) {
-  const product = productBySlug.get(slug);
-
-  return {
-    productSlug: slug,
-    name: product?.name ?? slug,
-    category: product?.category ?? "Unbekannt",
-    imageUrl: getProductImageUrl(product ?? { imageUrl: null }),
-  };
 }
 
 export async function GET(
@@ -185,6 +170,25 @@ export async function GET(
     targetFavorites.has(slug)
   );
   const comparison = buildTasteComparison(viewerRatings, targetRatings);
+  const resolvedProducts = await resolveProductSummariesByRouteSlug(
+    [
+      ...sharedFavoriteSlugs,
+      ...(comparison?.overlaps.map((item) => item.productSlug) ?? []),
+      ...(comparison?.strongestAgreements.map((item) => item.productSlug) ?? []),
+      ...(comparison?.strongestDisagreements.map((item) => item.productSlug) ?? []),
+    ]
+  );
+
+  function mapProductBase(slug: string) {
+    const product = resolvedProducts.get(slug);
+
+    return {
+      productSlug: slug,
+      name: product?.name ?? slug,
+      category: product?.category ?? "Unbekannt",
+      imageUrl: product?.imageUrl ?? "",
+    };
+  }
 
   return NextResponse.json({
     success: true,

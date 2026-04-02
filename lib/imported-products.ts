@@ -1,4 +1,10 @@
-import { DEFAULT_PRODUCT_IMAGE, type Product } from "@/app/data/products";
+import {
+  DEFAULT_PRODUCT_IMAGE,
+  getProductImageUrl,
+  getProductRouteSlug,
+  type Product,
+  ALL_PRODUCTS,
+} from "@/app/data/products";
 import { normalizeSearchText, type CategoryNavigationItem } from "@/lib/product-navigation";
 import { IMPORTED_PRODUCTS_TABLE, getSupabaseAdminClient } from "@/lib/supabase";
 import { type ImportedProductDraft } from "@/lib/open-food-facts";
@@ -46,6 +52,19 @@ export type ImportedCatalogProduct = Product & {
   sugar: number | null;
   salt: number | null;
 };
+
+export type ResolvedProductSummary = {
+  productSlug: string;
+  routeSlug: string;
+  name: string;
+  category: string;
+  imageUrl: string;
+  sourceType: "catalog" | "open_food_facts" | "unknown";
+};
+
+const productByRouteSlug = new Map(
+  ALL_PRODUCTS.map((product) => [getProductRouteSlug(product), product] as const)
+);
 
 const SELECT_FIELDS = [
   "route_slug",
@@ -211,6 +230,44 @@ export async function getImportedProductByBarcode(barcode: string) {
   return mapImportedProductRow(data);
 }
 
+export async function getImportedProductsByRouteSlugs(routeSlugs: string[]) {
+  const supabase = getSupabaseAdminClient();
+
+  if (!supabase) {
+    return new Map<string, ImportedProductRecord>();
+  }
+
+  const normalizedRouteSlugs = Array.from(
+    new Set(
+      routeSlugs
+        .map((routeSlug) => routeSlug.trim())
+        .filter((routeSlug) => routeSlug.length > 0)
+    )
+  );
+
+  if (normalizedRouteSlugs.length === 0) {
+    return new Map<string, ImportedProductRecord>();
+  }
+
+  const { data, error } = await supabase
+    .from(IMPORTED_PRODUCTS_TABLE)
+    .select(SELECT_FIELDS)
+    .in("route_slug", normalizedRouteSlugs);
+
+  if (error || !Array.isArray(data)) {
+    return new Map<string, ImportedProductRecord>();
+  }
+
+  return new Map(
+    (data as unknown[])
+      .filter(isImportedProductRow)
+      .map((row) => {
+        const product = mapImportedProductRow(row);
+        return [product.routeSlug, product] as const;
+      })
+  );
+}
+
 export async function getExistingImportedBarcodes(barcodes: string[]) {
   const supabase = getSupabaseAdminClient();
 
@@ -345,6 +402,70 @@ export async function searchImportedProducts(
       return left.name.localeCompare(right.name, "de");
     })
     .slice(0, options?.limit ?? 8);
+}
+
+export async function resolveProductSummariesByRouteSlug(routeSlugs: string[]) {
+  const normalizedRouteSlugs = Array.from(
+    new Set(
+      routeSlugs
+        .map((routeSlug) => routeSlug.trim())
+        .filter((routeSlug) => routeSlug.length > 0)
+    )
+  );
+
+  const resolvedProducts = new Map<string, ResolvedProductSummary>();
+  const unresolvedRouteSlugs: string[] = [];
+
+  for (const routeSlug of normalizedRouteSlugs) {
+    const catalogProduct = productByRouteSlug.get(routeSlug);
+
+    if (catalogProduct) {
+      resolvedProducts.set(routeSlug, {
+        productSlug: routeSlug,
+        routeSlug,
+        name: catalogProduct.name,
+        category: catalogProduct.category,
+        imageUrl: getProductImageUrl(catalogProduct),
+        sourceType: "catalog",
+      });
+      continue;
+    }
+
+    unresolvedRouteSlugs.push(routeSlug);
+  }
+
+  if (unresolvedRouteSlugs.length > 0) {
+    const importedProductsBySlug = await getImportedProductsByRouteSlugs(
+      unresolvedRouteSlugs
+    );
+
+    for (const routeSlug of unresolvedRouteSlugs) {
+      const importedProduct = importedProductsBySlug.get(routeSlug);
+
+      if (importedProduct) {
+        resolvedProducts.set(routeSlug, {
+          productSlug: routeSlug,
+          routeSlug,
+          name: importedProduct.name,
+          category: importedProduct.category,
+          imageUrl: getProductImageUrl({ imageUrl: importedProduct.imageUrl }),
+          sourceType: "open_food_facts",
+        });
+        continue;
+      }
+
+      resolvedProducts.set(routeSlug, {
+        productSlug: routeSlug,
+        routeSlug,
+        name: routeSlug,
+        category: "Unbekannt",
+        imageUrl: DEFAULT_PRODUCT_IMAGE,
+        sourceType: "unknown",
+      });
+    }
+  }
+
+  return resolvedProducts;
 }
 
 export function toImportedCatalogProduct(

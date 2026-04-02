@@ -29,10 +29,7 @@ import BackButton from "@/app/components/BackButton";
 import ProductCardImage from "@/app/components/ProductCardImage";
 import ProfileAvatar from "@/app/components/ProfileAvatar";
 import {
-  ALL_PRODUCTS,
   DEFAULT_PRODUCT_IMAGE,
-  getProductImageUrl,
-  getProductRouteSlug,
 } from "@/app/data/products";
 import { useUserCustomLists } from "@/app/hooks/useUserCustomLists";
 import { useUserRatings } from "@/app/hooks/useUserRatings";
@@ -72,6 +69,20 @@ type CollectionProduct = {
   category: string;
   imageUrl: string;
   rating: number;
+};
+
+type ResolvedProfileProduct = {
+  productSlug: string;
+  routeSlug: string;
+  name: string;
+  category: string;
+  imageUrl: string;
+};
+
+type ResolveProductsResponse = {
+  success: boolean;
+  data?: ResolvedProfileProduct[];
+  error?: string;
 };
 
 
@@ -523,6 +534,9 @@ export default function ProfilPage() {
   const [tasteMatchDetailData, setTasteMatchDetailData] = useState<TasteCompareData | null>(null);
   const [tasteMatchDetailLoading, setTasteMatchDetailLoading] = useState(false);
   const [tasteMatchDetailError, setTasteMatchDetailError] = useState<string | null>(null);
+  const [resolvedProductsBySlug, setResolvedProductsBySlug] = useState<
+    Record<string, ResolvedProfileProduct>
+  >({});
 
   useEffect(() => {
     if (!profileLoaded) return;
@@ -565,13 +579,77 @@ export default function ProfilPage() {
     };
   }, [isAvatarMenuOpen]);
 
-  const productBySlug = useMemo(() => {
-    const map = new Map<string, (typeof ALL_PRODUCTS)[number]>();
-    for (const product of ALL_PRODUCTS) {
-      map.set(getProductRouteSlug(product), product);
+  const profileProductSlugs = useMemo(
+    () =>
+      Array.from(
+        new Set([
+          ...Object.keys(ratings),
+          ...Object.keys(comments),
+          ...favoriteSlugs,
+          ...wantToTrySlugs,
+          ...triedSlugs,
+        ])
+      ),
+    [comments, favoriteSlugs, ratings, triedSlugs, wantToTrySlugs]
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+
+    if (profileProductSlugs.length === 0) {
+      setResolvedProductsBySlug({});
+      return () => {
+        cancelled = true;
+      };
     }
-    return map;
-  }, []);
+
+    async function loadResolvedProducts() {
+      try {
+        const response = await fetch("/api/products/resolve", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            routeSlugs: profileProductSlugs,
+          }),
+        });
+        const json = (await response.json()) as ResolveProductsResponse;
+
+        if (cancelled || !response.ok || !json.success) {
+          return;
+        }
+
+        const nextResolvedProductsBySlug = Object.fromEntries(
+          (json.data ?? []).map((product) => [product.routeSlug, product] as const)
+        );
+
+        setResolvedProductsBySlug(nextResolvedProductsBySlug);
+      } catch {
+        if (!cancelled) {
+          setResolvedProductsBySlug((current) => current);
+        }
+      }
+    }
+
+    void loadResolvedProducts();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [profileProductSlugs]);
+
+  const getResolvedProductBase = useCallback(
+    (slug: string) =>
+      resolvedProductsBySlug[slug] ?? {
+        productSlug: slug,
+        routeSlug: slug,
+        name: slug,
+        category: "Unbekannt",
+        imageUrl: DEFAULT_PRODUCT_IMAGE,
+      },
+    [resolvedProductsBySlug]
+  );
 
   const ratedProducts = useMemo(() => {
     const slugs = new Set<string>([...Object.keys(ratings), ...Object.keys(comments)]);
@@ -581,14 +659,14 @@ export default function ProfilPage() {
       const rating = typeof ratings[slug] === "number" ? ratings[slug] : 0;
       const comment = typeof comments[slug] === "string" ? comments[slug].trim() : "";
       if (rating <= 0 && comment.length === 0) continue;
-      const product = productBySlug.get(slug);
+      const product = getResolvedProductBase(slug);
       result.push({
         slug,
-        name: product?.name ?? slug,
-        category: product?.category ?? "Unbekannt",
+        name: product.name,
+        category: product.category,
         rating,
         comment,
-        imageUrl: getProductImageUrl(product ?? { imageUrl: null }),
+        imageUrl: product.imageUrl,
       });
     }
 
@@ -598,7 +676,7 @@ export default function ProfilPage() {
     });
 
     return result;
-  }, [comments, productBySlug, ratings]);
+  }, [comments, getResolvedProductBase, ratings]);
 
   const ratedCategories = useMemo(() => {
     const categories = Array.from(new Set(ratedProducts.map((product) => product.category)));
@@ -627,47 +705,47 @@ export default function ProfilPage() {
   const favoriteProducts = useMemo<CollectionProduct[]>(() => {
     return favoriteSlugs
       .map((slug) => {
-        const product = productBySlug.get(slug);
+        const product = getResolvedProductBase(slug);
         return {
           slug,
-          name: product?.name ?? slug,
-          category: product?.category ?? "Unbekannt",
-          imageUrl: getProductImageUrl(product ?? { imageUrl: null }),
+          name: product.name,
+          category: product.category,
+          imageUrl: product.imageUrl,
           rating: typeof ratings[slug] === "number" ? ratings[slug] : 0,
         };
       })
       .sort((left, right) => left.name.localeCompare(right.name, "de"));
-  }, [favoriteSlugs, productBySlug, ratings]);
+  }, [favoriteSlugs, getResolvedProductBase, ratings]);
 
   const wantToTryProducts = useMemo<CollectionProduct[]>(() => {
     return wantToTrySlugs
       .map((slug) => {
-        const product = productBySlug.get(slug);
+        const product = getResolvedProductBase(slug);
         return {
           slug,
-          name: product?.name ?? slug,
-          category: product?.category ?? "Unbekannt",
-          imageUrl: getProductImageUrl(product ?? { imageUrl: null }),
+          name: product.name,
+          category: product.category,
+          imageUrl: product.imageUrl,
           rating: typeof ratings[slug] === "number" ? ratings[slug] : 0,
         };
       })
       .sort((left, right) => left.name.localeCompare(right.name, "de"));
-  }, [productBySlug, ratings, wantToTrySlugs]);
+  }, [getResolvedProductBase, ratings, wantToTrySlugs]);
 
   const triedProducts = useMemo<CollectionProduct[]>(() => {
     return triedSlugs
       .map((slug) => {
-        const product = productBySlug.get(slug);
+        const product = getResolvedProductBase(slug);
         return {
           slug,
-          name: product?.name ?? slug,
-          category: product?.category ?? "Unbekannt",
-          imageUrl: getProductImageUrl(product ?? { imageUrl: null }),
+          name: product.name,
+          category: product.category,
+          imageUrl: product.imageUrl,
           rating: typeof ratings[slug] === "number" ? ratings[slug] : 0,
         };
       })
       .sort((left, right) => left.name.localeCompare(right.name, "de"));
-  }, [productBySlug, ratings, triedSlugs]);
+  }, [getResolvedProductBase, ratings, triedSlugs]);
 
   const ratingCount = ratedProducts.filter((product) => product.rating > 0).length;
   const commentCount = ratedProducts.filter((product) => product.comment.length > 0).length;

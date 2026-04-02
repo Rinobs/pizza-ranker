@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import {
+  applyProductBaseToCustomLists,
   buildCustomLists,
   getCustomListNameValidationMessage,
   isCustomListNameConflictError,
@@ -10,6 +11,7 @@ import {
   type CustomListItemRow,
   type CustomListRow,
 } from "@/lib/custom-lists";
+import { resolveProductSummariesByRouteSlug } from "@/lib/imported-products";
 import {
   USER_CUSTOM_LIST_ITEMS_TABLE,
   USER_CUSTOM_LISTS_TABLE,
@@ -76,12 +78,20 @@ async function loadUserCustomLists(
     };
   }
 
+  const lists = buildCustomLists(
+    listRows,
+    (itemResult.data ?? []) as CustomListItemRow[],
+    { previewLimit: Number.MAX_SAFE_INTEGER }
+  );
+  const routeSlugs = Array.from(
+    new Set(
+      lists.flatMap((list) => list.items.map((item) => item.productSlug))
+    )
+  );
+  const resolvedProducts = await resolveProductSummariesByRouteSlug(routeSlugs);
+
   return {
-    data: buildCustomLists(
-      listRows,
-      (itemResult.data ?? []) as CustomListItemRow[],
-      { previewLimit: Number.MAX_SAFE_INTEGER }
-    ),
+    data: applyProductBaseToCustomLists(lists, resolvedProducts),
     error: null,
   };
 }

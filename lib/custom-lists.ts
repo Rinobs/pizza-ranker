@@ -43,6 +43,11 @@ export type CustomList = {
   items: CustomListProduct[];
 };
 
+export type CustomListProductBase = Omit<
+  CustomListProduct,
+  "insertedAt" | "updatedAt"
+>;
+
 const productByRouteSlug = new Map(
   ALL_PRODUCTS.map((product) => [getProductRouteSlug(product), product] as const)
 );
@@ -182,4 +187,25 @@ export function buildCustomLists(
         getTimestampValue(right.updatedAt || right.insertedAt) -
         getTimestampValue(left.updatedAt || left.insertedAt)
     );
+}
+
+export function applyProductBaseToCustomLists(
+  lists: CustomList[],
+  productBaseBySlug: Map<string, CustomListProductBase>
+) {
+  return lists.map((list) => ({
+    ...list,
+    items: list.items.map((item) => {
+      const resolvedProduct = productBaseBySlug.get(item.productSlug);
+
+      if (!resolvedProduct) {
+        return item;
+      }
+
+      return {
+        ...item,
+        ...resolvedProduct,
+      };
+    }),
+  }));
 }

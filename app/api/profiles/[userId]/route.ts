@@ -2,11 +2,13 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import {
+  applyProductBaseToCustomLists,
   buildCustomLists,
   isCustomListSchemaMissingError,
   type CustomListItemRow,
   type CustomListRow,
 } from "@/lib/custom-lists";
+import { resolveProductSummariesByRouteSlug } from "@/lib/imported-products";
 import {
   getSupabaseAdminClient,
   RATINGS_TABLE,
@@ -17,7 +19,6 @@ import {
   USER_PRODUCT_LISTS_TABLE,
 } from "@/lib/supabase";
 import { getStableUserId } from "@/lib/user-id";
-import { ALL_PRODUCTS, getProductRouteSlug } from "@/app/data/products";
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -87,20 +88,6 @@ async function loadPublicProfileRow(
   return {
     row: (basicResult.data as ProfileRow | null) ?? null,
     error: basicResult.error,
-  };
-}
-
-const productBySlug = new Map(
-  ALL_PRODUCTS.map((product) => [getProductRouteSlug(product), product] as const)
-);
-
-function mapProductBase(slug: string) {
-  const product = productBySlug.get(slug);
-
-  return {
-    productSlug: slug,
-    name: product?.name ?? slug,
-    category: product?.category ?? "Unbekannt",
   };
 }
 
@@ -208,6 +195,48 @@ export async function GET(
   const ratingsRows = (ratingsResult.data ?? []) as RatingRow[];
   const listRows = (listsResult.data ?? []) as ProductListRow[];
   const customListRows = (customListsResult.data ?? []) as CustomListRow[];
+  let customListItemRows = [] as CustomListItemRow[];
+
+  if (customListRows.length > 0) {
+    const customListItemsResult = await supabase
+      .from(USER_CUSTOM_LIST_ITEMS_TABLE)
+      .select("list_id, product_slug, inserted_at, updated_at")
+      .in(
+        "list_id",
+        customListRows.map((row) => row.id)
+      )
+      .order("updated_at", { ascending: false });
+
+    if (
+      customListItemsResult.error &&
+      !isCustomListSchemaMissingError(customListItemsResult.error.message)
+    ) {
+      return NextResponse.json(
+        { success: false, error: customListItemsResult.error.message },
+        { status: 400 }
+      );
+    }
+
+    customListItemRows = (customListItemsResult.data ?? []) as CustomListItemRow[];
+  }
+
+  const resolvedProducts = await resolveProductSummariesByRouteSlug(
+    [
+      ...ratingsRows.map((row) => row.product_slug),
+      ...listRows.map((row) => row.product_slug),
+      ...customListItemRows.map((row) => row.product_slug),
+    ].filter((slug): slug is string => typeof slug === "string" && slug.trim().length > 0)
+  );
+
+  function mapProductBase(slug: string) {
+    const product = resolvedProducts.get(slug);
+
+    return {
+      productSlug: slug,
+      name: product?.name ?? slug,
+      category: product?.category ?? "Unbekannt",
+    };
+  }
 
   const ratings = ratingsRows
     .map((row) => {
@@ -270,29 +299,11 @@ export async function GET(
   let customLists = [] as ReturnType<typeof buildCustomLists>;
 
   if (customListRows.length > 0) {
-    const customListItemsResult = await supabase
-      .from(USER_CUSTOM_LIST_ITEMS_TABLE)
-      .select("list_id, product_slug, inserted_at, updated_at")
-      .in(
-        "list_id",
-        customListRows.map((row) => row.id)
-      )
-      .order("updated_at", { ascending: false });
-
-    if (
-      customListItemsResult.error &&
-      !isCustomListSchemaMissingError(customListItemsResult.error.message)
-    ) {
-      return NextResponse.json(
-        { success: false, error: customListItemsResult.error.message },
-        { status: 400 }
-      );
-    }
-
-    customLists = buildCustomLists(
-      customListRows,
-      (customListItemsResult.data ?? []) as CustomListItemRow[],
-      { previewLimit: Number.MAX_SAFE_INTEGER }
+    customLists = applyProductBaseToCustomLists(
+      buildCustomLists(customListRows, customListItemRows, {
+        previewLimit: Number.MAX_SAFE_INTEGER,
+      }),
+      resolvedProducts
     );
   }
 
