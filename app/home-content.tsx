@@ -330,14 +330,16 @@ function Panel({
 }) {
   return (
     <section
-      className={`rounded-[30px] border border-[#2A394B] bg-[linear-gradient(145deg,rgba(18,26,38,0.98),rgba(11,17,26,0.96))] p-5 shadow-[0_20px_50px_rgba(0,0,0,0.26)] sm:p-6 ${className}`}
+      className={`w-full min-w-0 rounded-[30px] border border-[#2A394B] bg-[linear-gradient(145deg,rgba(18,26,38,0.98),rgba(11,17,26,0.96))] p-5 shadow-[0_20px_50px_rgba(0,0,0,0.26)] sm:p-6 ${className}`}
     >
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
+        <div className="min-w-0">
           <p className="text-[11px] uppercase tracking-[0.24em] text-[#8CA1B8]">{eyebrow}</p>
-          <h2 className="mt-2 text-2xl font-black tracking-tight text-[#F3FFF6]">{title}</h2>
+          <h2 className="mt-2 break-words text-2xl font-black tracking-tight text-[#F3FFF6]">
+            {title}
+          </h2>
           {description ? (
-            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#AFC1D3]">
+            <p className="mt-2 max-w-2xl break-words text-sm leading-relaxed text-[#AFC1D3]">
               {description}
             </p>
           ) : null}
@@ -483,11 +485,23 @@ function ProductShelf({
       }
     >
       <div className="relative">
-        <div className="home-shelf-carousel flex gap-3 overflow-x-auto pb-3 pr-[24px] snap-x snap-proximity sm:gap-4 sm:pr-[30px]">
+        <div className="grid grid-cols-2 gap-3 sm:hidden">
+          {products.map((product, index) => (
+            <div key={`${title}-mobile-${product.routeSlug}`} className="min-w-0">
+              <ProductCard
+                product={product}
+                eager={index < 2}
+                variant="shelf"
+              />
+            </div>
+          ))}
+        </div>
+
+        <div className="home-shelf-carousel hidden gap-3 overflow-x-auto pb-3 pr-[24px] snap-x snap-proximity sm:flex sm:gap-4 sm:pr-[30px]">
           {products.map((product, index) => (
             <div
               key={`${title}-${product.routeSlug}`}
-              className="w-[48vw] min-w-[152px] max-w-[186px] shrink-0 snap-start sm:w-[calc((100%-1rem-1.875rem)/2)] sm:min-w-0 sm:max-w-none"
+              className="w-[calc((100%-1rem-1.875rem)/2)] min-w-0 shrink-0 snap-start"
             >
               <ProductCard
                 product={product}
@@ -700,7 +714,7 @@ function ActivityCard({
               };
 
   return (
-    <li className="rounded-[26px] border border-[#2A394B] bg-[linear-gradient(145deg,rgba(19,27,38,0.96),rgba(12,18,27,0.98))] p-4 transition-all duration-300 hover:-translate-y-1 hover:border-[#5EE287]/30">
+    <li className="min-w-0 overflow-hidden rounded-[26px] border border-[#2A394B] bg-[linear-gradient(145deg,rgba(19,27,38,0.96),rgba(12,18,27,0.98))] p-4 transition-all duration-300 hover:-translate-y-1 hover:border-[#5EE287]/30">
       <div className="flex items-start gap-4">
         <Link href={profileHref}>
           <MiniAvatar src={activity.avatarUrl} name={activity.username} />
@@ -710,7 +724,7 @@ function ActivityCard({
           <div className="flex flex-wrap items-center gap-2">
             <Link
               href={profileHref}
-              className="font-semibold text-white transition-colors hover:text-[#8AF5AC]"
+              className="break-words font-semibold text-white transition-colors hover:text-[#8AF5AC]"
             >
               {activity.username}
             </Link>
@@ -724,13 +738,13 @@ function ActivityCard({
             </span>
           </div>
 
-          <p className="mt-3 text-sm leading-relaxed text-[#D7E2EC] sm:text-base">
+          <p className="mt-3 break-words text-sm leading-relaxed text-[#D7E2EC] sm:text-base">
             {activity.kind === "review" ? (
               <>
                 hat eine Review zu{" "}
                 <Link
                   href={productHref}
-                  className="font-semibold text-white transition-colors hover:text-[#8AF5AC]"
+                  className="break-words font-semibold text-white transition-colors hover:text-[#8AF5AC]"
                 >
                   {activity.product.name}
                 </Link>{" "}
@@ -741,7 +755,7 @@ function ActivityCard({
                 hat{" "}
                 <Link
                   href={productHref}
-                  className="font-semibold text-white transition-colors hover:text-[#8AF5AC]"
+                  className="break-words font-semibold text-white transition-colors hover:text-[#8AF5AC]"
                 >
                   {activity.product.name}
                 </Link>{" "}
@@ -752,7 +766,7 @@ function ActivityCard({
                 hat{" "}
                 <Link
                   href={productHref}
-                  className="font-semibold text-white transition-colors hover:text-[#8AF5AC]"
+                  className="break-words font-semibold text-white transition-colors hover:text-[#8AF5AC]"
                 >
                   {activity.product.name}
                 </Link>{" "}
@@ -763,7 +777,7 @@ function ActivityCard({
                 hat{" "}
                 <Link
                   href={productHref}
-                  className="font-semibold text-white transition-colors hover:text-[#8AF5AC]"
+                  className="break-words font-semibold text-white transition-colors hover:text-[#8AF5AC]"
                 >
                   {activity.product.name}
                 </Link>{" "}
@@ -774,7 +788,7 @@ function ActivityCard({
                 hat{" "}
                 <Link
                   href={productHref}
-                  className="font-semibold text-white transition-colors hover:text-[#8AF5AC]"
+                  className="break-words font-semibold text-white transition-colors hover:text-[#8AF5AC]"
                 >
                   {activity.product.name}
                 </Link>{" "}
@@ -799,7 +813,7 @@ function ActivityCard({
           </div>
 
           {activity.comment ? (
-            <div className="mt-4 rounded-[20px] border border-[#2D3A4B] bg-[#0F1722]/92 p-4 text-sm leading-relaxed text-[#D3DFEB]">
+            <div className="mt-4 overflow-hidden rounded-[20px] border border-[#2D3A4B] bg-[#0F1722]/92 p-4 text-sm leading-relaxed text-[#D3DFEB]">
               <p className="line-clamp-4">{activity.comment}</p>
             </div>
           ) : null}
@@ -907,7 +921,7 @@ function FeedPanel({
       description="Wenn du Profilen folgst, wird die Startseite zu deinem persönlichen Food-Diary mit Reviews, Ratings und Listen-Aktivität."
       action={
         feedData.viewerAuthenticated && feedData.followingCount > 0 ? (
-          <div className="flex items-center gap-3">
+          <div className="flex min-w-0 flex-wrap items-center gap-3">
             <FollowPreviewCluster previews={feedData.followingPreview} />
             <span className="rounded-full border border-[#2D3A4B] bg-[#111925] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#D6E2EF]">
               {feedData.followingCount} gefolgt
@@ -978,7 +992,7 @@ function FeedPanel({
       ) : (
         <>
           {categoryOptions.length > 1 ? (
-            <div className="mb-5">
+            <div className="mb-5 min-w-0">
               <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
                 <p className="text-[11px] uppercase tracking-[0.2em] text-[#8CA1B8]">
                   Kategorie filtern
@@ -1033,7 +1047,7 @@ function FeedPanel({
           ) : null}
 
           {filteredActivities.length > 0 ? (
-            <ul className="grid gap-4">
+            <ul className="grid min-w-0 gap-4">
               {filteredActivities.map((activity) => (
                 <ActivityCard
                   key={activity.id}
@@ -1943,8 +1957,8 @@ export default function HomeContent() {
             />
 
             <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.8fr)]">
-              <div className="space-y-6">
-                <div className="space-y-3">
+              <div className="min-w-0 space-y-6">
+                <div className="min-w-0 space-y-3">
                   <div className="flex flex-wrap gap-2">
                     <button
                       type="button"
@@ -1985,7 +1999,7 @@ export default function HomeContent() {
                   )}
                 </div>
 
-                <div className="grid gap-6 lg:grid-cols-2">
+                <div className="grid min-w-0 gap-6 lg:grid-cols-2">
                   <ProductShelf
                     eyebrow="Community Favoriten"
                     title="Beste Bewertungen der Woche"
@@ -2002,7 +2016,7 @@ export default function HomeContent() {
                   />
                 </div>
 
-                <div className="grid gap-6 lg:grid-cols-2">
+                <div className="grid min-w-0 gap-6 lg:grid-cols-2">
                   <ProductShelf
                     eyebrow="Neu im Katalog"
                     title="Frisch hinzugefügt"
@@ -2020,7 +2034,7 @@ export default function HomeContent() {
                 </div>
               </div>
 
-              <div className="space-y-6">
+              <div className="min-w-0 space-y-6">
                 <NetworkPanel feedData={feedData} />
                 <CategoryPanel />
               </div>
