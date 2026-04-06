@@ -353,16 +353,19 @@ function ProductCard({
   product,
   eager = false,
   className = "",
+  variant = "default",
 }: {
   product: RankedProduct;
   eager?: boolean;
   className?: string;
+  variant?: "default" | "shelf";
 }) {
   const categoryAccent = getCategoryAccent(product.category);
+  const isShelfCard = variant === "shelf";
 
   return (
     <div
-      className={`group relative aspect-[0.8] overflow-hidden rounded-[24px] border border-[#2D3A4B] bg-[#131B26] shadow-[0_14px_34px_rgba(0,0,0,0.3)] transition-all duration-300 hover:-translate-y-1.5 sm:aspect-[0.72] ${categoryAccent.cardClass} ${className}`}
+      className={`group relative overflow-hidden rounded-[24px] border border-[#2D3A4B] bg-[#131B26] shadow-[0_14px_34px_rgba(0,0,0,0.3)] transition-all duration-300 hover:-translate-y-1.5 ${isShelfCard ? "aspect-[1.02] sm:aspect-[0.8] lg:aspect-[0.72]" : "aspect-[0.8] sm:aspect-[0.72]"} ${categoryAccent.cardClass} ${className}`}
     >
       <Link
         href={`/produkt/${product.routeSlug}`}
@@ -377,10 +380,12 @@ function ProductCard({
         alt={product.name}
         fallbackSrc={product.imageUrl}
         eager={eager}
-        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+        className={`h-full w-full transition-transform duration-500 group-hover:scale-105 ${isShelfCard ? "object-contain px-4 pt-4 pb-16 sm:object-cover sm:p-0" : "object-cover"}`}
       />
 
-      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/28 to-transparent" />
+      <div
+        className={`absolute inset-0 ${isShelfCard ? "bg-gradient-to-t from-black/92 via-black/18 to-black/8 sm:from-black/90 sm:via-black/28 sm:to-transparent" : "bg-gradient-to-t from-black/90 via-black/28 to-transparent"}`}
+      />
 
       <div
         title={product.category}
@@ -442,11 +447,12 @@ function ProductShelf({
           {products.map((product, index) => (
             <div
               key={`${title}-${product.routeSlug}`}
-              className="w-[calc(100%-1.875rem)] min-w-[236px] shrink-0 snap-start sm:w-[calc((100%-1rem-1.875rem)/2)]"
+              className="w-[78vw] min-w-[196px] max-w-[248px] shrink-0 snap-start sm:w-[calc((100%-1rem-1.875rem)/2)] sm:min-w-0 sm:max-w-none"
             >
               <ProductCard
                 product={product}
                 eager={index < 2}
+                variant="shelf"
               />
             </div>
           ))}
