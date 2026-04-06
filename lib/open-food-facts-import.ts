@@ -294,13 +294,11 @@ export async function runOpenFoodFactsInitialImport(
 
         const importedDraft = mapOpenFoodFactsProductToImportedDraft(rawProduct, {
           barcodeOverride: barcode,
-          categoryOverride: categoryConfig.category,
-          categorySlugOverride: categoryConfig.categorySlug,
         });
 
-        if (!importedDraft) {
-          categoryErrors += 1;
-          errors += 1;
+        if (!importedDraft || !importedDraft.categorySlug) {
+          categorySkipped += 1;
+          skipped += 1;
           continue;
         }
 
@@ -335,7 +333,7 @@ export async function runOpenFoodFactsInitialImport(
           imported,
           skipped,
           errors,
-          message: `${categoryConfig.label}: ${persistedProduct.name} importiert.`,
+          message: `${categoryConfig.label}: ${persistedProduct.name} als ${persistedProduct.category} importiert.`,
         });
       }
 

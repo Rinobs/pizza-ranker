@@ -1,9 +1,9 @@
 import {
-  CATEGORY_NAV_ITEMS,
   getCategoryNavigationItem,
   normalizeSearchText,
   type CategoryNavigationItem,
 } from "@/lib/product-navigation";
+import { inferImportedProductCategory } from "@/lib/imported-product-category";
 
 export type OpenFoodFactsProduct = {
   code?: string;
@@ -96,34 +96,32 @@ function getSearchTokens(value: string) {
     .filter(Boolean);
 }
 
-function inferCategorySlug(
-  value: string | null | undefined
-): CategoryNavigationItem["slug"] | null {
-  const normalized = normalizeSearchText(value ?? "");
-  if (!normalized) {
+function inferCategory(
+  product: OpenFoodFactsProduct
+): {
+  categorySlug: CategoryNavigationItem["slug"];
+  category: string;
+} | null {
+  const inferredCategory = inferImportedProductCategory({
+    name: product.product_name,
+    brand: product.brands,
+    categories: product.categories,
+    categoriesTags: product.categories_tags,
+    ingredientsText: product.ingredients_text,
+    protein:
+      asNumber((product.nutriments ?? {})["proteins_100g"]) ??
+      asNumber((product.nutriments ?? {})["proteins"]),
+    quantity: product.quantity,
+  });
+
+  if (!inferredCategory) {
     return null;
   }
 
-  for (const category of CATEGORY_NAV_ITEMS) {
-    const candidates = [
-      category.slug,
-      category.name,
-      category.shortName,
-      category.category,
-      ...category.aliases,
-    ];
-
-    if (
-      candidates.some((candidate) => {
-        const candidateText = normalizeSearchText(candidate);
-        return candidateText.length > 0 && normalized.includes(candidateText);
-      })
-    ) {
-      return category.slug;
-    }
-  }
-
-  return null;
+  return {
+    categorySlug: inferredCategory.categorySlug,
+    category: inferredCategory.category,
+  };
 }
 
 function getDisplayCategory(
@@ -141,18 +139,10 @@ function getDisplayCategory(
     };
   }
 
-  const inferredCategorySlug = inferCategorySlug(
-    [product.categories, product.product_name, product.brands].filter(Boolean).join(" ")
-  );
-  const inferredCategory = inferredCategorySlug
-    ? getCategoryNavigationItem(inferredCategorySlug)
-    : null;
+  const inferredCategory = inferCategory(product);
 
   if (inferredCategory) {
-    return {
-      category: inferredCategory.category,
-      categorySlug: inferredCategory.slug,
-    };
+    return inferredCategory;
   }
 
   const firstCategory =
@@ -182,15 +172,9 @@ function scoreOpenFoodFactsCandidate(
     return 0;
   }
 
-  const inferredCategorySlug = inferCategorySlug(
-    [product.categories, product.product_name, product.brands].filter(Boolean).join(" ")
-  );
+  const inferredCategorySlug = inferCategory(product)?.categorySlug ?? null;
 
-  if (
-    preferredCategorySlug &&
-    inferredCategorySlug &&
-    inferredCategorySlug !== preferredCategorySlug
-  ) {
+  if (preferredCategorySlug && inferredCategorySlug !== preferredCategorySlug) {
     return 0;
   }
 

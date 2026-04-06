@@ -308,20 +308,17 @@ export async function getExistingImportedBarcodes(barcodes: string[]) {
 }
 
 export async function persistImportedProduct(draft: ImportedProductDraft) {
-  const existing = await getImportedProductByBarcode(draft.barcode);
-  if (existing) {
-    return existing;
-  }
-
   const supabase = getSupabaseAdminClient();
 
   if (!supabase) {
     return null;
   }
 
+  const existing = await getImportedProductByBarcode(draft.barcode);
   const now = new Date().toISOString();
+
   const payload = {
-    route_slug: draft.routeSlug,
+    route_slug: existing?.routeSlug ?? draft.routeSlug,
     source: "open_food_facts",
     source_id: draft.barcode,
     source_url: draft.sourceUrl,
@@ -338,15 +335,24 @@ export async function persistImportedProduct(draft: ImportedProductDraft) {
     salt: draft.salt,
     quantity: draft.quantity,
     ingredients_text: draft.ingredientsText,
-    inserted_at: now,
+    inserted_at: existing?.insertedAt ?? now,
     updated_at: now,
   };
 
-  const { data, error } = await supabase
-    .from(IMPORTED_PRODUCTS_TABLE)
-    .insert(payload)
-    .select(SELECT_FIELDS)
-    .single();
+  const query = existing
+    ? supabase
+        .from(IMPORTED_PRODUCTS_TABLE)
+        .update(payload)
+        .eq("source_id", draft.barcode)
+        .select(SELECT_FIELDS)
+        .single()
+    : supabase
+        .from(IMPORTED_PRODUCTS_TABLE)
+        .insert(payload)
+        .select(SELECT_FIELDS)
+        .single();
+
+  const { data, error } = await query;
 
   if (error || !isImportedProductRow(data)) {
     return null;
