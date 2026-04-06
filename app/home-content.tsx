@@ -362,8 +362,7 @@ function ProductCard({
 
   return (
     <div
-      className={`group relative overflow-hidden rounded-[24px] border border-[#2D3A4B] bg-[#131B26] shadow-[0_14px_34px_rgba(0,0,0,0.3)] transition-all duration-300 hover:-translate-y-1.5 ${categoryAccent.cardClass} ${className}`}
-      style={{ aspectRatio: "0.72" }}
+      className={`group relative aspect-[0.8] overflow-hidden rounded-[24px] border border-[#2D3A4B] bg-[#131B26] shadow-[0_14px_34px_rgba(0,0,0,0.3)] transition-all duration-300 hover:-translate-y-1.5 sm:aspect-[0.72] ${categoryAccent.cardClass} ${className}`}
     >
       <Link
         href={`/produkt/${product.routeSlug}`}
@@ -383,16 +382,19 @@ function ProductCard({
 
       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/28 to-transparent" />
 
-      <div className={`absolute left-3 top-3 rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] ${categoryAccent.badgeClass}`}>
+      <div
+        title={product.category}
+        className={`absolute left-2.5 top-2.5 max-w-[calc(100%-1.25rem)] truncate rounded-full border px-2 py-1 text-[10px] font-semibold leading-none sm:left-3 sm:top-3 sm:max-w-[calc(100%-1.5rem)] sm:px-2.5 sm:uppercase sm:tracking-[0.16em] ${categoryAccent.badgeClass}`}
+      >
         {product.category}
       </div>
 
-      <div className="absolute inset-x-0 bottom-0 z-20 p-3 pointer-events-none sm:p-4">
-        <h3 className="line-clamp-2 text-[13px] font-semibold leading-[1.15] text-white sm:text-[15px] lg:text-base">
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 p-2.5 sm:p-4">
+        <h3 className="line-clamp-2 text-[12px] font-semibold leading-[1.2] text-white sm:text-[15px] lg:text-base">
           {product.name}
         </h3>
         {product.ratingAvg !== null ? (
-          <p className="mt-2 text-xs font-semibold text-[#FFD86C] sm:text-sm">
+          <p className="mt-1.5 text-[11px] font-semibold text-[#FFD86C] sm:mt-2 sm:text-sm">
             {formatRatingValue(product.ratingAvg)} / 5
           </p>
         ) : null}
@@ -1146,7 +1148,7 @@ function CategoryPanel() {
       title="Lebensmittel statt nur Produktlisten"
       description="Die Homepage zeigt schon direkt, dass es hier um bewertbare Lebensmittel geht: von Tiefkühlpizza bis Proteinpulver."
     >
-      <div className="grid gap-3">
+      <div className="grid gap-2.5 sm:gap-3">
         {CATEGORY_NAV_ITEMS.map((category) => {
           const accent = getCategoryAccent(category.name);
 
@@ -1154,16 +1156,18 @@ function CategoryPanel() {
             <Link
               key={category.slug}
               href={category.href}
-              className={`group flex items-start gap-3 rounded-[22px] border p-4 transition-all duration-300 hover:-translate-y-1 ${accent.navCardClass}`}
+              className={`group flex items-start gap-2.5 rounded-[20px] border p-3 transition-all duration-300 hover:-translate-y-1 sm:gap-3 sm:rounded-[22px] sm:p-4 ${accent.navCardClass}`}
             >
-              <span className={`inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border text-2xl leading-none ${accent.iconWrapClass}`}>
+              <span className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border text-xl leading-none sm:h-12 sm:w-12 sm:rounded-2xl sm:text-2xl ${accent.iconWrapClass}`}>
                 {category.icon}
               </span>
               <div className="min-w-0">
-                <p className={`font-semibold text-white transition-colors ${accent.navTitleClass}`}>
+                <p className={`text-sm font-semibold text-white transition-colors sm:text-base ${accent.navTitleClass}`}>
                   {category.name}
                 </p>
-                <p className="mt-1 text-sm text-[#8CA1B8]">{category.description}</p>
+                <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-[#8CA1B8] sm:text-sm">
+                  {category.description}
+                </p>
               </div>
             </Link>
           );
@@ -1196,17 +1200,17 @@ function HomeHero({
     : "Diese Auswahl zeigt dir zum Start die spannendsten Produkte im aktuellen Katalog.";
 
   return (
-    <section className="overflow-hidden rounded-[40px] border border-[#314258] bg-[radial-gradient(circle_at_top_left,rgba(94,226,135,0.16),rgba(9,14,21,0.98)_38%),radial-gradient(circle_at_top_right,rgba(255,216,108,0.08),transparent_34%),linear-gradient(145deg,rgba(18,26,38,0.99),rgba(8,12,18,0.97))] p-6 shadow-[0_30px_80px_rgba(0,0,0,0.34)] sm:p-8 lg:p-10">
+    <section className="overflow-hidden rounded-[32px] border border-[#314258] bg-[radial-gradient(circle_at_top_left,rgba(94,226,135,0.16),rgba(9,14,21,0.98)_38%),radial-gradient(circle_at_top_right,rgba(255,216,108,0.08),transparent_34%),linear-gradient(145deg,rgba(18,26,38,0.99),rgba(8,12,18,0.97))] p-5 shadow-[0_30px_80px_rgba(0,0,0,0.34)] sm:rounded-[40px] sm:p-8 lg:p-10">
       <div className="grid gap-8 xl:grid-cols-[1.1fr_0.9fr] xl:items-start">
         <div>
           <p className="text-xs uppercase tracking-[0.26em] text-[#9CC9AE]">
             Das Food-Diary für Ratings und Reviews
           </p>
-          <h1 className="mt-4 max-w-3xl text-4xl font-black tracking-tight text-[#F6FFF8] sm:text-5xl lg:text-6xl">
+          <h1 className="mt-4 max-w-3xl text-3xl font-black tracking-tight text-[#F6FFF8] sm:text-5xl lg:text-6xl">
             Bewerte Lebensmittel, führe Listen und sieh sofort, was dein Netzwerk zuletzt
             probiert hat.
           </h1>
-          <p className="mt-5 max-w-3xl text-base leading-relaxed text-[#C9D8E7] sm:text-lg">
+          <p className="mt-5 max-w-3xl text-sm leading-relaxed text-[#C9D8E7] sm:text-lg">
             FoodRanker positioniert sich jetzt klar als Bewertungsseite für Lebensmittel:
             Tiefkühlpizza, Chips, Eis, Proteinriegel und mehr. Denk eher an Letterboxd für
             Supermarktregale als an einen simplen Produktkatalog.
@@ -1285,7 +1289,7 @@ function HomeHero({
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-3 min-[380px]:grid-cols-2 sm:gap-4">
             {heroProducts.map((product, index) => (
               <ProductCard
                 key={`hero-${product.routeSlug}`}
@@ -1816,7 +1820,7 @@ export default function HomeContent() {
               </div>
 
               {displayedBrowseProducts.length > 0 ? (
-                <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
+                <div className="grid grid-cols-1 gap-4 min-[380px]:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
                   {displayedBrowseProducts.map((product, index) => (
                     <ProductCard
                       key={`browse-${product.routeSlug}`}
@@ -1839,7 +1843,7 @@ export default function HomeContent() {
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
+                  <div className="grid grid-cols-1 gap-4 min-[380px]:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
                     {openFoodFactsSuggestions.map((product, index) => (
                       <ProductCard
                         key={`off-${product.routeSlug}`}

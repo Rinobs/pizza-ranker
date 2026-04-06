@@ -28,7 +28,7 @@ import {
 } from "@/lib/product-navigation";
 
 function getChipClass(active: boolean) {
-  return `rounded-full border px-4 py-2 text-sm font-semibold transition-all duration-200 ${
+  return `max-w-full rounded-full border px-3 py-1.5 text-xs font-semibold leading-tight transition-all duration-200 sm:px-4 sm:py-2 sm:text-sm ${
     active
       ? "border-[#5EE287] bg-[#173023] text-[#D9FFE6] shadow-[0_10px_24px_rgba(34,197,94,0.16)]"
       : "border-[#2D3A4B] bg-[#141C27] text-[#B7C4D3] hover:border-[#5EE287] hover:text-white"
@@ -448,7 +448,7 @@ export default function Header() {
           </div>
         </div>
 
-        <div className="mt-6 rounded-3xl border border-[#2D3A4B] bg-[#111925]/90 p-5 max-h-[58vh] overflow-y-auto">
+        <div className="mt-6 max-h-[min(68dvh,36rem)] overflow-y-auto rounded-3xl border border-[#2D3A4B] bg-[#111925]/90 p-5 overscroll-contain">
           <div>
             <p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">
               Kategorien filtern
@@ -514,7 +514,7 @@ export default function Header() {
                     href={category.href}
                     onClick={closeCategories}
                     className={`
-                      flex cursor-pointer items-center gap-3 rounded-xl border border-l-[3px] px-3 py-3 transition-[background-color] duration-150 ease-[ease]
+                      flex cursor-pointer items-start gap-3 rounded-xl border border-l-[3px] px-3 py-3 transition-[background-color] duration-150 ease-[ease]
                       ${
                         isActive
                           ? "border-[#2D3A4B] border-l-[#5EE287] bg-[#2A2A2A] hover:bg-[#343434]"
@@ -522,10 +522,12 @@ export default function Header() {
                       }
                     `}
                   >
-                    <span className="text-2xl leading-none">{category.icon}</span>
-                    <div>
-                      <p className="font-semibold text-white">{category.name}</p>
-                      <p className="text-xs text-[#8CA1B8] mt-0.5">{category.description}</p>
+                    <span className="shrink-0 text-2xl leading-none">{category.icon}</span>
+                    <div className="min-w-0">
+                      <p className="truncate font-semibold text-white">{category.name}</p>
+                      <p className="mt-0.5 line-clamp-2 text-xs leading-relaxed text-[#8CA1B8]">
+                        {category.description}
+                      </p>
                     </div>
                   </Link>
                 );
