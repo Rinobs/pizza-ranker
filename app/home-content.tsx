@@ -363,9 +363,55 @@ function ProductCard({
   const categoryAccent = getCategoryAccent(product.category);
   const isShelfCard = variant === "shelf";
 
+  if (isShelfCard) {
+    return (
+      <div
+        className={`group relative overflow-hidden rounded-[24px] border border-[#2D3A4B] bg-[#131B26] shadow-[0_14px_34px_rgba(0,0,0,0.3)] transition-all duration-300 hover:-translate-y-1.5 ${categoryAccent.cardClass} ${className}`}
+      >
+        <Link
+          href={`/produkt/${product.routeSlug}`}
+          aria-label={`${product.name} öffnen`}
+          className="absolute inset-0 z-10 rounded-[24px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8AF5AC] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0F151E]"
+        />
+
+        <div className={`absolute inset-x-0 top-0 z-[1] h-1 ${categoryAccent.accentBarClass}`} />
+
+        <div
+          title={product.category}
+          className={`absolute left-3 top-3 z-[2] max-w-[calc(100%-1.5rem)] truncate rounded-full border px-2.5 py-1 text-[10px] font-semibold leading-none uppercase tracking-[0.16em] ${categoryAccent.badgeClass}`}
+        >
+          {product.category}
+        </div>
+
+        <div className="px-3 pb-1 pt-12 sm:px-4 sm:pt-14">
+          <div className="relative aspect-[1.45] overflow-hidden rounded-[18px] border border-white/6 bg-[#0D1520]">
+            <ProductCardImage
+              routeSlug={product.routeSlug}
+              alt={product.name}
+              fallbackSrc={product.imageUrl}
+              eager={eager}
+              className="h-full w-full object-contain p-3 transition-transform duration-500 group-hover:scale-105 sm:p-4"
+            />
+          </div>
+        </div>
+
+        <div className="p-3 pt-2 sm:p-4 sm:pt-3">
+          <h3 className="line-clamp-2 text-[13px] font-semibold leading-[1.2] text-white sm:text-[15px]">
+            {product.name}
+          </h3>
+          {product.ratingAvg !== null ? (
+            <p className="mt-2 text-[11px] font-semibold text-[#FFD86C] sm:text-sm">
+              {formatRatingValue(product.ratingAvg)} / 5
+            </p>
+          ) : null}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
-      className={`group relative overflow-hidden rounded-[24px] border border-[#2D3A4B] bg-[#131B26] shadow-[0_14px_34px_rgba(0,0,0,0.3)] transition-all duration-300 hover:-translate-y-1.5 ${isShelfCard ? "aspect-[1.02] sm:aspect-[0.8] lg:aspect-[0.72]" : "aspect-[0.8] sm:aspect-[0.72]"} ${categoryAccent.cardClass} ${className}`}
+      className={`group relative aspect-[0.8] overflow-hidden rounded-[24px] border border-[#2D3A4B] bg-[#131B26] shadow-[0_14px_34px_rgba(0,0,0,0.3)] transition-all duration-300 hover:-translate-y-1.5 sm:aspect-[0.72] ${categoryAccent.cardClass} ${className}`}
     >
       <Link
         href={`/produkt/${product.routeSlug}`}
@@ -380,12 +426,10 @@ function ProductCard({
         alt={product.name}
         fallbackSrc={product.imageUrl}
         eager={eager}
-        className={`h-full w-full transition-transform duration-500 group-hover:scale-105 ${isShelfCard ? "object-contain px-4 pt-4 pb-16 sm:object-cover sm:p-0" : "object-cover"}`}
+        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
       />
 
-      <div
-        className={`absolute inset-0 ${isShelfCard ? "bg-gradient-to-t from-black/92 via-black/18 to-black/8 sm:from-black/90 sm:via-black/28 sm:to-transparent" : "bg-gradient-to-t from-black/90 via-black/28 to-transparent"}`}
-      />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/28 to-transparent" />
 
       <div
         title={product.category}
@@ -432,7 +476,7 @@ function ProductShelf({
         actionHref ? (
           <Link
             href={actionHref}
-            className="inline-flex items-center gap-3 rounded-full border border-[#5EE287]/35 bg-[linear-gradient(135deg,rgba(94,226,135,0.16),rgba(18,27,39,0.94))] px-4 py-2.5 text-sm font-semibold text-[#F3FFF6] shadow-[0_12px_28px_rgba(0,0,0,0.18)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#8AF5AC] hover:bg-[linear-gradient(135deg,rgba(94,226,135,0.24),rgba(18,27,39,0.98))] hover:shadow-[0_16px_34px_rgba(94,226,135,0.14)]"
+            className="inline-flex self-start items-center gap-3 rounded-full border border-[#5EE287]/35 bg-[linear-gradient(135deg,rgba(94,226,135,0.16),rgba(18,27,39,0.94))] px-3 py-2 text-sm font-semibold text-[#F3FFF6] shadow-[0_12px_28px_rgba(0,0,0,0.18)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#8AF5AC] hover:bg-[linear-gradient(135deg,rgba(94,226,135,0.24),rgba(18,27,39,0.98))] hover:shadow-[0_16px_34px_rgba(94,226,135,0.14)] sm:px-4 sm:py-2.5"
           >
             <span>Mehr sehen</span>
             <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-[#8AF5AC]/35 bg-[#173023] text-[#CFFFE0]">
@@ -447,7 +491,7 @@ function ProductShelf({
           {products.map((product, index) => (
             <div
               key={`${title}-${product.routeSlug}`}
-              className="w-[78vw] min-w-[196px] max-w-[248px] shrink-0 snap-start sm:w-[calc((100%-1rem-1.875rem)/2)] sm:min-w-0 sm:max-w-none"
+              className="w-[56vw] min-w-[176px] max-w-[212px] shrink-0 snap-start sm:w-[calc((100%-1rem-1.875rem)/2)] sm:min-w-0 sm:max-w-none"
             >
               <ProductCard
                 product={product}
