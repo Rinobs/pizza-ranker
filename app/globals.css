@@ -28,8 +28,11 @@ body {
 }
 
 .home-shelf-carousel {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
   scrollbar-width: thin;
   scrollbar-color: rgba(138, 245, 172, 0.55) rgba(16, 24, 34, 0.88);
+  touch-action: pan-x;
 }
 
 .home-shelf-carousel::-webkit-scrollbar {
