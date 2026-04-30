@@ -1055,6 +1055,28 @@ export default function ProductPage() {
       )
     : [];
 
+  const [shareCopied, setShareCopied] = useState(false);
+
+  async function handleShare() {
+    const url = typeof window !== "undefined" ? window.location.href : "";
+    const shareData = { title: product?.name || "FoodRanker", url };
+
+    if (typeof navigator !== "undefined" && navigator.share && navigator.canShare?.(shareData)) {
+      try {
+        await navigator.share(shareData);
+        return;
+      } catch {
+        // fall through to clipboard
+      }
+    }
+
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      await navigator.clipboard.writeText(url);
+      setShareCopied(true);
+      setTimeout(() => setShareCopied(false), 2000);
+    }
+  }
+
   async function handleCreateCustomList() {
     const createResponse = await createCustomList(customListInput);
 
@@ -1153,13 +1175,37 @@ export default function ProductPage() {
               </p>
             ) : null}
           </div>
-          {buyLink ? (
-            <BuyButton
-              href={buyLink.url}
-              sourceLabel={buyLink.sourceLabel}
-              productName={product.name}
-            />
-          ) : null}
+          <div className="flex flex-wrap items-center gap-3">
+            {buyLink ? (
+              <BuyButton
+                href={buyLink.url}
+                sourceLabel={buyLink.sourceLabel}
+                productName={product.name}
+              />
+            ) : null}
+            <button
+              type="button"
+              onClick={() => void handleShare()}
+              className="inline-flex items-center gap-2 rounded-full border border-[#2D3A4B] bg-[#141C27] px-4 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:border-[#5EE287] hover:text-[#D9FFE6]"
+            >
+              {shareCopied ? (
+                <>
+                  <svg className="h-4 w-4 text-[#8AF5AC]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                  <span className="text-[#8AF5AC]">Link kopiert!</span>
+                </>
+              ) : (
+                <>
+                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                    <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
+                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+                  </svg>
+                  <span>Teilen</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
 
         <div className="grid gap-8 lg:grid-cols-[1.1fr_1fr] lg:items-start">

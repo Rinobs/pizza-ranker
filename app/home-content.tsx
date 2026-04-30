@@ -6,9 +6,11 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useSession } from "next-auth/react";
 import ReviewLikeButton from "./components/ReviewLikeButton";
+import MiniStars from "./components/MiniStars";
 import {
   FiArrowRight,
   FiBookmark,
+  FiCheck,
   FiHeart,
   FiMessageSquare,
   FiStar,
@@ -16,6 +18,7 @@ import {
 } from "react-icons/fi";
 import ProductCardImage from "./components/ProductCardImage";
 import { useReviewLikes } from "./hooks/useReviewLikes";
+import { useUserRatings } from "./hooks/useUserRatings";
 import {
   ALL_PRODUCTS,
   PIZZA_PRODUCTS,
@@ -351,38 +354,157 @@ function Panel({
   );
 }
 
+function SkeletonCard({ variant = "default" }: { variant?: "default" | "shelf" }) {
+  if (variant === "shelf") {
+    return (
+      <div className="rounded-[24px] border border-[#2D3A4B] bg-[#131B26] overflow-hidden animate-pulse">
+        <div className="h-1 bg-[#223040]" />
+        <div className="px-3 pb-1 pt-12 sm:px-4 sm:pt-14">
+          <div className="aspect-[1.45] rounded-[18px] bg-[#1A2535]" />
+        </div>
+        <div className="p-3 pt-2 sm:p-4 sm:pt-3 space-y-2">
+          <div className="h-3.5 bg-[#1A2535] rounded-full w-4/5" />
+          <div className="h-3 bg-[#1A2535] rounded-full w-2/5" />
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className="aspect-[0.8] sm:aspect-[0.72] rounded-[24px] border border-[#2D3A4B] bg-[#131B26] animate-pulse overflow-hidden">
+      <div className="h-full bg-[#1A2535]" />
+    </div>
+  );
+}
+
+function SkeletonFeedCard() {
+  return (
+    <li className="animate-pulse rounded-[26px] border border-[#2A394B] bg-[#101822] p-4">
+      <div className="flex items-start gap-4">
+        <div className="h-11 w-11 rounded-2xl bg-[#1A2535] shrink-0" />
+        <div className="flex-1 space-y-3">
+          <div className="h-3.5 bg-[#1A2535] rounded-full w-2/5" />
+          <div className="h-3 bg-[#1A2535] rounded-full w-4/5" />
+          <div className="h-3 bg-[#1A2535] rounded-full w-3/5" />
+        </div>
+        <div className="hidden sm:block h-36 w-28 rounded-[22px] bg-[#1A2535] shrink-0" />
+      </div>
+    </li>
+  );
+}
+
+function SkeletonListCard() {
+  return (
+    <li className="animate-pulse rounded-[26px] border border-[#2A394B] bg-[#101822] p-4 space-y-4">
+      <div className="flex items-center gap-3">
+        <div className="h-11 w-11 rounded-2xl bg-[#1A2535] shrink-0" />
+        <div className="flex-1 space-y-2">
+          <div className="h-4 bg-[#1A2535] rounded-full w-3/5" />
+          <div className="h-3 bg-[#1A2535] rounded-full w-2/5" />
+        </div>
+      </div>
+      <div className="grid grid-cols-3 gap-3">
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="aspect-[0.72] rounded-[18px] bg-[#1A2535]" />
+        ))}
+      </div>
+    </li>
+  );
+}
+
+function QuickRateStars({
+  slug,
+  currentRating,
+  onRate,
+}: {
+  slug: string;
+  currentRating?: number | null;
+  onRate: (slug: string, value: number) => void;
+}) {
+  const [hovered, setHovered] = useState<number | null>(null);
+  const display = hovered ?? currentRating ?? 0;
+
+  return (
+    <div
+      className="flex items-center gap-0.5"
+      onMouseLeave={() => setHovered(null)}
+      onClick={(e) => e.preventDefault()}
+    >
+      {[1, 2, 3, 4, 5].map((star) => (
+        <button
+          key={star}
+          type="button"
+          aria-label={`${star} Sterne`}
+          onMouseEnter={() => setHovered(star)}
+          onClick={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            onRate(slug, star);
+          }}
+          className="relative h-5 w-5 shrink-0 touch-manipulation"
+        >
+          <svg className="absolute inset-0 text-[#334255]" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.54 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z" />
+          </svg>
+          {star <= display && (
+            <svg className="absolute inset-0 text-[#F6C85C]" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.54 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z" />
+            </svg>
+          )}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function ProductCard({
   product,
   eager = false,
   className = "",
   variant = "default",
+  userRating,
+  isLoggedIn = false,
+  onQuickRate,
 }: {
   product: RankedProduct;
   eager?: boolean;
   className?: string;
   variant?: "default" | "shelf";
+  userRating?: number | null;
+  isLoggedIn?: boolean;
+  onQuickRate?: (slug: string, value: number) => void;
 }) {
   const categoryAccent = getCategoryAccent(product.category);
   const isShelfCard = variant === "shelf";
 
   if (isShelfCard) {
     return (
-      <Link
-        href={`/produkt/${product.routeSlug}`}
-        aria-label={`${product.name} öffnen`}
-        className={`group relative block overflow-hidden rounded-[24px] border border-[#2D3A4B] bg-[#131B26] shadow-[0_14px_34px_rgba(0,0,0,0.3)] transition-all duration-300 hover:-translate-y-1.5 ${categoryAccent.cardClass} ${className}`}
+      <div
+        className={`group relative overflow-hidden rounded-[24px] border border-[#2D3A4B] bg-[#131B26] shadow-[0_14px_34px_rgba(0,0,0,0.3)] transition-all duration-300 hover:-translate-y-1.5 ${categoryAccent.cardClass} ${className}`}
       >
-        <div className={`absolute inset-x-0 top-0 z-[1] h-1 ${categoryAccent.accentBarClass}`} />
+        <Link
+          href={`/produkt/${product.routeSlug}`}
+          aria-label={`${product.name} öffnen`}
+          className="absolute inset-0 z-[1] rounded-[24px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8AF5AC]"
+        />
+
+        <div className={`absolute inset-x-0 top-0 z-[2] h-1 ${categoryAccent.accentBarClass}`} />
+
+        {userRating != null && (
+          <span className="absolute right-3 top-3 z-[3] inline-flex items-center gap-1 rounded-full border border-[#34503B] bg-[#173023] px-2 py-1 text-[10px] font-semibold text-[#8AF5AC]">
+            <FiCheck size={10} />
+            {userRating.toFixed(1)}
+          </span>
+        )}
 
         <div
           title={product.category}
-          className={`absolute left-3 top-3 z-[2] max-w-[calc(100%-1.5rem)] truncate rounded-full border px-2.5 py-1 text-[10px] font-semibold leading-none uppercase tracking-[0.16em] ${categoryAccent.badgeClass}`}
+          className={`absolute left-3 top-3 z-[3] max-w-[calc(100%-4rem)] truncate rounded-full border px-2.5 py-1 text-[10px] font-semibold leading-none uppercase tracking-[0.16em] ${categoryAccent.badgeClass}`}
         >
           {product.category}
         </div>
 
         <div className="px-3 pb-1 pt-12 sm:px-4 sm:pt-14">
-          <div className="relative aspect-[1.45] overflow-hidden rounded-[18px] border border-white/6 bg-[#0D1520]">
+          <div className="relative z-[2] aspect-[1.45] overflow-hidden rounded-[18px] border border-white/6 bg-[#0D1520]">
             <ProductCardImage
               routeSlug={product.routeSlug}
               alt={product.name}
@@ -393,17 +515,29 @@ function ProductCard({
           </div>
         </div>
 
-        <div className="p-3 pt-2 sm:p-4 sm:pt-3">
+        <div className="relative z-[2] p-3 pt-2 sm:p-4 sm:pt-3">
           <h3 className="line-clamp-2 text-[13px] font-semibold leading-[1.2] text-white sm:text-[15px]">
             {product.name}
           </h3>
           {product.ratingAvg !== null ? (
-            <p className="mt-2 text-[11px] font-semibold text-[#FFD86C] sm:text-sm">
-              {formatRatingValue(product.ratingAvg)} / 5
-            </p>
+            <div className="mt-2">
+              <MiniStars rating={product.ratingAvg} count={product.ratingCount > 0 ? product.ratingCount : undefined} size="xs" />
+            </div>
+          ) : null}
+          {isLoggedIn && onQuickRate ? (
+            <div className="mt-2.5 flex items-center gap-2">
+              <span className="text-[10px] uppercase tracking-[0.14em] text-[#8CA1B8]">
+                {userRating != null ? "Neu bewerten" : "Schnell bewerten"}
+              </span>
+              <QuickRateStars
+                slug={product.routeSlug}
+                currentRating={userRating}
+                onRate={onQuickRate}
+              />
+            </div>
           ) : null}
         </div>
-      </Link>
+      </div>
     );
   }
 
@@ -437,13 +571,19 @@ function ProductCard({
       </div>
 
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 p-2.5 sm:p-4">
+        {userRating != null && (
+          <span className="pointer-events-none mb-1.5 inline-flex items-center gap-1 rounded-full border border-[#34503B] bg-[#173023]/90 px-2 py-0.5 text-[10px] font-semibold text-[#8AF5AC]">
+            <FiCheck size={9} />
+            Bewertet
+          </span>
+        )}
         <h3 className="line-clamp-2 text-[12px] font-semibold leading-[1.2] text-white sm:text-[15px] lg:text-base">
           {product.name}
         </h3>
         {product.ratingAvg !== null ? (
-          <p className="mt-1.5 text-[11px] font-semibold text-[#FFD86C] sm:mt-2 sm:text-sm">
-            {formatRatingValue(product.ratingAvg)} / 5
-          </p>
+          <div className="mt-1.5">
+            <MiniStars rating={product.ratingAvg} size="xs" />
+          </div>
         ) : null}
       </div>
     </div>
@@ -456,12 +596,18 @@ function ProductShelf({
   description,
   products,
   actionHref,
+  userRatings,
+  isLoggedIn,
+  onQuickRate,
 }: {
   eyebrow: string;
   title: string;
   description: string;
   products: RankedProduct[];
   actionHref?: string;
+  userRatings?: Record<string, number>;
+  isLoggedIn?: boolean;
+  onQuickRate?: (slug: string, value: number) => void;
 }) {
   if (products.length === 0) return null;
 
@@ -492,6 +638,9 @@ function ProductShelf({
                 product={product}
                 eager={index < 2}
                 variant="shelf"
+                userRating={userRatings?.[product.routeSlug] ?? null}
+                isLoggedIn={isLoggedIn}
+                onQuickRate={onQuickRate}
               />
             </div>
           ))}
@@ -507,6 +656,9 @@ function ProductShelf({
                 product={product}
                 eager={index < 2}
                 variant="shelf"
+                userRating={userRatings?.[product.routeSlug] ?? null}
+                isLoggedIn={isLoggedIn}
+                onQuickRate={onQuickRate}
               />
             </div>
           ))}
@@ -932,9 +1084,11 @@ function FeedPanel({
       className="overflow-hidden"
     >
       {feedLoading ? (
-        <div className="rounded-[26px] border border-[#2A394B] bg-[#101822] p-5 text-sm text-[#9EB0C3]">
-          Feed wird geladen...
-        </div>
+        <ul className="grid min-w-0 gap-4">
+          <SkeletonFeedCard />
+          <SkeletonFeedCard />
+          <SkeletonFeedCard />
+        </ul>
       ) : feedError ? (
         <div className="rounded-[26px] border border-[#5E3340] bg-[#24131A] p-5 text-sm text-[#FFD8E1]">
           Der Following-Feed konnte gerade nicht geladen werden: {feedError}
@@ -1110,9 +1264,10 @@ function TopListsPanel({
       className="overflow-hidden"
     >
       {topListsLoading ? (
-        <div className="rounded-[26px] border border-[#2A394B] bg-[#101822] p-5 text-sm text-[#9EB0C3]">
-          Top-Listen werden geladen...
-        </div>
+        <ul className="grid gap-4">
+          <SkeletonListCard />
+          <SkeletonListCard />
+        </ul>
       ) : topListsError ? (
         <div className="rounded-[26px] border border-[#5E3340] bg-[#24131A] p-5 text-sm text-[#FFD8E1]">
           Die Top-Listen konnten gerade nicht geladen werden: {topListsError}
@@ -1245,6 +1400,9 @@ function HomeHero({
   feedData,
   isLoading,
   hasLiveRatings,
+  userRatings,
+  isLoggedIn,
+  onQuickRate,
 }: {
   heroProducts: RankedProduct[];
   catalogProductCount: number;
@@ -1253,6 +1411,9 @@ function HomeHero({
   feedData: HomeFeedData;
   isLoading: boolean;
   hasLiveRatings: boolean;
+  userRatings?: Record<string, number>;
+  isLoggedIn?: boolean;
+  onQuickRate?: (slug: string, value: number) => void;
 }) {
   const heroShelfEyebrow = hasLiveRatings ? "Top bewertet diese Woche" : "Aktuelle Highlights";
   const heroShelfDescription = hasLiveRatings
@@ -1267,13 +1428,11 @@ function HomeHero({
             Das Food-Diary für Ratings und Reviews
           </p>
           <h1 className="mt-4 max-w-3xl text-3xl font-black tracking-tight text-[#F6FFF8] sm:text-5xl lg:text-6xl">
-            Bewerte Lebensmittel, führe Listen und sieh sofort, was dein Netzwerk zuletzt
-            probiert hat.
+            Bewerte Lebensmittel, bau deine Listen und bleib nah dran, was andere probieren.
           </h1>
           <p className="mt-5 max-w-3xl text-sm leading-relaxed text-[#C9D8E7] sm:text-lg">
-            FoodRanker positioniert sich jetzt klar als Bewertungsseite für Lebensmittel:
-            Tiefkühlpizza, Chips, Eis, Proteinriegel und mehr. Denk eher an Letterboxd für
-            Supermarktregale als an einen simplen Produktkatalog.
+            Tiefkühlpizza, Chips, Eis, Proteinriegel — alles bewertbar, alles diskutierbar.
+            Folge Menschen mit ähnlichem Geschmack und entdecke, was wirklich lohnt.
           </p>
 
           <div className="mt-6 flex flex-wrap gap-3">
@@ -1355,6 +1514,9 @@ function HomeHero({
                 key={`hero-${product.routeSlug}`}
                 product={product}
                 eager={index < 2}
+                userRating={userRatings?.[product.routeSlug] ?? null}
+                isLoggedIn={isLoggedIn}
+                onQuickRate={onQuickRate}
               />
             ))}
           </div>
@@ -1368,6 +1530,12 @@ export default function HomeContent() {
   const searchParams = useSearchParams();
   const { data: session, status: sessionStatus } = useSession();
   const sessionUserEmail = session?.user?.email ?? null;
+  const { user: ratingUser, ratings: userRatings, saveRating } = useUserRatings();
+  const isLoggedIn = Boolean(ratingUser);
+
+  async function handleQuickRate(slug: string, value: number) {
+    await saveRating(slug, value);
+  }
   const searchQuery = (searchParams.get("q") || "").trim();
   const rawCategory = searchParams.get("category");
   const rawSort = searchParams.get("sort");
@@ -1827,9 +1995,8 @@ export default function HomeContent() {
                 Finde Produkte, die du als Nächstes bewerten willst.
               </h1>
               <p className="mt-4 max-w-3xl text-sm leading-relaxed text-[#C9D8E7] sm:text-base">
-                FoodRanker ist jetzt klar als Bewertungsseite für Lebensmittel inszeniert:
-                Suche gezielt nach Produkten, filtere nach Kategorie und sortiere wie in einem
-                echten Food-Discovery-Feed.
+                Suche gezielt nach Produkten, filtere nach Kategorie und sortiere nach dem, was
+                dir wichtig ist — Bewertung, Beliebtheit oder Neuheit.
               </p>
 
               <div className="mt-5 flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-[0.14em]">
@@ -1954,6 +2121,9 @@ export default function HomeContent() {
               feedData={feedData}
               isLoading={isLoading}
               hasLiveRatings={sections.hasLiveRatings}
+              userRatings={userRatings}
+              isLoggedIn={isLoggedIn}
+              onQuickRate={handleQuickRate}
             />
 
             <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.8fr)]">
@@ -1984,19 +2154,26 @@ export default function HomeContent() {
                     </button>
                   </div>
 
-                  {communityTab === "feed" ? (
-                    <FeedPanel
-                      feedData={feedData}
-                      feedLoading={feedLoading}
-                      feedError={feedError}
-                    />
-                  ) : (
-                    <TopListsPanel
-                      topListsData={topListsData}
-                      topListsLoading={topListsLoading}
-                      topListsError={topListsError}
-                    />
-                  )}
+                  <div className="relative">
+                    <div
+                      className={`transition-all duration-300 ${communityTab === "feed" ? "opacity-100 translate-y-0" : "pointer-events-none absolute inset-0 opacity-0 -translate-y-1"}`}
+                    >
+                      <FeedPanel
+                        feedData={feedData}
+                        feedLoading={feedLoading}
+                        feedError={feedError}
+                      />
+                    </div>
+                    <div
+                      className={`transition-all duration-300 ${communityTab === "top-lists" ? "opacity-100 translate-y-0" : "pointer-events-none absolute inset-0 opacity-0 -translate-y-1"}`}
+                    >
+                      <TopListsPanel
+                        topListsData={topListsData}
+                        topListsLoading={topListsLoading}
+                        topListsError={topListsError}
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 <div className="grid min-w-0 gap-6 lg:grid-cols-2">
@@ -2006,6 +2183,9 @@ export default function HomeContent() {
                     description="Produkte mit den stärksten aktuellen Scores und Momentum."
                     products={sections.bestThisWeek.slice(0, 4)}
                     actionHref="/?sort=best"
+                    userRatings={userRatings}
+                    isLoggedIn={isLoggedIn}
+                    onQuickRate={handleQuickRate}
                   />
                   <ProductShelf
                     eyebrow="Momentum"
@@ -2013,6 +2193,9 @@ export default function HomeContent() {
                     description="Das bespricht und bewertet die Community momentan besonders häufig."
                     products={sections.trending.slice(0, 4)}
                     actionHref="/?sort=popular"
+                    userRatings={userRatings}
+                    isLoggedIn={isLoggedIn}
+                    onQuickRate={handleQuickRate}
                   />
                 </div>
 
@@ -2023,13 +2206,19 @@ export default function HomeContent() {
                     description="Neue Lebensmittel, die auf ihre ersten Reviews und Rankings warten."
                     products={sections.newlyAdded.slice(0, 4)}
                     actionHref="/?sort=new"
+                    userRatings={userRatings}
+                    isLoggedIn={isLoggedIn}
+                    onQuickRate={handleQuickRate}
                   />
                   <ProductShelf
                     eyebrow="Hall of Fame"
                     title="Starke Tiefkühlpizzen"
-                    description="Ein klarer Callout für Pizza, ohne dass die Homepage nur noch Pizza ist."
+                    description="Die besten Tiefkühlpizzen, gewählt von der Community."
                     products={sections.topPizza.slice(0, 4)}
                     actionHref="/?category=pizza&sort=best"
+                    userRatings={userRatings}
+                    isLoggedIn={isLoggedIn}
+                    onQuickRate={handleQuickRate}
                   />
                 </div>
               </div>
