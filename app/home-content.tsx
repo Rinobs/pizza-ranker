@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useSession } from "next-auth/react";
 import ReviewLikeButton from "./components/ReviewLikeButton";
 import MiniStars from "./components/MiniStars";
+import { useToast, ToastContainer } from "./components/Toast";
 import {
   FiArrowRight,
   FiBookmark,
@@ -354,27 +355,6 @@ function Panel({
   );
 }
 
-function SkeletonCard({ variant = "default" }: { variant?: "default" | "shelf" }) {
-  if (variant === "shelf") {
-    return (
-      <div className="rounded-[24px] border border-[#2D3A4B] bg-[#131B26] overflow-hidden animate-pulse">
-        <div className="h-1 bg-[#223040]" />
-        <div className="px-3 pb-1 pt-12 sm:px-4 sm:pt-14">
-          <div className="aspect-[1.45] rounded-[18px] bg-[#1A2535]" />
-        </div>
-        <div className="p-3 pt-2 sm:p-4 sm:pt-3 space-y-2">
-          <div className="h-3.5 bg-[#1A2535] rounded-full w-4/5" />
-          <div className="h-3 bg-[#1A2535] rounded-full w-2/5" />
-        </div>
-      </div>
-    );
-  }
-  return (
-    <div className="aspect-[0.8] sm:aspect-[0.72] rounded-[24px] border border-[#2D3A4B] bg-[#131B26] animate-pulse overflow-hidden">
-      <div className="h-full bg-[#1A2535]" />
-    </div>
-  );
-}
 
 function SkeletonFeedCard() {
   return (
@@ -1532,9 +1512,15 @@ export default function HomeContent() {
   const sessionUserEmail = session?.user?.email ?? null;
   const { user: ratingUser, ratings: userRatings, saveRating } = useUserRatings();
   const isLoggedIn = Boolean(ratingUser);
+  const { toasts, showToast, dismissToast } = useToast();
 
   async function handleQuickRate(slug: string, value: number) {
-    await saveRating(slug, value);
+    const result = await saveRating(slug, value);
+    if (result.success) {
+      showToast(`${value} ★ gespeichert!`);
+    } else {
+      showToast(result.error || "Bewertung fehlgeschlagen.", "error");
+    }
   }
   const searchQuery = (searchParams.get("q") || "").trim();
   const rawCategory = searchParams.get("category");
@@ -1983,6 +1969,7 @@ export default function HomeContent() {
     selectedCategory === "all" ? null : getCategoryNavigationItem(selectedCategory);
 
   return (
+    <>
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(94,226,135,0.06),transparent_24%),linear-gradient(180deg,#0A1118_0%,#0F151E_52%,#0A1118_100%)] px-4 pb-24 text-white sm:px-8 lg:px-12">
       <div className="mx-auto max-w-7xl">
         {isDiscoverMode ? (
@@ -2053,6 +2040,9 @@ export default function HomeContent() {
                       key={`browse-${product.routeSlug}`}
                       product={product}
                       eager={index < 4}
+                      userRating={userRatings?.[product.routeSlug] ?? null}
+                      isLoggedIn={isLoggedIn}
+                      onQuickRate={handleQuickRate}
                     />
                   ))}
                 </div>
@@ -2076,6 +2066,9 @@ export default function HomeContent() {
                         key={`off-${product.routeSlug}`}
                         product={product}
                         eager={index < 4}
+                        userRating={userRatings?.[product.routeSlug] ?? null}
+                        isLoggedIn={isLoggedIn}
+                        onQuickRate={handleQuickRate}
                       />
                     ))}
                   </div>
@@ -2242,5 +2235,7 @@ export default function HomeContent() {
         </p>
       </div>
     </main>
+    <ToastContainer toasts={toasts} onDismiss={dismissToast} />
+    </>
   );
 }

@@ -533,6 +533,7 @@ export default function ProductPage() {
   const [isNutritionOpen, setIsNutritionOpen] = useState(false);
   const [selectedPriceOptionId, setSelectedPriceOptionId] = useState<string | null>(null);
   const [selectedNutritionOptionId, setSelectedNutritionOptionId] = useState<string | null>(null);
+  const [shareCopied, setShareCopied] = useState(false);
   const ownCommentMenuRef = useRef<HTMLDivElement | null>(null);
   const replyHashHandledRef = useRef<string | null>(null);
   const remoteProduct = useMemo(
@@ -1054,8 +1055,6 @@ export default function ProductPage() {
           entry.amount.trim().length > 0
       )
     : [];
-
-  const [shareCopied, setShareCopied] = useState(false);
 
   async function handleShare() {
     const url = typeof window !== "undefined" ? window.location.href : "";
