@@ -313,6 +313,41 @@ function getFeedCategoryOptions(activities: FeedActivity[]): FeedCategoryOption[
     });
 }
 
+function SkeletonCard() {
+  return (
+    <div className="animate-pulse overflow-hidden rounded-[22px] border border-[#253040] bg-[#131B26]">
+      <div className="h-[3px] bg-[#1E2D3D]" />
+      <div className="px-3 pb-1 pt-12 sm:px-4 sm:pt-14">
+        <div className="aspect-[1.45] rounded-[16px] bg-[#1C2A3A]" />
+      </div>
+      <div className="space-y-2 p-3 sm:p-4">
+        <div className="h-3 w-4/5 rounded-full bg-[#1C2A3A]" />
+        <div className="h-3 w-3/5 rounded-full bg-[#1C2A3A]" />
+        <div className="mt-1 h-3 w-1/3 rounded-full bg-[#1C2A3A]" />
+      </div>
+    </div>
+  );
+}
+
+function SkeletonFeedCard() {
+  return (
+    <li className="animate-pulse rounded-[24px] border border-[#253040] bg-[#111925] p-4">
+      <div className="flex items-start gap-4">
+        <div className="h-11 w-11 shrink-0 rounded-2xl bg-[#1C2A3A]" />
+        <div className="min-w-0 flex-1 space-y-3">
+          <div className="flex gap-2">
+            <div className="h-4 w-24 rounded-full bg-[#1C2A3A]" />
+            <div className="h-4 w-16 rounded-full bg-[#1C2A3A]" />
+          </div>
+          <div className="h-4 w-full rounded-full bg-[#1C2A3A]" />
+          <div className="h-4 w-3/4 rounded-full bg-[#1C2A3A]" />
+        </div>
+        <div className="hidden h-36 w-28 shrink-0 rounded-[18px] bg-[#1C2A3A] sm:block" />
+      </div>
+    </li>
+  );
+}
+
 function Panel({
   eyebrow,
   title,
@@ -334,7 +369,7 @@ function Panel({
     >
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0">
-          <p className="text-[11px] uppercase tracking-[0.24em] text-[#8CA1B8]">{eyebrow}</p>
+          <p className="border-l-2 border-[#5EE287]/60 pl-3 text-[11px] uppercase tracking-[0.24em] text-[#9CC9AE]">{eyebrow}</p>
           <h2 className="mt-2 break-words text-2xl font-black tracking-tight text-[#F3FFF6]">
             {title}
           </h2>
@@ -370,7 +405,7 @@ function ProductCard({
       <Link
         href={`/produkt/${product.routeSlug}`}
         aria-label={`${product.name} öffnen`}
-        className={`group relative block overflow-hidden rounded-[24px] border border-[#2D3A4B] bg-[#131B26] shadow-[0_14px_34px_rgba(0,0,0,0.3)] transition-all duration-300 hover:-translate-y-1.5 ${categoryAccent.cardClass} ${className}`}
+        className={`group relative block overflow-hidden rounded-[22px] border border-[#2D3A4B] shadow-[0_14px_34px_rgba(0,0,0,0.3)] transition-all duration-300 hover:-translate-y-1.5 ${categoryAccent.shimmerClass} ${categoryAccent.cardClass} ${className}`}
       >
         <div className={`absolute inset-x-0 top-0 z-[1] h-1 ${categoryAccent.accentBarClass}`} />
 
@@ -394,13 +429,17 @@ function ProductCard({
         </div>
 
         <div className="p-3 pt-2 sm:p-4 sm:pt-3">
-          <h3 className="line-clamp-2 text-[13px] font-semibold leading-[1.2] text-white sm:text-[15px]">
+          <h3 className="line-clamp-2 text-[14px] font-semibold leading-[1.2] text-white sm:text-[15px]">
             {product.name}
           </h3>
           {product.ratingAvg !== null ? (
-            <p className="mt-2 text-[11px] font-semibold text-[#FFD86C] sm:text-sm">
-              {formatRatingValue(product.ratingAvg)} / 5
-            </p>
+            <div className="mt-2 flex items-center gap-1.5">
+              <FiStar size={12} fill="currentColor" className="shrink-0 text-[#FFD86C]" />
+              <span className="text-[12px] font-bold text-[#FFD86C]">
+                {formatRatingValue(product.ratingAvg)}
+              </span>
+              <span className="text-[11px] text-[#8CA1B8]">/ 5</span>
+            </div>
           ) : null}
         </div>
       </Link>
@@ -437,13 +476,17 @@ function ProductCard({
       </div>
 
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 p-2.5 sm:p-4">
-        <h3 className="line-clamp-2 text-[12px] font-semibold leading-[1.2] text-white sm:text-[15px] lg:text-base">
+        <h3 className="line-clamp-2 text-[14px] font-semibold leading-[1.2] text-white sm:text-[15px] lg:text-base">
           {product.name}
         </h3>
         {product.ratingAvg !== null ? (
-          <p className="mt-1.5 text-[11px] font-semibold text-[#FFD86C] sm:mt-2 sm:text-sm">
-            {formatRatingValue(product.ratingAvg)} / 5
-          </p>
+          <div className="mt-1.5 flex items-center gap-1 sm:mt-2">
+            <FiStar size={11} fill="currentColor" className="shrink-0 text-[#FFD86C]" />
+            <span className="text-[12px] font-bold text-[#FFD86C] sm:text-[13px]">
+              {formatRatingValue(product.ratingAvg)}
+            </span>
+            <span className="text-[11px] text-white/50">/5</span>
+          </div>
         ) : null}
       </div>
     </div>
@@ -553,12 +596,12 @@ function FeatureTile({
   description: string;
 }) {
   return (
-    <div className="rounded-[24px] border border-[#253548] bg-[#101722]/80 p-4">
-      <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[#32455B] bg-[#141F2C] text-[#D9FFE6]">
+    <div className="rounded-[20px] border border-[#253548] bg-[linear-gradient(145deg,rgba(18,27,40,0.96),rgba(10,16,26,0.94))] p-4 shadow-[0_8px_24px_rgba(0,0,0,0.2)]">
+      <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[#3A5468]/70 bg-[radial-gradient(circle_at_top,rgba(94,226,135,0.18),rgba(15,22,33,0.95)_72%)] text-[#8AF5AC] shadow-[0_4px_12px_rgba(0,0,0,0.2)]">
         {icon}
       </span>
-      <h3 className="mt-4 text-base font-semibold text-white">{title}</h3>
-      <p className="mt-2 text-sm leading-relaxed text-[#9EB0C3]">{description}</p>
+      <h3 className="mt-3 text-[15px] font-bold text-white">{title}</h3>
+      <p className="mt-1.5 text-[13px] leading-relaxed text-[#9EB0C3]">{description}</p>
     </div>
   );
 }
@@ -801,16 +844,13 @@ function ActivityCard({
             )}
           </p>
 
-          <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-[#8CA1B8]">
-            <span className={`rounded-full border px-2.5 py-1 ${categoryAccent.subtleBadgeClass}`}>
-              {activity.product.category}
-            </span>
-            {ratingLabel ? (
-              <span className="rounded-full border border-[#5A4B1A] bg-[#271F0E] px-2.5 py-1 font-semibold text-[#FFD86C]">
-                {ratingLabel} / 5
-              </span>
-            ) : null}
-          </div>
+          {ratingLabel ? (
+            <div className="mt-3 flex items-center gap-1.5">
+              <FiStar size={12} fill="currentColor" className="shrink-0 text-[#FFD86C]" />
+              <span className="text-sm font-bold text-[#FFD86C]">{ratingLabel}</span>
+              <span className="text-xs text-[#8CA1B8]">/ 5</span>
+            </div>
+          ) : null}
 
           {activity.comment ? (
             <div className="mt-4 overflow-hidden rounded-[20px] border border-[#2D3A4B] bg-[#0F1722]/92 p-4 text-sm leading-relaxed text-[#D3DFEB]">
@@ -932,9 +972,9 @@ function FeedPanel({
       className="overflow-hidden"
     >
       {feedLoading ? (
-        <div className="rounded-[26px] border border-[#2A394B] bg-[#101822] p-5 text-sm text-[#9EB0C3]">
-          Feed wird geladen...
-        </div>
+        <ul className="grid min-w-0 gap-4">
+          {Array.from({ length: 3 }, (_, i) => <SkeletonFeedCard key={i} />)}
+        </ul>
       ) : feedError ? (
         <div className="rounded-[26px] border border-[#5E3340] bg-[#24131A] p-5 text-sm text-[#FFD8E1]">
           Der Following-Feed konnte gerade nicht geladen werden: {feedError}
@@ -983,11 +1023,21 @@ function FeedPanel({
         </div>
       ) : !hasActivities ? (
         <div className="rounded-[28px] border border-[#2A394B] bg-[#101822] p-6">
-          <p className="text-lg font-semibold text-white">Dein Feed wartet auf neue Aktivität</p>
+          <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-[#2D3A4B] bg-[#141C27] text-[#8CA1B8]">
+            <FiUsers size={22} />
+          </span>
+          <p className="mt-4 text-lg font-semibold text-white">Dein Feed wartet auf neue Aktivität</p>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#AFC1D3]">
             Deine gefolgten Profile waren zuletzt ruhig. Sobald sie Produkte bewerten, Reviews
             schreiben oder Listen aktualisieren, taucht das hier automatisch auf.
           </p>
+          <Link
+            href="/profil"
+            className="mt-4 inline-flex items-center gap-2 rounded-full border border-[#2D3A4B] bg-[#141C27] px-4 py-2 text-sm font-semibold text-white transition-colors hover:border-[#5EE287] hover:text-[#D9FFE6]"
+          >
+            Mehr Profile entdecken
+            <FiArrowRight size={15} />
+          </Link>
         </div>
       ) : (
         <>
@@ -1110,19 +1160,44 @@ function TopListsPanel({
       className="overflow-hidden"
     >
       {topListsLoading ? (
-        <div className="rounded-[26px] border border-[#2A394B] bg-[#101822] p-5 text-sm text-[#9EB0C3]">
-          Top-Listen werden geladen...
-        </div>
+        <ul className="grid gap-4">
+          {Array.from({ length: 2 }, (_, i) => (
+            <li key={i} className="animate-pulse rounded-[24px] border border-[#253040] bg-[#111925] p-4">
+              <div className="flex items-start gap-3">
+                <div className="h-11 w-11 shrink-0 rounded-2xl bg-[#1C2A3A]" />
+                <div className="flex-1 space-y-3">
+                  <div className="h-4 w-3/5 rounded-full bg-[#1C2A3A]" />
+                  <div className="h-3 w-2/5 rounded-full bg-[#1C2A3A]" />
+                </div>
+              </div>
+              <div className="mt-4 grid grid-cols-3 gap-3">
+                {Array.from({ length: 3 }, (_, j) => (
+                  <div key={j} className="aspect-[0.72] rounded-[16px] bg-[#1C2A3A]" />
+                ))}
+              </div>
+            </li>
+          ))}
+        </ul>
       ) : topListsError ? (
         <div className="rounded-[26px] border border-[#5E3340] bg-[#24131A] p-5 text-sm text-[#FFD8E1]">
           Die Top-Listen konnten gerade nicht geladen werden: {topListsError}
         </div>
       ) : topListsData.lists.length === 0 ? (
         <div className="rounded-[28px] border border-dashed border-[#35503D] bg-[#111925]/85 p-6">
-          <p className="text-lg font-semibold text-white">Noch keine Community-Listen</p>
+          <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-[#35503D] bg-[#173023] text-[#8AF5AC]">
+            <FiBookmark size={22} />
+          </span>
+          <p className="mt-4 text-lg font-semibold text-white">Noch keine Community-Listen</p>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#AFC1D3]">
             Sobald Nutzer eigene Listen anlegen und mit Produkten füllen, tauchen hier die spannendsten Sammlungen auf.
           </p>
+          <Link
+            href="/profil"
+            className="mt-4 inline-flex items-center gap-2 rounded-full border border-[#5EE287] bg-[#173023] px-4 py-2 text-sm font-semibold text-[#D9FFE6] transition-colors hover:bg-[#1E3A2A]"
+          >
+            Eigene Liste anlegen
+            <FiArrowRight size={15} />
+          </Link>
         </div>
       ) : (
         <ul className="grid gap-4">
@@ -1260,7 +1335,7 @@ function HomeHero({
     : "Diese Auswahl zeigt dir zum Start die spannendsten Produkte im aktuellen Katalog.";
 
   return (
-    <section className="overflow-hidden rounded-[32px] border border-[#314258] bg-[radial-gradient(circle_at_top_left,rgba(94,226,135,0.16),rgba(9,14,21,0.98)_38%),radial-gradient(circle_at_top_right,rgba(255,216,108,0.08),transparent_34%),linear-gradient(145deg,rgba(18,26,38,0.99),rgba(8,12,18,0.97))] p-5 shadow-[0_30px_80px_rgba(0,0,0,0.34)] sm:rounded-[40px] sm:p-8 lg:p-10">
+    <section className="relative overflow-hidden rounded-[32px] border border-[#3A5068] bg-[radial-gradient(ellipse_at_top_left,rgba(94,226,135,0.22),rgba(9,14,21,0.98)_44%),radial-gradient(ellipse_at_top_right,rgba(255,216,108,0.12),transparent_40%),radial-gradient(ellipse_at_bottom_right,rgba(94,226,135,0.07),transparent_50%),linear-gradient(145deg,rgba(18,26,38,0.99),rgba(8,12,18,0.97))] p-5 shadow-[0_30px_80px_rgba(0,0,0,0.42),inset_0_1px_0_rgba(255,255,255,0.06)] sm:rounded-[40px] sm:p-8 lg:p-10">
       <div className="grid gap-8 xl:grid-cols-[1.1fr_0.9fr] xl:items-start">
         <div>
           <p className="text-xs uppercase tracking-[0.26em] text-[#9CC9AE]">
@@ -1294,22 +1369,22 @@ function HomeHero({
           </div>
 
           <div className="mt-6 flex flex-wrap gap-2.5 text-sm">
-            <span className="rounded-full border border-[#34503B] bg-[#173023] px-4 py-2 font-semibold text-[#D9FFE6]">
-              {catalogProductCount}+ Lebensmittel im Katalog
+            <span className="rounded-full border border-[#3A5C44] bg-[#173023] px-4 py-2 font-bold text-[#D9FFE6] shadow-[0_0_18px_rgba(94,226,135,0.14)]">
+              {catalogProductCount}+ Lebensmittel
             </span>
-            <span className="rounded-full border border-[#2D3A4B] bg-[#111925]/90 px-4 py-2 font-semibold text-[#D6E2EF]">
+            <span className="rounded-full border border-[#314258] bg-[#0F1B27]/90 px-4 py-2 font-semibold text-[#C4D4E5]">
               {CATEGORY_NAV_ITEMS.length} Kategorien
             </span>
-            <span className="rounded-full border border-[#2D3A4B] bg-[#111925]/90 px-4 py-2 font-semibold text-[#D6E2EF]">
-              {ratedProductCount > 0
-                ? `${formatCompactCount(ratedProductCount)} Produkte mit Score`
-                : "Neue Bewertungen willkommen"}
-            </span>
-            <span className="rounded-full border border-[#2D3A4B] bg-[#111925]/90 px-4 py-2 font-semibold text-[#D6E2EF]">
-              {feedData.followingCount > 0
-                ? `${feedData.followingCount} Profile im Feed`
-                : "Folgen schaltet Feed frei"}
-            </span>
+            {ratedProductCount > 0 ? (
+              <span className="rounded-full border border-[#4A5B28] bg-[#1E2B0F]/90 px-4 py-2 font-semibold text-[#D4EFA0]">
+                {formatCompactCount(ratedProductCount)} bewertet
+              </span>
+            ) : null}
+            {feedData.followingCount > 0 ? (
+              <span className="rounded-full border border-[#2D4A66] bg-[#102132]/90 px-4 py-2 font-semibold text-[#A9CCEC]">
+                {feedData.followingCount} im Feed
+              </span>
+            ) : null}
           </div>
 
           <div className="mt-8 grid gap-3 md:grid-cols-3">
@@ -1339,12 +1414,13 @@ function HomeHero({
           </p>
         </div>
 
-        <div className="rounded-[30px] border border-[#2A394B] bg-[linear-gradient(145deg,rgba(15,22,32,0.92),rgba(10,16,24,0.94))] p-4 shadow-[0_22px_50px_rgba(0,0,0,0.24)] sm:p-5">
+        <div className="rounded-[30px] border border-[#2E4259] bg-[linear-gradient(160deg,rgba(18,28,42,0.97),rgba(9,14,22,0.98))] p-4 shadow-[0_22px_50px_rgba(0,0,0,0.32),inset_0_1px_0_rgba(255,255,255,0.04)] sm:p-5">
           <div className="mb-4">
-            <p className="text-sm font-black uppercase tracking-[0.22em] text-[#F3FFF6] sm:text-base">
+            <p className="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.24em] text-[#9CC9AE]">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#5EE287] shadow-[0_0_6px_rgba(94,226,135,0.8)]" />
               {heroShelfEyebrow}
             </p>
-            <p className="mt-2 text-sm leading-relaxed text-[#D6E2EF] sm:text-[15px]">
+            <p className="mt-2 text-sm leading-relaxed text-[#B8CDD9] sm:text-[15px]">
               {heroShelfDescription}
             </p>
           </div>

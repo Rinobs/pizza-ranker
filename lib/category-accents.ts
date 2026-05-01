@@ -7,6 +7,7 @@ type CategoryAccent = {
   navTitleClass: string;
   iconWrapClass: string;
   thumbClass: string;
+  shimmerClass: string;
 };
 
 const DEFAULT_ACCENT: CategoryAccent = {
@@ -18,6 +19,7 @@ const DEFAULT_ACCENT: CategoryAccent = {
   navTitleClass: "group-hover:text-[#8AF5AC]",
   iconWrapClass: "border-[#35503D] bg-[radial-gradient(circle_at_top,rgba(94,226,135,0.18),rgba(15,22,33,0.96)_72%)] text-[#D9FFE6]",
   thumbClass: "border-[#35503D]/35",
+  shimmerClass: "bg-[radial-gradient(ellipse_at_50%_0%,rgba(94,226,135,0.12),#131B26_60%)]",
 };
 
 const PIZZA_ACCENT: CategoryAccent = {
@@ -29,6 +31,7 @@ const PIZZA_ACCENT: CategoryAccent = {
   navTitleClass: "group-hover:text-[#FFD3BD]",
   iconWrapClass: "border-[#6A4127] bg-[radial-gradient(circle_at_top,rgba(255,154,85,0.24),rgba(20,25,35,0.96)_72%)] text-[#FFD8C2]",
   thumbClass: "border-[#6A4127]/50",
+  shimmerClass: "bg-[radial-gradient(ellipse_at_50%_0%,rgba(255,147,80,0.14),#131B26_60%)]",
 };
 
 const CHIPS_ACCENT: CategoryAccent = {
@@ -40,6 +43,7 @@ const CHIPS_ACCENT: CategoryAccent = {
   navTitleClass: "group-hover:text-[#FFE3A1]",
   iconWrapClass: "border-[#6A5423] bg-[radial-gradient(circle_at_top,rgba(232,196,94,0.22),rgba(20,25,35,0.96)_72%)] text-[#FFE9AF]",
   thumbClass: "border-[#6A5423]/50",
+  shimmerClass: "bg-[radial-gradient(ellipse_at_50%_0%,rgba(216,163,64,0.14),#131B26_60%)]",
 };
 
 const ICE_ACCENT: CategoryAccent = {
@@ -51,6 +55,7 @@ const ICE_ACCENT: CategoryAccent = {
   navTitleClass: "group-hover:text-[#FFD7EC]",
   iconWrapClass: "border-[#6B3756] bg-[radial-gradient(circle_at_top,rgba(244,141,196,0.22),rgba(20,25,35,0.96)_72%)] text-[#FFDDF0]",
   thumbClass: "border-[#6B3756]/50",
+  shimmerClass: "bg-[radial-gradient(ellipse_at_50%_0%,rgba(255,141,193,0.13),#131B26_60%)]",
 };
 
 const PROTEIN_POWDER_ACCENT: CategoryAccent = {
@@ -62,6 +67,7 @@ const PROTEIN_POWDER_ACCENT: CategoryAccent = {
   navTitleClass: "group-hover:text-[#CFF6FF]",
   iconWrapClass: "border-[#285866] bg-[radial-gradient(circle_at_top,rgba(104,215,244,0.22),rgba(20,25,35,0.96)_72%)] text-[#D4F7FF]",
   thumbClass: "border-[#285866]/50",
+  shimmerClass: "bg-[radial-gradient(ellipse_at_50%_0%,rgba(86,198,232,0.13),#131B26_60%)]",
 };
 
 const PROTEIN_BAR_ACCENT: CategoryAccent = {
@@ -73,6 +79,7 @@ const PROTEIN_BAR_ACCENT: CategoryAccent = {
   navTitleClass: "group-hover:text-[#DCEBFF]",
   iconWrapClass: "border-[#305677] bg-[radial-gradient(circle_at_top,rgba(106,168,255,0.22),rgba(20,25,35,0.96)_72%)] text-[#E0EEFF]",
   thumbClass: "border-[#305677]/50",
+  shimmerClass: "bg-[radial-gradient(ellipse_at_50%_0%,rgba(93,155,255,0.13),#131B26_60%)]",
 };
 
 const PROTEIN_SNACKS_ACCENT: CategoryAccent = {
@@ -84,6 +91,7 @@ const PROTEIN_SNACKS_ACCENT: CategoryAccent = {
   navTitleClass: "group-hover:text-[#E9DFFF]",
   iconWrapClass: "border-[#553B70] bg-[radial-gradient(circle_at_top,rgba(181,139,255,0.22),rgba(20,25,35,0.96)_72%)] text-[#ECE2FF]",
   thumbClass: "border-[#553B70]/50",
+  shimmerClass: "bg-[radial-gradient(ellipse_at_50%_0%,rgba(158,117,241,0.13),#131B26_60%)]",
 };
 
 function normalizeCategory(value: string | null | undefined) {
