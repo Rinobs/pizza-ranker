@@ -175,7 +175,7 @@ function SegmentToggle({
   } */
 
   return (
-    <div className="inline-flex flex-wrap gap-2 rounded-full border border-[#2D3A4B] bg-[#111823] p-1">
+    <div className="inline-flex flex-wrap gap-2 rounded-full border border-[#333333] bg-[#111823] p-1">
       {options.map((option) => {
         const isActive = option.id === activeId;
 
@@ -186,8 +186,8 @@ function SegmentToggle({
             onClick={() => onChange(option.id)}
             className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
               isActive
-                ? "bg-[#8AF5AC] text-[#112018]"
-                : "text-[#AFC0D3] hover:bg-[#1A2533] hover:text-white"
+                ? "bg-[#F5963C] text-[#112018]"
+                : "text-[#AFC0D3] hover:bg-[#242424] hover:text-white"
             }`}
           >
             {option.label}
@@ -267,7 +267,7 @@ function ReadOnlyRatingStars({ rating }: { rating: number }) {
         return (
           <span key={index} className="relative h-5 w-5">
             <svg
-              className="absolute inset-0 text-[#334255]"
+              className="absolute inset-0 text-[#3A3A3A]"
               viewBox="0 0 24 24"
               fill="currentColor"
             >
@@ -533,6 +533,7 @@ export default function ProductPage() {
   const [isNutritionOpen, setIsNutritionOpen] = useState(false);
   const [selectedPriceOptionId, setSelectedPriceOptionId] = useState<string | null>(null);
   const [selectedNutritionOptionId, setSelectedNutritionOptionId] = useState<string | null>(null);
+  const [shareCopied, setShareCopied] = useState(false);
   const ownCommentMenuRef = useRef<HTMLDivElement | null>(null);
   const replyHashHandledRef = useRef<string | null>(null);
   const remoteProduct = useMemo(
@@ -908,9 +909,9 @@ export default function ProductPage() {
     return (
       <div className="-mt-2 max-w-5xl mx-auto px-4 sm:px-8 lg:px-12 pb-24 text-white">
         <BackButton />
-        <div className="rounded-[30px] border border-[#2D3A4B] bg-[linear-gradient(145deg,rgba(27,34,45,0.98),rgba(15,22,32,0.96))] p-8 text-center shadow-[0_18px_44px_rgba(0,0,0,0.28)]">
+        <div className="rounded-xl border border-[#333333] bg-[linear-gradient(145deg,rgba(27,34,45,0.98),rgba(15,22,32,0.96))] p-8 text-center shadow-[0_18px_44px_rgba(0,0,0,0.28)]">
           <h1 className="mb-4 text-3xl font-bold">Produkt wird geladen</h1>
-          <p className="mx-auto max-w-2xl text-sm leading-relaxed text-[#AFC1D3] sm:text-base">
+          <p className="mx-auto max-w-2xl text-sm leading-relaxed text-[#A89880] sm:text-base">
             Wir prüfen gerade den Katalog und erweitern die Suche bei Bedarf mit Open
             Food Facts.
           </p>
@@ -925,9 +926,9 @@ export default function ProductPage() {
     return (
       <div className="-mt-2 max-w-5xl mx-auto px-4 sm:px-8 lg:px-12 pb-24 text-white">
         <BackButton />
-        <div className="rounded-[30px] border border-[#2D3A4B] bg-[linear-gradient(145deg,rgba(27,34,45,0.98),rgba(15,22,32,0.96))] p-8 text-center shadow-[0_18px_44px_rgba(0,0,0,0.28)]">
+        <div className="rounded-xl border border-[#333333] bg-[linear-gradient(145deg,rgba(27,34,45,0.98),rgba(15,22,32,0.96))] p-8 text-center shadow-[0_18px_44px_rgba(0,0,0,0.28)]">
           <h1 className="mb-4 text-3xl font-bold">Produkt nicht gefunden</h1>
-          <p className="mx-auto max-w-2xl text-sm leading-relaxed text-[#AFC1D3] sm:text-base">
+          <p className="mx-auto max-w-2xl text-sm leading-relaxed text-[#A89880] sm:text-base">
             Wenn dieses Produkt noch nicht im Katalog ist, kannst du es direkt vorschlagen
             oder selbst einreichen. Mit Name, Marke oder Shop-Link können wir es schneller
             aufnehmen.
@@ -938,13 +939,13 @@ export default function ProductPage() {
                 pathname: "/produkt-vorschlagen",
                 query: suggestionName ? { name: suggestionName, from: "produktseite" } : { from: "produktseite" },
               }}
-              className="inline-flex items-center rounded-full bg-[#5EE287] px-5 py-3 text-sm font-semibold text-[#0C1910] transition-colors hover:bg-[#79F29C]"
+              className="inline-flex items-center rounded-full bg-[#E8750A] px-5 py-3 text-sm font-semibold text-[#1A0E04] transition-colors hover:bg-[#F5963C]"
             >
               Produkt vorschlagen
             </Link>
             <Link
               href="/"
-              className="inline-flex items-center rounded-full border border-[#2D3A4B] bg-[#121B27] px-5 py-3 text-sm font-semibold text-white transition-colors hover:border-[#5EE287] hover:text-[#D9FFE6]"
+              className="inline-flex items-center rounded-full border border-[#333333] bg-[#1E1E1E] px-5 py-3 text-sm font-semibold text-white transition-colors hover:border-[#E8750A] hover:text-[#FFE4C8]"
             >
               Zurück zur Startseite
             </Link>
@@ -1055,6 +1056,26 @@ export default function ProductPage() {
       )
     : [];
 
+  async function handleShare() {
+    const url = typeof window !== "undefined" ? window.location.href : "";
+    const shareData = { title: product?.name || "FoodRanker", url };
+
+    if (typeof navigator !== "undefined" && navigator.share && navigator.canShare?.(shareData)) {
+      try {
+        await navigator.share(shareData);
+        return;
+      } catch {
+        // fall through to clipboard
+      }
+    }
+
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      await navigator.clipboard.writeText(url);
+      setShareCopied(true);
+      setTimeout(() => setShareCopied(false), 2000);
+    }
+  }
+
   async function handleCreateCustomList() {
     const createResponse = await createCustomList(customListInput);
 
@@ -1106,15 +1127,15 @@ export default function ProductPage() {
     <div className="-mt-2 max-w-6xl mx-auto px-4 sm:px-8 lg:px-12 pb-24 text-white">
       <BackButton />
 
-      <div className="rounded-3xl border border-[#2D3A4B] bg-[#1B222D]/95 p-5 sm:p-8 shadow-[0_14px_34px_rgba(0,0,0,0.28)]">
+      <div className="rounded-xl border border-[#333333] bg-[#2A2A2A]/95 p-5 sm:p-8 shadow-[0_14px_34px_rgba(0,0,0,0.28)]">
         <div className="mb-7 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div className="flex flex-col gap-3">
             <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:gap-4">
-              <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#E8F6ED]">
+              <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#F0E4D4]">
                 {product.name}
               </h1>
 
-              <div className="inline-flex w-fit items-center gap-3 rounded-[22px] border border-[#314254] bg-[linear-gradient(135deg,rgba(18,28,41,0.96),rgba(12,19,30,0.92))] px-4 py-3 shadow-[0_16px_34px_rgba(0,0,0,0.24)]">
+              <div className="inline-flex w-fit items-center gap-3 rounded-md border border-[#314254] bg-[linear-gradient(135deg,rgba(18,28,41,0.96),rgba(12,19,30,0.92))] px-4 py-3 shadow-[0_16px_34px_rgba(0,0,0,0.24)]">
                 <div className="flex flex-col">
                   <span className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#9AB0C6]">
                     Community
@@ -1127,7 +1148,7 @@ export default function ProductPage() {
                       </span>
                     </div>
                   ) : (
-                    <span className="mt-1 text-sm font-semibold text-[#D6E2EF]">
+                    <span className="mt-1 text-sm font-semibold text-[#DDD0C4]">
                       Noch keine Bewertung
                     </span>
                   )}
@@ -1140,35 +1161,59 @@ export default function ProductPage() {
             </p>
 
             {sourceUrl ? (
-              <p className="text-xs text-[#8CA1B8]">
+              <p className="text-xs text-[#9A8F83]">
                 Daten via{" "}
                 <a
                   href={sourceUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="font-semibold text-[#8AF5AC] transition-colors hover:text-[#B7FFD0]"
+                  className="font-semibold text-[#F5963C] transition-colors hover:text-[#B7FFD0]"
                 >
                   {sourceLabel}
                 </a>
               </p>
             ) : null}
           </div>
-          {buyLink ? (
-            <BuyButton
-              href={buyLink.url}
-              sourceLabel={buyLink.sourceLabel}
-              productName={product.name}
-            />
-          ) : null}
+          <div className="flex flex-wrap items-center gap-3">
+            {buyLink ? (
+              <BuyButton
+                href={buyLink.url}
+                sourceLabel={buyLink.sourceLabel}
+                productName={product.name}
+              />
+            ) : null}
+            <button
+              type="button"
+              onClick={() => void handleShare()}
+              className="inline-flex items-center gap-2 rounded-full border border-[#333333] bg-[#222222] px-4 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:border-[#E8750A] hover:text-[#FFE4C8]"
+            >
+              {shareCopied ? (
+                <>
+                  <svg className="h-4 w-4 text-[#F5963C]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                  <span className="text-[#F5963C]">Link kopiert!</span>
+                </>
+              ) : (
+                <>
+                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                    <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
+                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+                  </svg>
+                  <span>Teilen</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
 
         <div className="grid gap-8 lg:grid-cols-[1.1fr_1fr] lg:items-start">
           <div className="group lg:sticky lg:top-20 lg:self-start">
-            <div className="rounded-[34px] border border-[#314254] bg-[radial-gradient(circle_at_top,rgba(124,200,255,0.16),transparent_48%),radial-gradient(circle_at_bottom,rgba(94,226,135,0.16),transparent_42%),linear-gradient(160deg,rgba(26,35,47,0.98),rgba(17,24,36,0.96))] p-4 shadow-[0_24px_60px_rgba(0,0,0,0.34)] sm:p-6">
+            <div className="rounded-xl border border-[#314254] bg-[radial-gradient(circle_at_top,rgba(124,200,255,0.16),transparent_48%),radial-gradient(circle_at_bottom,rgba(232,117,10,0.16),transparent_42%),linear-gradient(160deg,rgba(26,35,47,0.98),rgba(17,24,36,0.96))] p-4 shadow-[0_24px_60px_rgba(0,0,0,0.34)] sm:p-6">
               <div className="space-y-4">
-                <div className="relative overflow-hidden rounded-[28px] border border-[#3A4B5D] bg-[linear-gradient(180deg,rgba(31,42,56,0.94),rgba(18,25,37,0.98))] px-2 py-2 sm:px-4 sm:py-4">
+                <div className="relative overflow-hidden rounded-lg border border-[#3A4B5D] bg-[linear-gradient(180deg,rgba(31,42,56,0.94),rgba(18,25,37,0.98))] px-2 py-2 sm:px-4 sm:py-4">
                   <div className="pointer-events-none absolute -left-6 -top-6 h-44 w-44 rounded-full bg-[radial-gradient(circle,rgba(124,200,255,0.22),transparent_68%)] blur-3xl sm:h-52 sm:w-52" />
-                  <div className="pointer-events-none absolute left-10 top-20 h-28 w-28 rounded-full bg-[radial-gradient(circle,rgba(94,226,135,0.18),transparent_72%)] blur-3xl sm:h-32 sm:w-32" />
+                  <div className="pointer-events-none absolute left-10 top-20 h-28 w-28 rounded-full bg-[radial-gradient(circle,rgba(232,117,10,0.18),transparent_72%)] blur-3xl sm:h-32 sm:w-32" />
                   <div className="pointer-events-none absolute inset-x-8 top-0 h-24 rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.12),transparent_68%)] blur-2xl" />
                   <div className="pointer-events-none absolute bottom-6 left-1/2 h-10 w-3/4 -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(0,0,0,0.34),transparent_72%)] blur-2xl" />
 
@@ -1191,7 +1236,7 @@ export default function ProductPage() {
                   </div>
                 </div>
 
-                <div className="overflow-hidden rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(15,22,33,0.88),rgba(15,22,33,0.5))] shadow-[0_18px_32px_rgba(0,0,0,0.24)] backdrop-blur-md">
+                <div className="overflow-hidden rounded-lg border border-white/10 bg-[linear-gradient(180deg,rgba(20,20,20,0.88),rgba(20,20,20,0.5))] shadow-[0_18px_32px_rgba(0,0,0,0.24)] backdrop-blur-md">
                   <div className={`h-1.5 w-full ${categoryAccent.accentBarClass}`} />
                   <div className="space-y-3 px-4 py-3.5">
                     <p className="text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-[#94A9BF]">
@@ -1221,7 +1266,7 @@ export default function ProductPage() {
           <div className="space-y-8">
             <section>
               <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
-                <h2 className="text-xl font-semibold text-[#E8F6ED]">Produktdetails</h2>
+                <h2 className="text-xl font-semibold text-[#F0E4D4]">Produktdetails</h2>
                 <SegmentToggle
                   options={priceOptions}
                   activeId={activePriceOption?.id || null}
@@ -1230,25 +1275,25 @@ export default function ProductPage() {
               </div>
               <ul className="grid sm:grid-cols-2 gap-2 text-[#C4D0DE]">
                 {keyFacts.map(([key, value]) => (
-                  <li key={key} className="rounded-lg bg-[#141C27] border border-[#2D3A4B] px-3 py-2">
+                  <li key={key} className="rounded-lg bg-[#222222] border border-[#333333] px-3 py-2">
                     <strong className="text-white">{key}:</strong> {value}
                   </li>
                 ))}
               </ul>
             </section>
 
-            <section className="overflow-hidden rounded-2xl border border-[#2D3A4B] bg-[#141C27]">
+            <section className="overflow-hidden rounded-lg border border-[#333333] bg-[#222222]">
               <button
                 type="button"
                 onClick={() => setIsIngredientsOpen((current) => !current)}
                 aria-expanded={isIngredientsOpen}
                 className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-[#18212D]"
               >
-                <h2 className="text-xl font-semibold text-[#E8F6ED]">Zutaten</h2>
+                <h2 className="text-xl font-semibold text-[#F0E4D4]">Zutaten</h2>
                 <svg
                   viewBox="0 0 20 20"
                   aria-hidden="true"
-                  className={`h-5 w-5 text-[#8CA1B8] transition-transform ${
+                  className={`h-5 w-5 text-[#9A8F83] transition-transform ${
                     isIngredientsOpen ? "rotate-180" : ""
                   }`}
                   fill="none"
@@ -1264,7 +1309,7 @@ export default function ProductPage() {
               </button>
 
               {isIngredientsOpen ? (
-                <div className="border-t border-[#2D3A4B] px-4 py-4">
+                <div className="border-t border-[#333333] px-4 py-4">
                   <p className="text-[#C4D0DE] text-sm leading-relaxed">
                     {mergedDetails.zutaten}
                   </p>
@@ -1272,18 +1317,18 @@ export default function ProductPage() {
               ) : null}
             </section>
 
-            <section className="overflow-hidden rounded-2xl border border-[#2D3A4B] bg-[#141C27]">
+            <section className="overflow-hidden rounded-lg border border-[#333333] bg-[#222222]">
               <button
                 type="button"
                 onClick={() => setIsNutritionOpen((current) => !current)}
                 aria-expanded={isNutritionOpen}
                 className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-[#18212D]"
               >
-                <h2 className="text-xl font-semibold text-[#E8F6ED]">Nährwerte</h2>
+                <h2 className="text-xl font-semibold text-[#F0E4D4]">Nährwerte</h2>
                 <svg
                   viewBox="0 0 20 20"
                   aria-hidden="true"
-                  className={`h-5 w-5 text-[#8CA1B8] transition-transform ${
+                  className={`h-5 w-5 text-[#9A8F83] transition-transform ${
                     isNutritionOpen ? "rotate-180" : ""
                   }`}
                   fill="none"
@@ -1299,8 +1344,8 @@ export default function ProductPage() {
               </button>
 
               {isNutritionOpen ? (
-                <div className="border-t border-[#2D3A4B] px-4 py-4 [&>h2]:hidden">
-              <h2 className="text-xl font-semibold mb-3 text-[#E8F6ED]">Nährwerte</h2>
+                <div className="border-t border-[#333333] px-4 py-4 [&>h2]:hidden">
+              <h2 className="text-xl font-semibold mb-3 text-[#F0E4D4]">Nährwerte</h2>
               <div className="mb-3 flex flex-wrap justify-end gap-3">
                 <SegmentToggle
                   options={nutritionOptions}
@@ -1310,17 +1355,17 @@ export default function ProductPage() {
               </div>
               <ul className="grid sm:grid-cols-2 gap-2 text-[#C4D0DE]">
                 {nutritionFacts.map(([label, value]) => (
-                  <li key={label} className="rounded-lg bg-[#141C27] border border-[#2D3A4B] px-3 py-2">
+                  <li key={label} className="rounded-lg bg-[#222222] border border-[#333333] px-3 py-2">
                     <strong className="text-white">{label}:</strong> {value}
                   </li>
                 ))}
               </ul>
               {activeNutritionOption ? (
-                <p className="mt-2 text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">
+                <p className="mt-2 text-xs uppercase tracking-[0.18em] text-[#9A8F83]">
                   {activeNutritionOption.label}
                 </p>
               ) : null}
-              {detailsLoading && <p className="text-xs text-[#8CA1B8] mt-2">Lade Produktdaten...</p>}
+              {detailsLoading && <p className="text-xs text-[#9A8F83] mt-2">Lade Produktdaten...</p>}
                 </div>
               ) : null}
             </section>
@@ -1329,8 +1374,8 @@ export default function ProductPage() {
               <section>
                 <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
                   <div>
-                    <h2 className="text-xl font-semibold text-[#E8F6ED]">Aminosäurebilanz</h2>
-                    <p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">
+                    <h2 className="text-xl font-semibold text-[#F0E4D4]">Aminosäurebilanz</h2>
+                    <p className="text-xs uppercase tracking-[0.18em] text-[#9A8F83]">
                       pro 100 g Protein
                     </p>
                   </div>
@@ -1340,7 +1385,7 @@ export default function ProductPage() {
                   {aminoAcidProfile.map((entry) => (
                     <li
                       key={`${entry.name}-${entry.amount}`}
-                      className="rounded-lg border border-[#2D3A4B] bg-[#141C27] px-3 py-2 text-sm text-[#C4D0DE]"
+                      className="rounded-lg border border-[#333333] bg-[#222222] px-3 py-2 text-sm text-[#C4D0DE]"
                     >
                       <strong className="text-white">{entry.name}:</strong> {entry.amount}
                     </li>
@@ -1353,8 +1398,8 @@ export default function ProductPage() {
               <section>
                 <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
                   <div>
-                    <h2 className="text-xl font-semibold text-[#E8F6ED]">Ähnliche Produkte</h2>
-                    <p className="text-sm text-[#8CA1B8]">
+                    <h2 className="text-xl font-semibold text-[#F0E4D4]">Ähnliche Produkte</h2>
+                    <p className="text-sm text-[#9A8F83]">
                       {hasCoRatedSimilarProducts
                         ? "Von Nutzern ebenfalls bewertet."
                         : `Beliebt in ${displayCategory || product.category}.`}
@@ -1370,12 +1415,12 @@ export default function ProductPage() {
                       <Link
                         key={similarProduct.slug}
                         href={`/produkt/${similarProduct.slug}`}
-                        className={`group rounded-[24px] border border-[#2D3A4B] bg-[#141C27] p-3 transition-colors ${similarAccent.cardClass}`}
+                        className={`group rounded-lg border border-[#333333] bg-[#222222] p-3 transition-colors ${similarAccent.cardClass}`}
                       >
                         <div className={`mb-3 h-1 rounded-full ${similarAccent.accentBarClass}`} />
                         <div className="flex gap-3">
                           <div
-                            className={`relative flex h-24 w-20 shrink-0 items-center justify-center overflow-hidden rounded-[18px] border bg-[#0F1722] ${similarAccent.thumbClass}`}
+                            className={`relative flex h-24 w-20 shrink-0 items-center justify-center overflow-hidden rounded-md border bg-[#0F1722] ${similarAccent.thumbClass}`}
                           >
                             <img
                               src={`/api/product-image/${similarProduct.slug}`}
@@ -1406,14 +1451,14 @@ export default function ProductPage() {
                               >
                                 {similarProduct.category}
                               </span>
-                              <span className="inline-flex items-center rounded-full border border-[#2D3A4B] bg-[#101925] px-2.5 py-1 text-[0.65rem] font-semibold text-[#C7D5E3]">
+                              <span className="inline-flex items-center rounded-full border border-[#333333] bg-[#101925] px-2.5 py-1 text-[0.65rem] font-semibold text-[#C7D5E3]">
                                 {similarProduct.overlapCount > 0
                                   ? `${similarProduct.overlapCount} gemeinsame Ratings`
                                   : `${similarProduct.ratingCount} Bewertungen`}
                               </span>
                             </div>
 
-                            <h3 className="mt-2 line-clamp-2 text-sm font-semibold text-white transition-colors group-hover:text-[#E8F6ED]">
+                            <h3 className="mt-2 line-clamp-2 text-sm font-semibold text-white transition-colors group-hover:text-[#F0E4D4]">
                               {similarProduct.name}
                             </h3>
 
@@ -1426,12 +1471,12 @@ export default function ProductPage() {
                                   </span>
                                 </>
                               ) : (
-                                <span className="text-xs text-[#8CA1B8]">Noch keine Bewertung</span>
+                                <span className="text-xs text-[#9A8F83]">Noch keine Bewertung</span>
                               )}
                             </div>
 
                             {similarProduct.price ? (
-                              <p className="mt-2 text-sm text-[#AFC1D3]">{similarProduct.price}</p>
+                              <p className="mt-2 text-sm text-[#A89880]">{similarProduct.price}</p>
                             ) : null}
                           </div>
                         </div>
@@ -1443,7 +1488,7 @@ export default function ProductPage() {
             ) : null}
 
             <section>
-              <h2 className="text-xl font-semibold mb-3 text-[#E8F6ED]">Kommentare</h2>
+              <h2 className="text-xl font-semibold mb-3 text-[#F0E4D4]">Kommentare</h2>
 
               {mergedDetails.kommentare.length > 0 ? (
                 <ul className="space-y-3">
@@ -1453,8 +1498,8 @@ export default function ProductPage() {
                       key={`${comment.username}-${comment.updatedAt || index}-${comment.text}`}
                       className={`group rounded-xl border px-3 py-3 transition-colors ${
                         comment.isOwnComment
-                          ? "border-[#5EE287] bg-[linear-gradient(135deg,rgba(94,226,135,0.15),rgba(20,28,39,0.96))] shadow-[0_12px_30px_rgba(34,197,94,0.12)]"
-                          : "border-[#2D3A4B] bg-[#141C27]"
+                          ? "border-[#E8750A] bg-[linear-gradient(135deg,rgba(232,117,10,0.15),rgba(20,20,20,0.96))] shadow-[0_12px_30px_rgba(232,117,10,0.12)]"
+                          : "border-[#333333] bg-[#222222]"
                       }`}
                     >
                       <div className="flex items-start justify-between gap-3">
@@ -1462,13 +1507,13 @@ export default function ProductPage() {
                           <div className="mb-1 flex flex-wrap items-center gap-2">
                             <p
                               className={`text-xs uppercase tracking-[0.22em] ${
-                                comment.isOwnComment ? "text-[#D9FFE6]" : "text-[#8CA1B8]"
+                                comment.isOwnComment ? "text-[#FFE4C8]" : "text-[#9A8F83]"
                               }`}
                             >
                               {comment.username}
                             </p>
                             {comment.isOwnComment && (
-                              <span className="rounded-full border border-[#5EE287]/40 bg-[#5EE287]/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#8AF5AC]">
+                              <span className="rounded-full border border-[#E8750A]/40 bg-[#E8750A]/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#F5963C]">
                                 Dein Kommentar
                               </span>
                             )}
@@ -1476,7 +1521,7 @@ export default function ProductPage() {
                           <p
                             className={`text-sm leading-relaxed ${
                               comment.isOwnComment
-                                ? "text-[#F3FFF6] [text-align:justify]"
+                                ? "text-[#FFF0E4] [text-align:justify]"
                                 : "text-[#C4D0DE] [text-align:justify]"
                             }`}
                           >
@@ -1525,7 +1570,7 @@ export default function ProductPage() {
                                       [comment.reviewUserId!]: !prev[comment.reviewUserId!],
                                     }));
                                   }}
-                                  className="inline-flex items-center rounded-full border border-[#2D3A4B] bg-[#111823] px-3 py-2 text-xs font-semibold text-[#D6E2EF] transition-colors hover:border-[#5EE287] hover:text-white"
+                                  className="inline-flex items-center rounded-full border border-[#333333] bg-[#111823] px-3 py-2 text-xs font-semibold text-[#DDD0C4] transition-colors hover:border-[#E8750A] hover:text-white"
                                 >
                                   {expandedReplyThreads[comment.reviewUserId]
                                     ? `${comment.replyCount} ${
@@ -1550,26 +1595,26 @@ export default function ProductPage() {
                           (expandedReplyThreads[comment.reviewUserId] === true ||
                             activeReplyEditorReviewId === comment.reviewUserId ||
                             Boolean(replyErrors[comment.reviewUserId])) ? (
-                            <div className="mt-4 rounded-[20px] border border-[#2A394B] bg-[#0F1722]/92 p-3 sm:p-4">
+                            <div className="mt-4 rounded-md border border-[#2A2A2A] bg-[#0F1722]/92 p-3 sm:p-4">
                               {comment.replies.length > 0 ? (
                                 <ul className="space-y-3">
                                   {comment.replies.map((reply, replyIndex) => (
                                     <li
                                       key={`${reply.id ?? replyIndex}-${reply.updatedAt || replyIndex}-${reply.text}`}
-                                      className={`rounded-2xl border px-3 py-3 ${
+                                      className={`rounded-lg border px-3 py-3 ${
                                         reply.isOwnReply
-                                          ? "border-[#4D7E61] bg-[linear-gradient(135deg,rgba(94,226,135,0.12),rgba(18,25,35,0.96))]"
-                                          : "border-[#2D3A4B] bg-[#111823]"
+                                          ? "border-[#4D7E61] bg-[linear-gradient(135deg,rgba(232,117,10,0.12),rgba(18,25,35,0.96))]"
+                                          : "border-[#333333] bg-[#111823]"
                                       }`}
                                     >
                                       <div className="flex items-start justify-between gap-3">
                                         <div className="min-w-0 flex-1">
                                           <div className="mb-1 flex flex-wrap items-center gap-2">
-                                            <p className="text-[11px] uppercase tracking-[0.18em] text-[#8CA1B8]">
+                                            <p className="text-[11px] uppercase tracking-[0.18em] text-[#9A8F83]">
                                               {reply.username}
                                             </p>
                                             {reply.isOwnReply ? (
-                                              <span className="rounded-full border border-[#5EE287]/35 bg-[#173023] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#D9FFE6]">
+                                              <span className="rounded-full border border-[#E8750A]/35 bg-[#291808] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#FFE4C8]">
                                                 Deine Antwort
                                               </span>
                                             ) : null}
@@ -1600,7 +1645,7 @@ export default function ProductPage() {
                               {activeReplyEditorReviewId === comment.reviewUserId ? (
                                 <div className={comment.replies.length > 0 ? "mt-4 border-t border-[#213042] pt-4" : ""}>
                                   <textarea
-                                    className="min-h-28 w-full rounded-xl border border-[#2D3A4B] bg-[#141C27] p-3 text-sm text-white placeholder:text-[#8CA1B8]"
+                                    className="min-h-28 w-full rounded-xl border border-[#333333] bg-[#222222] p-3 text-sm text-white placeholder:text-[#9A8F83]"
                                     placeholder={`Antwort an ${comment.username}`}
                                     maxLength={1000}
                                     value={replyDrafts[comment.reviewUserId] || ""}
@@ -1618,14 +1663,14 @@ export default function ProductPage() {
                                   />
 
                                   <div className="mt-3 flex items-center justify-between gap-3">
-                                    <p className="text-xs text-[#8CA1B8]">
+                                    <p className="text-xs text-[#9A8F83]">
                                       {(replyDrafts[comment.reviewUserId] || "").length}/1000 Zeichen
                                     </p>
 
                                     <div className="flex items-center gap-2">
                                       <button
                                         type="button"
-                                        className="rounded-lg border border-[#2D3A4B] bg-[#141C27] px-4 py-2 text-sm font-semibold text-white transition-colors hover:border-[#5EE287] disabled:cursor-not-allowed disabled:opacity-60"
+                                        className="rounded-lg border border-[#333333] bg-[#222222] px-4 py-2 text-sm font-semibold text-white transition-colors hover:border-[#E8750A] disabled:cursor-not-allowed disabled:opacity-60"
                                         disabled={submittingReplies[comment.reviewUserId] === true}
                                         onClick={() => {
                                           setActiveReplyEditorReviewId((current) =>
@@ -1642,7 +1687,7 @@ export default function ProductPage() {
 
                                       <button
                                         type="button"
-                                        className="rounded-lg bg-[#5EE287] px-4 py-2 text-sm font-semibold text-[#0C1910] transition-colors hover:bg-[#75F39B] disabled:cursor-not-allowed disabled:opacity-60"
+                                        className="rounded-lg bg-[#E8750A] px-4 py-2 text-sm font-semibold text-[#1A0E04] transition-colors hover:bg-[#75F39B] disabled:cursor-not-allowed disabled:opacity-60"
                                         disabled={!user || submittingReplies[comment.reviewUserId] === true}
                                         onClick={() => {
                                           void submitReply(comment.reviewUserId!);
@@ -1675,7 +1720,7 @@ export default function ProductPage() {
                               type="button"
                               aria-label="Kommentaroptionen öffnen"
                               aria-expanded={isOwnCommentMenuOpen}
-                              className="flex h-10 w-10 items-center justify-center rounded-full border border-[#5EE287]/25 bg-[#102116]/80 text-[#D9FFE6] transition-colors hover:bg-[#16301F] disabled:cursor-not-allowed disabled:opacity-60"
+                              className="flex h-10 w-10 items-center justify-center rounded-full border border-[#E8750A]/25 bg-[#102116]/80 text-[#FFE4C8] transition-colors hover:bg-[#16301F] disabled:cursor-not-allowed disabled:opacity-60"
                               disabled={submittingComments[routeSlug] === true}
                               onClick={() => {
                                 setIsOwnCommentMenuOpen((current) => !current);
@@ -1691,10 +1736,10 @@ export default function ProductPage() {
                             </button>
 
                             {isOwnCommentMenuOpen && (
-                              <div className="absolute right-0 top-12 z-20 min-w-[180px] rounded-2xl border border-[#2D3A4B] bg-[#0F1722] p-2 shadow-[0_18px_42px_rgba(0,0,0,0.38)]">
+                              <div className="absolute right-0 top-12 z-20 min-w-[180px] rounded-lg border border-[#333333] bg-[#0F1722] p-2 shadow-[0_18px_42px_rgba(0,0,0,0.38)]">
                                 <button
                                   type="button"
-                                  className="flex w-full items-center rounded-xl px-3 py-2 text-left text-sm font-semibold text-[#D9FFE6] transition-colors hover:bg-[#173023] disabled:cursor-not-allowed disabled:opacity-60"
+                                  className="flex w-full items-center rounded-xl px-3 py-2 text-left text-sm font-semibold text-[#FFE4C8] transition-colors hover:bg-[#291808] disabled:cursor-not-allowed disabled:opacity-60"
                                   disabled={submittingComments[routeSlug] === true}
                                   onClick={() => {
                                     handleStartEditingOwnComment();
@@ -1731,7 +1776,7 @@ export default function ProductPage() {
                   ))}
                 </ul>
               ) : (
-                <p className="rounded-lg bg-[#141C27] border border-[#2D3A4B] px-3 py-2 text-sm text-[#8CA1B8]">
+                <p className="rounded-lg bg-[#222222] border border-[#333333] px-3 py-2 text-sm text-[#9A8F83]">
                   Noch keine Kommentare vorhanden.
                 </p>
               )}
@@ -1742,10 +1787,10 @@ export default function ProductPage() {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold mb-3 text-[#E8F6ED]">Bewerten</h2>
+              <h2 className="text-xl font-semibold mb-3 text-[#F0E4D4]">Bewerten</h2>
 
               {!user && (
-                <p className="text-sm text-[#8CA1B8] mb-3">
+                <p className="text-sm text-[#9A8F83] mb-3">
                   Bitte logge dich ein, um zu bewerten, Favoriten zu setzen, Produkte als probiert abzuhaken und Listen zu speichern.
                 </p>
               )}
@@ -1768,8 +1813,8 @@ export default function ProductPage() {
                   }}
                   className={`px-3 py-2 rounded-lg text-sm font-semibold border transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
                     favoriteActive
-                      ? "bg-[#5EE287] text-[#0C1910] border-[#5EE287]"
-                      : "bg-[#141C27] text-white border-[#2D3A4B] hover:border-[#5EE287]"
+                      ? "bg-[#E8750A] text-[#1A0E04] border-[#E8750A]"
+                      : "bg-[#222222] text-white border-[#333333] hover:border-[#E8750A]"
                   }`}
                 >
                   {favoriteActive ? "Favorit" : "Zu Favoriten"}
@@ -1795,7 +1840,7 @@ export default function ProductPage() {
                   className={`px-3 py-2 rounded-lg text-sm font-semibold border transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
                     wantToTryActive
                       ? "bg-[#F7D26B] text-[#251C04] border-[#F7D26B]"
-                      : "bg-[#141C27] text-white border-[#2D3A4B] hover:border-[#F7D26B]"
+                      : "bg-[#222222] text-white border-[#333333] hover:border-[#F7D26B]"
                   }`}
                 >
                   {wantToTryActive ? "Will ich probieren" : "Möchte ich probieren"}
@@ -1824,7 +1869,7 @@ export default function ProductPage() {
                   className={`px-3 py-2 rounded-lg text-sm font-semibold border transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
                     triedActive
                       ? "bg-[#7CC8FF] text-[#0B1A26] border-[#7CC8FF]"
-                      : "bg-[#141C27] text-white border-[#2D3A4B] hover:border-[#7CC8FF]"
+                      : "bg-[#222222] text-white border-[#333333] hover:border-[#7CC8FF]"
                   }`}
                 >
                   {triedActive ? "Bereits probiert" : "Als probiert abhaken"}
@@ -1833,14 +1878,14 @@ export default function ProductPage() {
 
               {listError && <p className="text-xs text-red-300 mb-3">{listError}</p>}
               {listMessage && !listError && (
-                <p className="text-xs text-[#8AF5AC] mb-3">{listMessage}</p>
+                <p className="text-xs text-[#F5963C] mb-3">{listMessage}</p>
               )}
 
-              <div className="mb-5 rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4 sm:p-5">
+              <div className="mb-5 rounded-lg border border-[#2A2A2A] bg-[#1C1C1C]/88 p-4 sm:p-5">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="flex flex-wrap items-center gap-2">
                     <h3 className="text-base font-semibold text-white">Eigene Listen</h3>
-                    <span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#AFC1D3]">
+                    <span className="rounded-full border border-[#333333] bg-[#222222] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#A89880]">
                       {!user
                         ? "Login"
                         : activeCustomLists.length > 0
@@ -1859,7 +1904,7 @@ export default function ProductPage() {
                         setIsCustomListCreatorOpen((current) => !current);
                         setCustomListMessage(null);
                       }}
-                      className="inline-flex items-center rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-2 text-xs font-semibold text-[#D6E2EF] transition-colors hover:border-[#5EE287] hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                      className="inline-flex items-center rounded-full border border-[#333333] bg-[#222222] px-3 py-2 text-xs font-semibold text-[#DDD0C4] transition-colors hover:border-[#E8750A] hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
                     >
                     {isCustomListCreatorOpen
                       ? "Neue Liste schließen"
@@ -1871,7 +1916,7 @@ export default function ProductPage() {
                 </div>
 
                 {!customListsLoaded && (
-                  <p className="mt-4 text-sm text-[#8CA1B8]">Eigene Listen werden geladen...</p>
+                  <p className="mt-4 text-sm text-[#9A8F83]">Eigene Listen werden geladen...</p>
                 )}
 
                 {customListsLoaded && user && customLists.length === 0 && !isCustomListCreatorOpen ? (
@@ -1882,7 +1927,7 @@ export default function ProductPage() {
                       setIsCustomListCreatorOpen(true);
                       setCustomListMessage(null);
                     }}
-                    className="mt-3 inline-flex items-center text-sm font-semibold text-[#8AF5AC] transition-colors hover:text-[#B7FFD0] disabled:cursor-not-allowed disabled:opacity-60"
+                    className="mt-3 inline-flex items-center text-sm font-semibold text-[#F5963C] transition-colors hover:text-[#B7FFD0] disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     + Erste Liste erstellen
                   </button>
@@ -1898,7 +1943,7 @@ export default function ProductPage() {
                           setCustomListMessage(null);
                         }}
                         disabled={!user || customLists.length === 0}
-                        className="min-h-11 w-full appearance-none rounded-2xl border border-[#2D3A4B] bg-[#0C141E] px-4 py-3 pr-12 text-white outline-none transition-colors focus:border-[#5EE287] disabled:cursor-not-allowed disabled:opacity-60"
+                        className="min-h-11 w-full appearance-none rounded-lg border border-[#333333] bg-[#0C141E] px-4 py-3 pr-12 text-white outline-none transition-colors focus:border-[#E8750A] disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         {customLists.map((list) => (
                           <option key={list.id} value={list.id}>
@@ -1910,7 +1955,7 @@ export default function ProductPage() {
                       <svg
                         viewBox="0 0 20 20"
                         aria-hidden="true"
-                        className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8CA1B8]"
+                        className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9A8F83]"
                         fill="none"
                       >
                         <path
@@ -1928,10 +1973,10 @@ export default function ProductPage() {
                       onClick={() => {
                         void handleSelectedCustomListToggle();
                       }}
-                      className={`inline-flex min-h-11 shrink-0 items-center justify-center rounded-2xl px-5 py-3 font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
+                      className={`inline-flex min-h-11 shrink-0 items-center justify-center rounded-lg px-5 py-3 font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
                         selectedCustomListActive
-                          ? "border border-[#2D3A4B] bg-[#141C27] text-white hover:border-[#7CC8FF]"
-                          : "bg-[#5EE287] text-[#0C1910] hover:bg-[#79F29C]"
+                          ? "border border-[#333333] bg-[#222222] text-white hover:border-[#7CC8FF]"
+                          : "bg-[#E8750A] text-[#1A0E04] hover:bg-[#F5963C]"
                       }`}
                     >
                       {!selectedCustomList
@@ -1950,7 +1995,7 @@ export default function ProductPage() {
                     {activeCustomLists.map((list) => (
                       <span
                         key={list.id}
-                        className="inline-flex items-center rounded-full border border-[#35503D] bg-[#132118] px-3 py-1 text-xs font-semibold text-[#D9FFE6]"
+                        className="inline-flex items-center rounded-full border border-[#5A2E08] bg-[#132118] px-3 py-1 text-xs font-semibold text-[#FFE4C8]"
                       >
                         {list.name}
                       </span>
@@ -1959,7 +2004,7 @@ export default function ProductPage() {
                 ) : null}
 
                 {isCustomListCreatorOpen ? (
-                  <div className="mt-4 rounded-[22px] border border-[#223243] bg-[#0F1722] p-3 sm:p-4">
+                  <div className="mt-4 rounded-md border border-[#223243] bg-[#0F1722] p-3 sm:p-4">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                       <input
                         type="text"
@@ -1971,7 +2016,7 @@ export default function ProductPage() {
                         }}
                         placeholder="Neue Liste"
                         disabled={!user || creatingList}
-                        className="min-h-11 w-full rounded-2xl border border-[#2D3A4B] bg-[#0C141E] px-4 py-3 text-white outline-none transition-colors placeholder:text-[#7F93A8] focus:border-[#5EE287] disabled:cursor-not-allowed disabled:opacity-60"
+                        className="min-h-11 w-full rounded-lg border border-[#333333] bg-[#0C141E] px-4 py-3 text-white outline-none transition-colors placeholder:text-[#7F93A8] focus:border-[#E8750A] disabled:cursor-not-allowed disabled:opacity-60"
                       />
                       <button
                         type="button"
@@ -1979,7 +2024,7 @@ export default function ProductPage() {
                         onClick={() => {
                           void handleCreateCustomList();
                         }}
-                        className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-2xl bg-[#5EE287] px-5 py-3 font-semibold text-[#0C1910] transition-colors hover:bg-[#79F29C] disabled:cursor-not-allowed disabled:opacity-60"
+                        className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-lg bg-[#E8750A] px-5 py-3 font-semibold text-[#1A0E04] transition-colors hover:bg-[#F5963C] disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         {creatingList ? "Erstelle..." : "Liste erstellen"}
                       </button>
@@ -1988,19 +2033,19 @@ export default function ProductPage() {
                 ) : null}
 
                 {(customListsError || customListMessage) && (
-                  <div className={`mt-4 rounded-2xl border px-4 py-3 text-sm ${customListsError ? "border-[#6A3434] bg-[#2A1313] text-red-100" : "border-[#2D5B41] bg-[#173023] text-[#D9FFE6]"}`}>
+                  <div className={`mt-4 rounded-lg border px-4 py-3 text-sm ${customListsError ? "border-[#6A3434] bg-[#2A1313] text-red-100" : "border-[#2D5B41] bg-[#291808] text-[#FFE4C8]"}`}>
                     {customListsError || customListMessage}
                   </div>
                 )}
 
                 {customListsLoaded && !user ? (
-                  <p className="mt-4 rounded-[20px] border border-dashed border-[#35503D] bg-[#0F1722] px-4 py-3 text-sm text-[#AFC1D3]">
+                  <p className="mt-4 rounded-md border border-dashed border-[#5A2E08] bg-[#0F1722] px-4 py-3 text-sm text-[#A89880]">
                     Einloggen für eigene Listen.
                   </p>
                 ) : null}
               </div>
 
-              <div className="mb-5 rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4">
+              <div className="mb-5 rounded-lg border border-[#2A2A2A] bg-[#1C1C1C]/88 p-4">
                 <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
                   <div>
                     <h3 className="text-base font-semibold text-white">Deine Bewertung</h3>
@@ -2018,7 +2063,7 @@ export default function ProductPage() {
                         : "Noch nicht bewertet"}
                     </span>
                     {user ? (
-                      <span className="rounded-full border border-[#2D5B41] bg-[#173023] px-3 py-1 text-xs font-semibold text-[#D9FFE6]">
+                      <span className="rounded-full border border-[#2D5B41] bg-[#291808] px-3 py-1 text-xs font-semibold text-[#FFE4C8]">
                         Sofort gespeichert
                       </span>
                     ) : null}
@@ -2026,7 +2071,7 @@ export default function ProductPage() {
                 </div>
 
                 <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div className={`inline-flex w-fit gap-1 rounded-2xl border border-[#2D3A4B] bg-[#141C27] px-3 py-2 ${!user ? "opacity-60" : ""}`}>
+                  <div className={`inline-flex w-fit gap-1 rounded-lg border border-[#333333] bg-[#222222] px-3 py-2 ${!user ? "opacity-60" : ""}`}>
                     {[1, 2, 3, 4, 5].map((i) => (
                       <Star
                         key={i}
@@ -2042,11 +2087,11 @@ export default function ProductPage() {
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2">
-                    <p className="text-xs text-[#8CA1B8]">Halbe Sterne sind möglich.</p>
+                    <p className="text-xs text-[#9A8F83]">Halbe Sterne sind möglich.</p>
                     {hasUserRating ? (
                       <button
                         type="button"
-                        className="rounded-lg border border-[#2D3A4B] bg-[#141C27] px-3 py-2 text-sm font-semibold text-white transition-colors hover:border-[#7CC8FF] disabled:cursor-not-allowed disabled:opacity-60"
+                        className="rounded-lg border border-[#333333] bg-[#222222] px-3 py-2 text-sm font-semibold text-white transition-colors hover:border-[#7CC8FF] disabled:cursor-not-allowed disabled:opacity-60"
                         disabled={!user || submittingComments[routeSlug] === true}
                         onClick={async () => {
                           setCommentMessage(null);
@@ -2068,7 +2113,7 @@ export default function ProductPage() {
               </div>
 
               {showCommentEditor ? (
-                <div className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4">
+                <div className="rounded-lg border border-[#2A2A2A] bg-[#1C1C1C]/88 p-4">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                     <div>
                       <h3 className="text-base font-semibold text-white">
@@ -2086,7 +2131,7 @@ export default function ProductPage() {
                           onClick={() => {
                             handleStartEditingOwnComment();
                           }}
-                          className="inline-flex items-center gap-2 rounded-full border border-[#2D3A4B] bg-[#141C27] px-4 py-2 text-sm font-semibold text-[#D9FFE6] transition-colors hover:border-[#5EE287] hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                          className="inline-flex items-center gap-2 rounded-full border border-[#333333] bg-[#222222] px-4 py-2 text-sm font-semibold text-[#FFE4C8] transition-colors hover:border-[#E8750A] hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
                         >
                           <span aria-hidden="true">✏</span>
                           <span>Bearbeiten</span>
@@ -2106,13 +2151,13 @@ export default function ProductPage() {
                       </div>
                     </div>
 
-                    <span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-xs font-semibold text-[#D6E2EF]">
+                    <span className="rounded-full border border-[#333333] bg-[#222222] px-3 py-1 text-xs font-semibold text-[#DDD0C4]">
                       {isEditingOwnComment ? "Bearbeiten" : "Optionaler Kommentar"}
                     </span>
                   </div>
 
                   <textarea
-                    className="mt-4 min-h-32 w-full rounded-xl border border-[#2D3A4B] bg-[#141C27] p-3 text-white placeholder:text-[#8CA1B8]"
+                    className="mt-4 min-h-32 w-full rounded-xl border border-[#333333] bg-[#222222] p-3 text-white placeholder:text-[#9A8F83]"
                     placeholder="Was hat dir gefallen oder nicht gefallen?"
                     value={commentDraft}
                     maxLength={MAX_COMMENT_LENGTH}
@@ -2124,12 +2169,12 @@ export default function ProductPage() {
                     disabled={!user}
                   />
 
-                  <p className="mt-2 text-xs text-[#8CA1B8]">
+                  <p className="mt-2 text-xs text-[#9A8F83]">
                     Beschreibe kurz, was du probiert hast (min. 10 Zeichen).
                   </p>
 
                   <div className="mt-3 flex items-center justify-between gap-3">
-                    <p className="text-xs text-[#8CA1B8]">
+                    <p className="text-xs text-[#9A8F83]">
                       {commentDraft.length}/{MAX_COMMENT_LENGTH} Zeichen
                     </p>
 
@@ -2137,7 +2182,7 @@ export default function ProductPage() {
                       {isEditingOwnComment && hasSavedComment && (
                         <button
                           type="button"
-                          className="px-4 py-2 rounded-lg border border-[#2D3A4B] bg-[#141C27] text-white font-semibold hover:border-[#5EE287] disabled:opacity-60 disabled:cursor-not-allowed"
+                          className="px-4 py-2 rounded-lg border border-[#333333] bg-[#222222] text-white font-semibold hover:border-[#E8750A] disabled:opacity-60 disabled:cursor-not-allowed"
                           disabled={submittingComments[routeSlug] === true}
                           onClick={() => {
                             updateCommentDraft(routeSlug, savedComment);
@@ -2151,7 +2196,7 @@ export default function ProductPage() {
 
                       <button
                         type="button"
-                        className="px-4 py-2 rounded-lg bg-[#5EE287] text-[#0C1910] font-semibold hover:bg-[#75F39B] disabled:opacity-60 disabled:cursor-not-allowed"
+                        className="px-4 py-2 rounded-lg bg-[#E8750A] text-[#1A0E04] font-semibold hover:bg-[#75F39B] disabled:opacity-60 disabled:cursor-not-allowed"
                         disabled={
                           !user ||
                           submittingComments[routeSlug] === true ||
@@ -2179,7 +2224,7 @@ export default function ProductPage() {
                   </div>
                 </div>
               ) : (
-                <div className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4">
+                <div className="rounded-lg border border-[#2A2A2A] bg-[#1C1C1C]/88 p-4">
                   <div>
                     <div>
                       <h3 className="text-base font-semibold text-white">Dein Kommentar</h3>
@@ -2193,7 +2238,7 @@ export default function ProductPage() {
                           onClick={() => {
                             handleStartEditingOwnComment();
                           }}
-                          className="inline-flex items-center gap-2 rounded-full border border-[#2D3A4B] bg-[#141C27] px-4 py-2 text-sm font-semibold text-[#D9FFE6] transition-colors hover:border-[#5EE287] hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                          className="inline-flex items-center gap-2 rounded-full border border-[#333333] bg-[#222222] px-4 py-2 text-sm font-semibold text-[#FFE4C8] transition-colors hover:border-[#E8750A] hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
                         >
                           <span aria-hidden="true">✏</span>
                           <span>Bearbeiten</span>
@@ -2224,7 +2269,7 @@ export default function ProductPage() {
               )}
 
               {commentMessage && !commentErrors[routeSlug] && (
-                <p className="text-xs text-[#8AF5AC] mt-2">{commentMessage}</p>
+                <p className="text-xs text-[#F5963C] mt-2">{commentMessage}</p>
               )}
             </section>
           </div>

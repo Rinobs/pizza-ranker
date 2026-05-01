@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -291,16 +291,16 @@ export default function PublicProfilePage() {
   }, [profileData]);
 
   if (loading) {
-    return <div className="mx-auto max-w-6xl px-4 pb-24 text-white sm:px-8 lg:px-12"><BackButton className="mb-5 sm:mb-6" /><div className="rounded-[30px] border border-[#2A394B] bg-[#141C27] p-5">Profil wird geladen...</div></div>;
+    return <div className="mx-auto max-w-6xl px-4 pb-24 text-white sm:px-8 lg:px-12"><BackButton className="mb-5 sm:mb-6" /><div className="rounded-xl border border-[#2A2A2A] bg-[#222222] p-5">Profil wird geladen...</div></div>;
   }
 
   if (error || !profileData || !summary) {
     return (
       <div className="mx-auto max-w-6xl px-4 pb-24 text-white sm:px-8 lg:px-12">
         <BackButton className="mb-5 sm:mb-6" />
-        <div className="rounded-[30px] border border-[#2A394B] bg-[#141C27] p-6">
+        <div className="rounded-xl border border-[#2A2A2A] bg-[#222222] p-6">
           <p className="text-red-200">{error || "Profil konnte nicht geladen werden."}</p>
-          <Link href="/profil" className="mt-4 inline-flex items-center rounded-2xl bg-[#5EE287] px-4 py-2 font-semibold text-[#0C1910] hover:bg-[#75F39B]">Zu meinem Profil</Link>
+          <Link href="/profil" className="mt-4 inline-flex items-center rounded-lg bg-[#E8750A] px-4 py-2 font-semibold text-[#1A0E04] hover:bg-[#75F39B]">Zu meinem Profil</Link>
         </div>
       </div>
     );
@@ -310,34 +310,34 @@ export default function PublicProfilePage() {
     <div className="mx-auto max-w-7xl px-4 pb-24 text-white sm:px-8 lg:px-12">
       <BackButton className="mb-5 sm:mb-6" />
 
-      <section className="overflow-hidden rounded-[36px] border border-[#2E4154] bg-[radial-gradient(circle_at_top_left,rgba(94,226,135,0.18),rgba(16,24,36,0.98)_40%),radial-gradient(circle_at_bottom_right,rgba(104,180,255,0.14),transparent_42%),linear-gradient(145deg,rgba(21,31,44,0.99),rgba(14,20,31,0.96))] p-6 shadow-[0_24px_64px_rgba(0,0,0,0.34)] sm:p-8 lg:p-10">
+      <section className="overflow-hidden rounded-xl border border-[#333333] bg-[radial-gradient(circle_at_top_left,rgba(232,117,10,0.18),rgba(20,20,20,0.98)_40%),radial-gradient(circle_at_bottom_right,rgba(104,180,255,0.14),transparent_42%),linear-gradient(145deg,rgba(20,20,20,0.99),rgba(14,14,14,0.96))] p-6 shadow-[0_24px_64px_rgba(0,0,0,0.34)] sm:p-8 lg:p-10">
         <div className="flex flex-col gap-8 xl:flex-row xl:items-end xl:justify-between">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-center">
             <ProfileAvatar src={profileData.profile.avatarUrl} name={profileData.profile.username} size="xl" />
             <div className="max-w-3xl">
               <p className="text-xs uppercase tracking-[0.22em] text-[#9CC9AE]">Food Profil</p>
-              <h1 className="mt-3 text-4xl font-black tracking-tight text-[#F3FFF6] sm:text-5xl">{profileData.profile.username}</h1>
+              <h1 className="mt-3 text-4xl font-black tracking-tight text-[#FFF0E4] sm:text-5xl">{profileData.profile.username}</h1>
               <p className="mt-4 max-w-2xl text-base leading-relaxed text-[#C9D8E7] sm:text-lg">{profileData.profile.bio || "Noch keine Bio vorhanden. Dieses Profil sammelt aber schon Geschmackspunkte und Aktivität."}</p>
               <div className="mt-5 flex flex-wrap gap-2.5">
-                <span className="inline-flex items-center gap-2 rounded-full border border-[#34503B] bg-[#173023] px-4 py-2 text-sm font-semibold text-[#D9FFE6]"><FiAward size={15} />{summary.levelInfo.currentLevelName}</span>
-                <span className="inline-flex items-center gap-2 rounded-full border border-[#2D3A4B] bg-[#111925]/90 px-4 py-2 text-sm font-semibold text-[#D6E2EF]"><FiTrendingUp size={15} />{summary.points} Punkte</span>
-                <span className="inline-flex items-center gap-2 rounded-full border border-[#2D3A4B] bg-[#111925]/90 px-4 py-2 text-sm font-semibold text-[#D6E2EF]"><FiUsers size={15} />{profileData.profile.followersCount} Follower</span>
+                <span className="inline-flex items-center gap-2 rounded-full border border-[#5A2E08] bg-[#291808] px-4 py-2 text-sm font-semibold text-[#FFE4C8]"><FiAward size={15} />{summary.levelInfo.currentLevelName}</span>
+                <span className="inline-flex items-center gap-2 rounded-full border border-[#333333] bg-[#1C1C1C]/90 px-4 py-2 text-sm font-semibold text-[#DDD0C4]"><FiTrendingUp size={15} />{summary.points} Punkte</span>
+                <span className="inline-flex items-center gap-2 rounded-full border border-[#333333] bg-[#1C1C1C]/90 px-4 py-2 text-sm font-semibold text-[#DDD0C4]"><FiUsers size={15} />{profileData.profile.followersCount} Follower</span>
               </div>
             </div>
           </div>
 
           <div className="flex flex-col items-start gap-3 xl:items-end">
             {profileData.profile.isOwnProfile ? (
-              <Link href="/profil" className="inline-flex items-center rounded-2xl bg-[#5EE287] px-5 py-3 font-semibold text-[#0C1910] hover:bg-[#79F29C]">Mein Profil bearbeiten</Link>
+              <Link href="/profil" className="inline-flex items-center rounded-lg bg-[#E8750A] px-5 py-3 font-semibold text-[#1A0E04] hover:bg-[#F5963C]">Mein Profil bearbeiten</Link>
             ) : session?.user ? (
               <div className="flex flex-wrap gap-3 xl:justify-end">
-                <a href="#taste-compare" className="inline-flex items-center gap-2 rounded-2xl border border-[#2D3A4B] bg-[#141C27] px-5 py-3 font-semibold text-white transition-colors hover:border-[#7CC8FF] hover:text-[#E8F5FF]"><FiTarget size={16} />Geschmack vergleichen</a>
-                <button type="button" disabled={followLoading} onClick={() => { void handleToggleFollow(!profileData.profile.isFollowing); }} className={`rounded-2xl border px-5 py-3 font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${profileData.profile.isFollowing ? "border-[#2D3A4B] bg-[#141C27] text-white hover:border-red-300" : "border-[#5EE287] bg-[#5EE287] text-[#0C1910] hover:bg-[#79F29C]"}`}>{followLoading ? "Speichere..." : profileData.profile.isFollowing ? "Entfolgen" : "Folgen"}</button>
+                <a href="#taste-compare" className="inline-flex items-center gap-2 rounded-lg border border-[#333333] bg-[#222222] px-5 py-3 font-semibold text-white transition-colors hover:border-[#7CC8FF] hover:text-[#E8F5FF]"><FiTarget size={16} />Geschmack vergleichen</a>
+                <button type="button" disabled={followLoading} onClick={() => { void handleToggleFollow(!profileData.profile.isFollowing); }} className={`rounded-lg border px-5 py-3 font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${profileData.profile.isFollowing ? "border-[#333333] bg-[#222222] text-white hover:border-red-300" : "border-[#E8750A] bg-[#E8750A] text-[#1A0E04] hover:bg-[#F5963C]"}`}>{followLoading ? "Speichere..." : profileData.profile.isFollowing ? "Entfolgen" : "Folgen"}</button>
               </div>
             ) : (
-              <p className="text-sm text-[#AFC1D3]">Logge dich ein, um diesem Profil zu folgen.</p>
+              <p className="text-sm text-[#A89880]">Logge dich ein, um diesem Profil zu folgen.</p>
             )}
-            {followMessage && <p className="text-sm text-[#8AF5AC]">{followMessage}</p>}
+            {followMessage && <p className="text-sm text-[#F5963C]">{followMessage}</p>}
           </div>
         </div>
       </section>
@@ -352,8 +352,8 @@ export default function PublicProfilePage() {
       {!profileData.profile.isOwnProfile && session?.user && (
         <div id="taste-compare" className="mt-8">
           <SectionShell eyebrow="Taste Compare" title={`Dein Geschmack vs. ${profileData.profile.username}`} description="Wir vergleichen eure gemeinsamen Ratings und machen sichtbar, wo ihr fast gleich tickt und wo ihr komplett unterschiedlich bewertet.">
-            {tasteCompareLoading && <div className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4 text-sm text-[#9EB0C3]">Geschmacksvergleich wird geladen...</div>}
-            {!tasteCompareLoading && tasteCompareError && <div className="rounded-[24px] border border-[#6A3434] bg-[#2A1313] p-4 text-sm text-red-100">{tasteCompareError}</div>}
+            {tasteCompareLoading && <div className="rounded-lg border border-[#2A2A2A] bg-[#1C1C1C]/88 p-4 text-sm text-[#9EB0C3]">Geschmacksvergleich wird geladen...</div>}
+            {!tasteCompareLoading && tasteCompareError && <div className="rounded-lg border border-[#6A3434] bg-[#2A1313] p-4 text-sm text-red-100">{tasteCompareError}</div>}
             {!tasteCompareLoading && !tasteCompareError && tasteCompareData?.comparison && (
               <>
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -364,47 +364,47 @@ export default function PublicProfilePage() {
                 </div>
 
                 <div className="mt-6 grid gap-4 xl:grid-cols-2">
-                  <div className="rounded-[26px] border border-[#2A394B] bg-[#111925]/88 p-5">
-                    <p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">Starke Übereinstimmungen</p>
+                  <div className="rounded-lg border border-[#2A2A2A] bg-[#1C1C1C]/88 p-5">
+                    <p className="text-xs uppercase tracking-[0.18em] text-[#9A8F83]">Starke Übereinstimmungen</p>
                     <h3 className="mt-2 text-lg font-semibold text-white">Hier seid ihr fast auf derselben Wellenlänge</h3>
                     <ul className="mt-4 grid gap-3">
                       {tasteCompareData.comparison.strongestAgreements.map((item) => (
-                        <li key={`agreement-${item.productSlug}`} className="rounded-[20px] border border-[#2D3A4B] bg-[#101822] p-4">
+                        <li key={`agreement-${item.productSlug}`} className="rounded-md border border-[#333333] bg-[#1C1C1C] p-4">
                           <div className="flex items-start justify-between gap-3">
                             <div className="min-w-0">
-                              <Link href={`/produkt/${item.productSlug}`} className="font-semibold text-white transition-colors hover:text-[#8AF5AC]">{item.name}</Link>
-                              <p className="mt-1 text-sm text-[#8CA1B8]">{item.category}</p>
+                              <Link href={`/produkt/${item.productSlug}`} className="font-semibold text-white transition-colors hover:text-[#F5963C]">{item.name}</Link>
+                              <p className="mt-1 text-sm text-[#9A8F83]">{item.category}</p>
                             </div>
-                            <span className="shrink-0 rounded-full border border-[#34503B] bg-[#173023] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#D9FFE6]">Δ {item.difference.toFixed(1)}</span>
+                            <span className="shrink-0 rounded-full border border-[#5A2E08] bg-[#291808] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#FFE4C8]">Δ {item.difference.toFixed(1)}</span>
                           </div>
                           <div className="mt-3 flex flex-wrap gap-2">
-                            <span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-xs font-semibold text-[#D6E2EF]">Du {item.viewerRating.toFixed(1)}</span>
-                            <span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-xs font-semibold text-[#D6E2EF]">{profileData.profile.username} {item.targetRating.toFixed(1)}</span>
+                            <span className="rounded-full border border-[#333333] bg-[#222222] px-3 py-1 text-xs font-semibold text-[#DDD0C4]">Du {item.viewerRating.toFixed(1)}</span>
+                            <span className="rounded-full border border-[#333333] bg-[#222222] px-3 py-1 text-xs font-semibold text-[#DDD0C4]">{profileData.profile.username} {item.targetRating.toFixed(1)}</span>
                           </div>
                         </li>
                       ))}
                     </ul>
                   </div>
 
-                  <div className="rounded-[26px] border border-[#2A394B] bg-[#111925]/88 p-5">
-                    <p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">Reibungspunkte</p>
+                  <div className="rounded-lg border border-[#2A2A2A] bg-[#1C1C1C]/88 p-5">
+                    <p className="text-xs uppercase tracking-[0.18em] text-[#9A8F83]">Reibungspunkte</p>
                     <h3 className="mt-2 text-lg font-semibold text-white">Hier geht euer Geschmack auseinander</h3>
                     {tasteCompareData.comparison.strongestDisagreements.length === 0 ? (
-                      <p className="mt-4 rounded-[20px] border border-dashed border-[#35503D] bg-[#0F1722] px-4 py-3 text-sm text-[#AFC1D3]">Bei euren gemeinsamen Ratings seid ihr überraschend nah beieinander. Größere Ausreißer gibt es aktuell noch nicht.</p>
+                      <p className="mt-4 rounded-md border border-dashed border-[#5A2E08] bg-[#0F1722] px-4 py-3 text-sm text-[#A89880]">Bei euren gemeinsamen Ratings seid ihr überraschend nah beieinander. Größere Ausreißer gibt es aktuell noch nicht.</p>
                     ) : (
                       <ul className="mt-4 grid gap-3">
                         {tasteCompareData.comparison.strongestDisagreements.map((item) => (
-                          <li key={`disagreement-${item.productSlug}`} className="rounded-[20px] border border-[#2D3A4B] bg-[#101822] p-4">
+                          <li key={`disagreement-${item.productSlug}`} className="rounded-md border border-[#333333] bg-[#1C1C1C] p-4">
                             <div className="flex items-start justify-between gap-3">
                               <div className="min-w-0">
-                                <Link href={`/produkt/${item.productSlug}`} className="font-semibold text-white transition-colors hover:text-[#8AF5AC]">{item.name}</Link>
-                                <p className="mt-1 text-sm text-[#8CA1B8]">{item.category}</p>
+                                <Link href={`/produkt/${item.productSlug}`} className="font-semibold text-white transition-colors hover:text-[#F5963C]">{item.name}</Link>
+                                <p className="mt-1 text-sm text-[#9A8F83]">{item.category}</p>
                               </div>
                               <span className="shrink-0 rounded-full border border-[#5A2A2A] bg-[#2A1111] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-red-200">Δ {item.difference.toFixed(1)}</span>
                             </div>
                             <div className="mt-3 flex flex-wrap gap-2">
-                              <span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-xs font-semibold text-[#D6E2EF]">Du {item.viewerRating.toFixed(1)}</span>
-                              <span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-xs font-semibold text-[#D6E2EF]">{profileData.profile.username} {item.targetRating.toFixed(1)}</span>
+                              <span className="rounded-full border border-[#333333] bg-[#222222] px-3 py-1 text-xs font-semibold text-[#DDD0C4]">Du {item.viewerRating.toFixed(1)}</span>
+                              <span className="rounded-full border border-[#333333] bg-[#222222] px-3 py-1 text-xs font-semibold text-[#DDD0C4]">{profileData.profile.username} {item.targetRating.toFixed(1)}</span>
                             </div>
                           </li>
                         ))}
@@ -414,11 +414,11 @@ export default function PublicProfilePage() {
                 </div>
 
                 {tasteCompareData.comparison.sharedFavoritesCount > 0 && (
-                  <div className="mt-6 rounded-[26px] border border-[#2A394B] bg-[#111925]/88 p-5">
-                    <p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">Gemeinsame Favoriten</p>
+                  <div className="mt-6 rounded-lg border border-[#2A2A2A] bg-[#1C1C1C]/88 p-5">
+                    <p className="text-xs uppercase tracking-[0.18em] text-[#9A8F83]">Gemeinsame Favoriten</p>
                     <div className="mt-4 flex flex-wrap gap-2.5">
                       {tasteCompareData.comparison.sharedFavorites.map((item) => (
-                        <Link key={`shared-favorite-${item.productSlug}`} href={`/produkt/${item.productSlug}`} className="inline-flex items-center rounded-full border border-[#34503B] bg-[#173023] px-4 py-2 text-sm font-semibold text-[#D9FFE6] transition-colors hover:bg-[#21402E]">
+                        <Link key={`shared-favorite-${item.productSlug}`} href={`/produkt/${item.productSlug}`} className="inline-flex items-center rounded-full border border-[#5A2E08] bg-[#291808] px-4 py-2 text-sm font-semibold text-[#FFE4C8] transition-colors hover:bg-[#21402E]">
                           {item.name}
                         </Link>
                       ))}
@@ -451,15 +451,15 @@ export default function PublicProfilePage() {
 
       <div className="mt-8 grid gap-6 xl:grid-cols-3">
         <SectionShell eyebrow="Bewertungen" title="Letzte Produkt-Meinungen">
-          {profileData.ratings.length === 0 ? <EmptyPanel icon={FiStar} title="Noch keine Bewertungen" description="Dieses Profil hat bisher noch keine Produkte bewertet." /> : <ul className="grid gap-3">{profileData.ratings.slice(0, 6).map((item) => <li key={`rating-${item.productSlug}`} className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><Link href={`/produkt/${item.productSlug}`} className="font-semibold text-white transition-colors hover:text-[#8AF5AC]">{item.name}</Link><p className="mt-1 text-sm text-[#8CA1B8]">{item.category}</p></div><span className="shrink-0 rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-sm font-semibold text-[#FFD86C]">{item.rating > 0 ? `Rating ${item.rating.toFixed(1)}/5` : "Nur Kommentar"}</span></div><p className="mt-4 text-sm text-[#D3DFEB]">{item.comment || "Kein Kommentar hinterlegt."}</p></li>)}</ul>}
+          {profileData.ratings.length === 0 ? <EmptyPanel icon={FiStar} title="Noch keine Bewertungen" description="Dieses Profil hat bisher noch keine Produkte bewertet." /> : <ul className="grid gap-3">{profileData.ratings.slice(0, 6).map((item) => <li key={`rating-${item.productSlug}`} className="rounded-lg border border-[#2A2A2A] bg-[#1C1C1C]/88 p-4"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><Link href={`/produkt/${item.productSlug}`} className="font-semibold text-white transition-colors hover:text-[#F5963C]">{item.name}</Link><p className="mt-1 text-sm text-[#9A8F83]">{item.category}</p></div><span className="shrink-0 rounded-full border border-[#333333] bg-[#222222] px-3 py-1 text-sm font-semibold text-[#FFD86C]">{item.rating > 0 ? `Rating ${item.rating.toFixed(1)}/5` : "Nur Kommentar"}</span></div><p className="mt-4 text-sm text-[#D3DFEB]">{item.comment || "Kein Kommentar hinterlegt."}</p></li>)}</ul>}
         </SectionShell>
 
         <SectionShell eyebrow="Favoriten" title="Aktuelle Highlights">
-          {profileData.favorites.length === 0 ? <EmptyPanel icon={FiHeart} title="Keine Favoriten" description="Bisher wurden noch keine Lieblingsprodukte gespeichert." /> : <ul className="grid gap-3">{profileData.favorites.slice(0, 6).map((item) => <li key={`favorite-${item.productSlug}`} className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4"><Link href={`/produkt/${item.productSlug}`} className="font-semibold text-white transition-colors hover:text-[#8AF5AC]">{item.name}</Link><p className="mt-1 text-sm text-[#8CA1B8]">{item.category}</p></li>)}</ul>}
+          {profileData.favorites.length === 0 ? <EmptyPanel icon={FiHeart} title="Keine Favoriten" description="Bisher wurden noch keine Lieblingsprodukte gespeichert." /> : <ul className="grid gap-3">{profileData.favorites.slice(0, 6).map((item) => <li key={`favorite-${item.productSlug}`} className="rounded-lg border border-[#2A2A2A] bg-[#1C1C1C]/88 p-4"><Link href={`/produkt/${item.productSlug}`} className="font-semibold text-white transition-colors hover:text-[#F5963C]">{item.name}</Link><p className="mt-1 text-sm text-[#9A8F83]">{item.category}</p></li>)}</ul>}
         </SectionShell>
 
         <SectionShell eyebrow="Watchlist" title="Was noch getestet werden soll">
-          {profileData.wantToTry.length === 0 ? <EmptyPanel icon={FiBookmark} title="Watchlist ist leer" description="Aktuell wurden noch keine Produkte für später gespeichert." /> : <ul className="grid gap-3">{profileData.wantToTry.slice(0, 6).map((item) => <li key={`want-${item.productSlug}`} className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4"><Link href={`/produkt/${item.productSlug}`} className="font-semibold text-white transition-colors hover:text-[#8AF5AC]">{item.name}</Link><p className="mt-1 text-sm text-[#8CA1B8]">{item.category}</p></li>)}</ul>}
+          {profileData.wantToTry.length === 0 ? <EmptyPanel icon={FiBookmark} title="Watchlist ist leer" description="Aktuell wurden noch keine Produkte für später gespeichert." /> : <ul className="grid gap-3">{profileData.wantToTry.slice(0, 6).map((item) => <li key={`want-${item.productSlug}`} className="rounded-lg border border-[#2A2A2A] bg-[#1C1C1C]/88 p-4"><Link href={`/produkt/${item.productSlug}`} className="font-semibold text-white transition-colors hover:text-[#F5963C]">{item.name}</Link><p className="mt-1 text-sm text-[#9A8F83]">{item.category}</p></li>)}</ul>}
         </SectionShell>
       </div>
 
@@ -473,17 +473,17 @@ export default function PublicProfilePage() {
                 <div
                   key={list.id}
                   id={`custom-list-${list.id}`}
-                  className="rounded-[26px] border border-[#2A394B] bg-[#111925]/88 p-5"
+                  className="rounded-lg border border-[#2A2A2A] bg-[#1C1C1C]/88 p-5"
                 >
                   <div className="flex flex-wrap items-center gap-2">
                     <h3 className="text-lg font-semibold text-white">{list.name}</h3>
-                    <span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#D6E2EF]">
+                    <span className="rounded-full border border-[#333333] bg-[#222222] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#DDD0C4]">
                       {list.itemCount} Produkte
                     </span>
                   </div>
 
                   {list.items.length === 0 ? (
-                    <p className="mt-4 rounded-[20px] border border-dashed border-[#35503D] bg-[#0F1722] px-4 py-3 text-sm text-[#AFC1D3]">
+                    <p className="mt-4 rounded-md border border-dashed border-[#5A2E08] bg-[#0F1722] px-4 py-3 text-sm text-[#A89880]">
                       Diese Liste ist aktuell noch leer.
                     </p>
                   ) : (
@@ -491,15 +491,15 @@ export default function PublicProfilePage() {
                       {list.items.slice(0, 6).map((item) => (
                         <li
                           key={`${list.id}-${item.productSlug}`}
-                          className="rounded-[20px] border border-[#2D3A4B] bg-[#101822] px-4 py-3"
+                          className="rounded-md border border-[#333333] bg-[#1C1C1C] px-4 py-3"
                         >
                           <Link
                             href={`/produkt/${item.routeSlug}`}
-                            className="font-semibold text-white transition-colors hover:text-[#8AF5AC]"
+                            className="font-semibold text-white transition-colors hover:text-[#F5963C]"
                           >
                             {item.name}
                           </Link>
-                          <p className="mt-1 text-sm text-[#8CA1B8]">{item.category}</p>
+                          <p className="mt-1 text-sm text-[#9A8F83]">{item.category}</p>
                         </li>
                       ))}
                     </ul>

@@ -91,8 +91,8 @@ export default function UsernameSetupGate() {
 
   return (
     <div className="fixed inset-0 z-[140] flex items-center justify-center bg-[#081018]/82 px-4 backdrop-blur-md">
-      <div className="w-full max-w-xl rounded-3xl border border-[#35503D] bg-[linear-gradient(180deg,#192330_0%,#111924_100%)] p-6 sm:p-8 shadow-[0_25px_80px_rgba(0,0,0,0.5)]">
-        <p className="text-xs uppercase tracking-[0.22em] text-[#8AF5AC]">Willkommen</p>
+      <div className="w-full max-w-xl rounded-xl border border-[#5A2E08] bg-[linear-gradient(180deg,#192330_0%,#111924_100%)] p-6 sm:p-8 shadow-[0_25px_80px_rgba(0,0,0,0.5)]">
+        <p className="text-xs uppercase tracking-[0.22em] text-[#F5963C]">Willkommen</p>
         <h2 className="mt-2 text-2xl font-bold text-[#F2FFF6] sm:text-3xl">
           Wähle jetzt deinen Username
         </h2>
@@ -111,10 +111,10 @@ export default function UsernameSetupGate() {
               setError(null);
             }}
             placeholder="Eindeutigen Username eingeben"
-            className="w-full rounded-xl border border-[#35503D] bg-[#0F1621] px-4 py-3 text-white outline-none transition-colors placeholder:text-[#7E91A8] focus:border-[#5EE287]"
+            className="w-full rounded-xl border border-[#5A2E08] bg-[#0F1621] px-4 py-3 text-white outline-none transition-colors placeholder:text-[#7E91A8] focus:border-[#E8750A]"
           />
 
-          <div className="flex items-center justify-between gap-3 text-xs text-[#8CA1B8]">
+          <div className="flex items-center justify-between gap-3 text-xs text-[#9A8F83]">
             <span>
               {MIN_USERNAME_LENGTH}-{MAX_USERNAME_LENGTH} Zeichen
             </span>
@@ -161,7 +161,7 @@ export default function UsernameSetupGate() {
                 setSaving(false);
               }
             }}
-            className="mt-2 w-full rounded-xl bg-[#5EE287] px-4 py-3 font-semibold text-[#0C1910] transition-colors hover:bg-[#75F39B] disabled:cursor-not-allowed disabled:opacity-60"
+            className="mt-2 w-full rounded-xl bg-[#E8750A] px-4 py-3 font-semibold text-[#1A0E04] transition-colors hover:bg-[#75F39B] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {saving ? "Speichere..." : "Username festlegen"}
           </button>

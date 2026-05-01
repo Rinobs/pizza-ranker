@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc *)",
+      "PowerShell($env:PATH -split \";\" | Where-Object { $_ -match \"github|gh\" })"
+    ]
+  }
+}

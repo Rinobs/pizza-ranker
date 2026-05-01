@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -296,24 +296,24 @@ function CollectionProductCard({
             imageBorder: "border-[#2C4F68]",
             badge: item.rating > 0
               ? "border-[#2C4F68] bg-[#112231] text-[#BDE4FF]"
-              : "border-[#344B5C] bg-[#131B24] text-[#AFC1D3]",
+              : "border-[#344B5C] bg-[#131B24] text-[#A89880]",
           }
         : {
-            card: "hover:border-[#5EE287]/25",
-            title: "hover:text-[#8AF5AC]",
-            imageBorder: "border-[#35503D]",
+            card: "hover:border-[#E8750A]/25",
+            title: "hover:text-[#F5963C]",
+            imageBorder: "border-[#5A2E08]",
             badge: item.rating > 0
-              ? "border-[#34503B] bg-[#173023] text-[#D9FFE6]"
-              : "border-[#35503D] bg-[#101B14] text-[#B8D6C0]",
+              ? "border-[#5A2E08] bg-[#291808] text-[#FFE4C8]"
+              : "border-[#5A2E08] bg-[#101B14] text-[#B8D6C0]",
           };
 
   return (
     <li
-      className={`rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-3.5 transition-all duration-300 hover:-translate-y-1 ${styles.card}`}
+      className={`rounded-lg border border-[#2A2A2A] bg-[#1C1C1C]/88 p-3.5 transition-all duration-300 hover:-translate-y-1 ${styles.card}`}
     >
       <Link href={`/produkt/${item.slug}`} className="flex items-center gap-4">
         <div
-          className={`relative h-16 w-16 shrink-0 overflow-hidden rounded-[18px] border bg-[#101822] shadow-[0_16px_30px_rgba(0,0,0,0.22)] ${styles.imageBorder}`}
+          className={`relative h-16 w-16 shrink-0 overflow-hidden rounded-md border bg-[#1C1C1C] shadow-[0_16px_30px_rgba(0,0,0,0.22)] ${styles.imageBorder}`}
         >
           <ProductCardImage
             routeSlug={item.slug}
@@ -329,7 +329,7 @@ function CollectionProductCard({
               <p className={`line-clamp-2 text-sm font-semibold text-white transition-colors ${styles.title}`}>
                 {item.name}
               </p>
-              <p className="mt-1 text-xs uppercase tracking-[0.14em] text-[#8CA1B8]">
+              <p className="mt-1 text-xs uppercase tracking-[0.14em] text-[#9A8F83]">
                 {item.category}
               </p>
             </div>
@@ -373,27 +373,27 @@ function TasteMatchCard({
     <button
       type="button"
       onClick={onToggle}
-      className="group flex h-full w-full flex-col rounded-[26px] border border-[#34506D] bg-[linear-gradient(135deg,rgba(20,33,48,0.98),rgba(15,22,33,0.94))] p-4 text-left transition-all duration-300 hover:-translate-y-1 hover:border-[#7CC8FF]/55 hover:shadow-[0_18px_40px_rgba(0,0,0,0.26)]"
+      className="group flex h-full w-full flex-col rounded-lg border border-[#34506D] bg-[linear-gradient(135deg,rgba(20,33,48,0.98),rgba(20,20,20,0.94))] p-4 text-left transition-all duration-300 hover:-translate-y-1 hover:border-[#7CC8FF]/55 hover:shadow-[0_18px_40px_rgba(0,0,0,0.26)]"
       aria-expanded={expanded}
     >
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
-          <p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">Geschmacksmatch</p>
+          <p className="text-xs uppercase tracking-[0.18em] text-[#9A8F83]">Geschmacksmatch</p>
           <p className="mt-3 text-2xl font-black tracking-tight text-white">{match.matchScore}%</p>
           <p className="mt-2 text-sm text-[#D6E5F5]">
             Bester Match mit {match.username} auf Basis von {match.overlapCount} gemeinsamen Bewertungen.
           </p>
 
-          <div className="mt-4 rounded-[20px] border border-[#28425C] bg-[#101822] p-3">
+          <div className="mt-4 rounded-md border border-[#28425C] bg-[#1C1C1C] p-3">
             <div className="flex items-center justify-between gap-3">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8CA1B8]">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#9A8F83]">
                 Gemeinsame Produkte
               </p>
               <span className="text-xs font-black tracking-[0.08em] text-[#DCEEFF]">
                 {match.overlapCount}
               </span>
             </div>
-            <div className="mt-3 flex items-center justify-between gap-3 text-sm text-[#AFC1D3]">
+            <div className="mt-3 flex items-center justify-between gap-3 text-sm text-[#A89880]">
               <span>Ø Differenz {match.averageDifference.toFixed(2)} Sterne</span>
               <span className="inline-flex items-center gap-1 font-semibold text-[#BDE4FF]">
                 {loading ? "Lädt..." : expanded ? "Produkte ausblenden" : "Produkte ansehen"}
@@ -406,7 +406,7 @@ function TasteMatchCard({
           </div>
         </div>
 
-        <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[#34506D] bg-[#132234] text-[#DCEEFF] transition-transform duration-300 group-hover:scale-105 group-hover:border-[#7CC8FF]/55">
+        <span className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-[#34506D] bg-[#132234] text-[#DCEEFF] transition-transform duration-300 group-hover:scale-105 group-hover:border-[#7CC8FF]/55">
           <FiHeart size={20} />
         </span>
       </div>
@@ -422,7 +422,7 @@ function TasteOverlapListItem({
   targetUsername: string;
 }) {
   return (
-    <li className="rounded-[22px] border border-[#2D3A4B] bg-[#101822] p-4">
+    <li className="rounded-md border border-[#333333] bg-[#1C1C1C] p-4">
       <div className="flex items-start gap-3">
         <Link
           href={`/produkt/${item.productSlug}`}
@@ -442,11 +442,11 @@ function TasteOverlapListItem({
             <div className="min-w-0">
               <Link
                 href={`/produkt/${item.productSlug}`}
-                className="line-clamp-2 text-sm font-semibold text-white transition-colors hover:text-[#8AF5AC]"
+                className="line-clamp-2 text-sm font-semibold text-white transition-colors hover:text-[#F5963C]"
               >
                 {item.name}
               </Link>
-              <p className="mt-1 text-xs uppercase tracking-[0.14em] text-[#8CA1B8]">
+              <p className="mt-1 text-xs uppercase tracking-[0.14em] text-[#9A8F83]">
                 {item.category}
               </p>
             </div>
@@ -456,10 +456,10 @@ function TasteOverlapListItem({
           </div>
 
           <div className="mt-3 flex flex-wrap gap-2">
-            <span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-xs font-semibold text-[#D6E2EF]">
+            <span className="rounded-full border border-[#333333] bg-[#222222] px-3 py-1 text-xs font-semibold text-[#DDD0C4]">
               Du {item.viewerRating.toFixed(1)}
             </span>
-            <span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-xs font-semibold text-[#D6E2EF]">
+            <span className="rounded-full border border-[#333333] bg-[#222222] px-3 py-1 text-xs font-semibold text-[#DDD0C4]">
               {targetUsername} {item.targetRating.toFixed(1)}
             </span>
           </div>
@@ -805,7 +805,7 @@ export default function ProfilPage() {
               aria-label={`${topRatedProduct.name} öffnen`}
               className="block"
             >
-              <div className="relative flex h-20 items-center justify-center overflow-hidden rounded-[22px] border border-[#243242] bg-[linear-gradient(180deg,rgba(12,18,27,0.98),rgba(16,24,34,0.96))] px-3">
+              <div className="relative flex h-20 items-center justify-center overflow-hidden rounded-md border border-[#243242] bg-[linear-gradient(180deg,rgba(12,18,27,0.98),rgba(16,24,34,0.96))] px-3">
                 {signatureProductHasImage ? (
                   <ProductCardImage
                     routeSlug={topRatedProduct.slug}
@@ -815,24 +815,24 @@ export default function ProfilPage() {
                     eager
                   />
                 ) : (
-                  <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-[#314254] bg-[#182230] text-[#B8C7D6]">
+                  <span className="inline-flex h-12 w-12 items-center justify-center rounded-lg border border-[#314254] bg-[#182230] text-[#B8C7D6]">
                     <FiCoffee size={24} />
                   </span>
                 )}
               </div>
             </Link>
           ) : (
-            <div className="flex h-20 items-center justify-center overflow-hidden rounded-[22px] border border-[#243242] bg-[linear-gradient(180deg,rgba(12,18,27,0.98),rgba(16,24,34,0.96))] px-3">
-              <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-[#314254] bg-[#182230] text-[#B8C7D6]">
+            <div className="flex h-20 items-center justify-center overflow-hidden rounded-md border border-[#243242] bg-[linear-gradient(180deg,rgba(12,18,27,0.98),rgba(16,24,34,0.96))] px-3">
+              <span className="inline-flex h-12 w-12 items-center justify-center rounded-lg border border-[#314254] bg-[#182230] text-[#B8C7D6]">
                 <FiCoffee size={24} />
               </span>
             </div>
           )
         }
-        title={topRatedProduct ? <Link href={`/produkt/${topRatedProduct.slug}`} className="block text-xl font-semibold leading-tight text-white transition-colors hover:text-[#8AF5AC]">{topRatedProduct.name}</Link> : "Noch offen"}
+        title={topRatedProduct ? <Link href={`/produkt/${topRatedProduct.slug}`} className="block text-xl font-semibold leading-tight text-white transition-colors hover:text-[#F5963C]">{topRatedProduct.name}</Link> : "Noch offen"}
         titleClassName={topRatedProduct ? undefined : "text-xl font-semibold text-white"}
         description={topRatedProduct ? "Dein aktuell bestbewerteter Pick und damit das Aushängeschild deines Profils." : "Sobald du dein erstes Produkt bewertest, landet hier automatisch dein persönliches Highlight."}
-        footer={topRatedProduct ? <div className="flex flex-wrap items-center gap-2"><span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#D6E2EF]">{topRatedProduct.category}</span><span className="rounded-full border border-[#4E4322] bg-[#2B2414] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#FFD86C]">Rating {topRatedProduct.rating.toFixed(1)}/5</span></div> : "Noch kein Signature Produkt gespeichert"}
+        footer={topRatedProduct ? <div className="flex flex-wrap items-center gap-2"><span className="rounded-full border border-[#333333] bg-[#222222] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#DDD0C4]">{topRatedProduct.category}</span><span className="rounded-full border border-[#4E4322] bg-[#2B2414] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#FFD86C]">Rating {topRatedProduct.rating.toFixed(1)}/5</span></div> : "Noch kein Signature Produkt gespeichert"}
       />
 
       <SnapshotFeatureCard
@@ -841,7 +841,7 @@ export default function ProfilPage() {
         title={friendGameData ? `#${friendGameData.viewer.rank}` : "Noch offen"}
         titleClassName={friendGameData ? "text-4xl font-black tracking-tight text-white" : "text-xl font-semibold text-white"}
         description={friendGameData ? viewerLeadsLeague ? "Du führst deine aktuelle Liga an und gibst gerade das Tempo vor." : friendGameData.closestRival ? `Nächster Rivale: ${friendGameData.closestRival.username}. Ein kleiner Push kann die Reihenfolge kippen.` : "Deine Liga füllt sich gerade. Bald entstehen hier echte Rivalitäten." : "Sobald Social-Daten geladen sind, siehst du hier deinen aktuellen Platz in der Liga."}
-        footer={friendGameData ? <div className="flex flex-wrap items-center gap-2"><span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#D6E2EF]">unter {friendGameData.viewer.totalPlayers} Profilen</span><span className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] ${viewerLeadsLeague ? "border-[#34503B] bg-[#173023] text-[#D9FFE6]" : "border-[#2D3A4B] bg-[#141C27] text-[#D6E2EF]"}`}>{viewerLeadsLeague ? "Liga-Führung" : friendGameData.closestRival ? `Rivale ${friendGameData.closestRival.username}` : "Momentum baut sich auf"}</span></div> : "Noch keine Liga-Daten verfügbar"}
+        footer={friendGameData ? <div className="flex flex-wrap items-center gap-2"><span className="rounded-full border border-[#333333] bg-[#222222] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#DDD0C4]">unter {friendGameData.viewer.totalPlayers} Profilen</span><span className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] ${viewerLeadsLeague ? "border-[#5A2E08] bg-[#291808] text-[#FFE4C8]" : "border-[#333333] bg-[#222222] text-[#DDD0C4]"}`}>{viewerLeadsLeague ? "Liga-Führung" : friendGameData.closestRival ? `Rivale ${friendGameData.closestRival.username}` : "Momentum baut sich auf"}</span></div> : "Noch keine Liga-Daten verfügbar"}
       />
 
       <SnapshotFeatureCard
@@ -850,8 +850,8 @@ export default function ProfilPage() {
         title={friendGameData?.viewer.currentLevelName ?? levelInfo.currentLevelName}
         titleClassName="text-xl font-semibold leading-tight text-white"
         description={levelInfo.nextLevelName ? `${levelInfo.pointsToNextLevel} Punkte fehlen noch bis ${levelInfo.nextLevelName}.` : "Du hast aktuell das höchste Level auf deinem Profil erreicht."}
-        support={<div><div className="flex items-center justify-between text-xs uppercase tracking-[0.16em] text-[#8CA1B8]"><span>Fortschritt</span><span>{Math.round(currentLevelProgress)}%</span></div><div className="mt-3 h-3 overflow-hidden rounded-full bg-[#0E1520]"><div className="h-full rounded-full bg-[linear-gradient(90deg,#5EE287,#7CC8FF)] transition-all duration-500" style={{ width: formatPercent(currentLevelProgress) }} /></div></div>}
-        footer={<div className="flex flex-wrap items-center gap-2"><span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#D6E2EF]">{profilePoints} Punkte gesammelt</span><span className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] ${levelInfo.nextLevelName ? "border-[#34506D] bg-[#132234] text-[#DCEEFF]" : "border-[#34503B] bg-[#173023] text-[#D9FFE6]"}`}>{levelInfo.nextLevelName ? `Nächstes Level ${levelInfo.nextLevelName}` : "Top-Level erreicht"}</span></div>}
+        support={<div><div className="flex items-center justify-between text-xs uppercase tracking-[0.16em] text-[#9A8F83]"><span>Fortschritt</span><span>{Math.round(currentLevelProgress)}%</span></div><div className="mt-3 h-3 overflow-hidden rounded-full bg-[#0E1520]"><div className="h-full rounded-full bg-[linear-gradient(90deg,#E8750A,#7CC8FF)] transition-all duration-500" style={{ width: formatPercent(currentLevelProgress) }} /></div></div>}
+        footer={<div className="flex flex-wrap items-center gap-2"><span className="rounded-full border border-[#333333] bg-[#222222] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#DDD0C4]">{profilePoints} Punkte gesammelt</span><span className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] ${levelInfo.nextLevelName ? "border-[#34506D] bg-[#132234] text-[#DCEEFF]" : "border-[#5A2E08] bg-[#291808] text-[#FFE4C8]"}`}>{levelInfo.nextLevelName ? `Nächstes Level ${levelInfo.nextLevelName}` : "Top-Level erreicht"}</span></div>}
       />
     </div>
   );
@@ -1126,7 +1126,7 @@ export default function ProfilPage() {
     return (
       <div className="mx-auto max-w-7xl px-4 pb-24 text-white sm:px-8 lg:px-12">
         <BackButton className="mb-5 sm:mb-6" />
-        <div className="rounded-[30px] border border-[#2A394B] bg-[#141C27] p-5">
+        <div className="rounded-xl border border-[#2A2A2A] bg-[#222222] p-5">
           Profil wird geladen...
         </div>
       </div>
@@ -1137,9 +1137,9 @@ export default function ProfilPage() {
     return (
       <div className="mx-auto max-w-6xl px-4 pb-24 text-white sm:px-8 lg:px-12">
         <BackButton className="mb-5 sm:mb-6" />
-        <div className="overflow-hidden rounded-[34px] border border-[#2D3A4B] bg-[radial-gradient(circle_at_top_left,rgba(94,226,135,0.18),rgba(20,28,39,0.97)_42%),linear-gradient(145deg,rgba(19,28,40,0.98),rgba(15,22,33,0.95))] p-8 shadow-[0_18px_42px_rgba(0,0,0,0.34)]">
-          <p className="text-xs uppercase tracking-[0.22em] text-[#8CA1B8]">Profil</p>
-          <h1 className="mt-3 text-3xl font-black tracking-tight text-[#F3FFF6] sm:text-4xl">
+        <div className="overflow-hidden rounded-xl border border-[#333333] bg-[radial-gradient(circle_at_top_left,rgba(232,117,10,0.18),rgba(20,20,20,0.97)_42%),linear-gradient(145deg,rgba(20,20,20,0.98),rgba(20,20,20,0.95))] p-8 shadow-[0_18px_42px_rgba(0,0,0,0.34)]">
+          <p className="text-xs uppercase tracking-[0.22em] text-[#9A8F83]">Profil</p>
+          <h1 className="mt-3 text-3xl font-black tracking-tight text-[#FFF0E4] sm:text-4xl">
             Dein FoodRanker Profil
           </h1>
           <p className="mt-4 max-w-2xl text-base text-[#C7D5E4]">
@@ -1147,7 +1147,7 @@ export default function ProfilPage() {
           </p>
           <Link
             href="/"
-            className="mt-6 inline-flex items-center rounded-2xl border border-[#5EE287] bg-[#173023] px-5 py-3 font-semibold text-[#D9FFE6] transition-colors hover:bg-[#21402E]"
+            className="mt-6 inline-flex items-center rounded-lg border border-[#E8750A] bg-[#291808] px-5 py-3 font-semibold text-[#FFE4C8] transition-colors hover:bg-[#21402E]"
           >
             Zur Startseite
           </Link>
@@ -1174,7 +1174,7 @@ export default function ProfilPage() {
         }}
       />
 
-      <section className="relative overflow-hidden rounded-[38px] border border-[#2E4154] bg-[radial-gradient(circle_at_top_left,rgba(94,226,135,0.20),rgba(16,24,36,0.98)_40%),radial-gradient(circle_at_bottom_right,rgba(104,180,255,0.14),transparent_42%),linear-gradient(145deg,rgba(21,31,44,0.99),rgba(14,20,31,0.96))] p-6 shadow-[0_26px_70px_rgba(0,0,0,0.36)] sm:p-8 lg:p-10">
+      <section className="relative overflow-hidden rounded-xl border border-[#333333] bg-[radial-gradient(circle_at_top_left,rgba(232,117,10,0.20),rgba(20,20,20,0.98)_40%),radial-gradient(circle_at_bottom_right,rgba(104,180,255,0.14),transparent_42%),linear-gradient(145deg,rgba(20,20,20,0.99),rgba(14,14,14,0.96))] p-6 shadow-[0_26px_70px_rgba(0,0,0,0.36)] sm:p-8 lg:p-10">
         <div className="relative flex flex-col gap-8 xl:flex-row xl:items-end xl:justify-between">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-center">
             <div className="space-y-3">
@@ -1194,7 +1194,7 @@ export default function ProfilPage() {
                     setIsAvatarMenuOpen(false);
                     avatarInputRef.current?.click();
                   }}
-                  className="inline-flex min-h-11 items-center gap-2 rounded-2xl border border-[#2D3A4B] bg-[#111925]/90 px-4 py-2 text-sm font-semibold text-white transition-all duration-300 hover:border-[#5EE287] disabled:cursor-not-allowed disabled:opacity-50"
+                  className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-[#333333] bg-[#1C1C1C]/90 px-4 py-2 text-sm font-semibold text-white transition-all duration-300 hover:border-[#E8750A] disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <FiUploadCloud size={16} />
                   {uploadingAvatar ? "Lade Bild..." : avatarUrl ? "Bild ändern" : "Bild hochladen"}
@@ -1210,7 +1210,7 @@ export default function ProfilPage() {
                       onClick={() => {
                         setIsAvatarMenuOpen((current) => !current);
                       }}
-                      className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[#2D3A4B] bg-[#111925]/90 text-[#D3DFEB] transition-all duration-300 hover:border-[#5EE287] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                      className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-[#333333] bg-[#1C1C1C]/90 text-[#D3DFEB] transition-all duration-300 hover:border-[#E8750A] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <span className="sr-only">Profilbildoptionen öffnen</span>
                       <span className="flex flex-col items-center gap-0.5">
@@ -1221,7 +1221,7 @@ export default function ProfilPage() {
                     </button>
 
                     {isAvatarMenuOpen && (
-                      <div className="absolute left-0 top-12 z-20 min-w-[190px] rounded-2xl border border-[#2D3A4B] bg-[#0F1722] p-2 shadow-[0_18px_42px_rgba(0,0,0,0.38)]">
+                      <div className="absolute left-0 top-12 z-20 min-w-[190px] rounded-lg border border-[#333333] bg-[#0F1722] p-2 shadow-[0_18px_42px_rgba(0,0,0,0.38)]">
                         <button
                           type="button"
                           className="flex w-full items-center rounded-xl px-3 py-2 text-left text-sm font-semibold text-red-200 transition-colors hover:bg-[#2A1111] disabled:cursor-not-allowed disabled:opacity-60"
@@ -1241,7 +1241,7 @@ export default function ProfilPage() {
 
             <div className="max-w-3xl">
               <p className="text-xs uppercase tracking-[0.24em] text-[#9CC9AE]">Mein Food Profil</p>
-              <h1 className="mt-3 text-4xl font-black tracking-tight text-[#F3FFF6] sm:text-5xl">
+              <h1 className="mt-3 text-4xl font-black tracking-tight text-[#FFF0E4] sm:text-5xl">
                 {hasUsername ? username : "Gestalte dein Profil"}
               </h1>
               <p className="mt-4 max-w-2xl text-base leading-relaxed text-[#C9D8E7] sm:text-lg">
@@ -1252,10 +1252,10 @@ export default function ProfilPage() {
                     : "Lege zuerst deinen festen Username fest. Danach kannst du Bio, Profilbild und deine komplette Food-Identity ausbauen."}
               </p>
               <div className="mt-5 flex flex-wrap gap-2.5">
-                <span className="inline-flex items-center gap-2 rounded-full border border-[#34503B] bg-[#173023] px-4 py-2 text-sm font-semibold text-[#D9FFE6]"><FiZap size={15} />{profilePoints} Punkte</span>
-                <span className="inline-flex items-center gap-2 rounded-full border border-[#2D3A4B] bg-[#111925]/90 px-4 py-2 text-sm font-semibold text-[#D6E2EF]"><FiAward size={15} />{friendGameData?.viewer.currentLevelName ?? levelInfo.currentLevelName}</span>
-                <span className="inline-flex items-center gap-2 rounded-full border border-[#2D3A4B] bg-[#111925]/90 px-4 py-2 text-sm font-semibold text-[#D6E2EF]"><FiCheckCircle size={15} />{profileCompletion.percent}% komplett</span>
-                <span className="inline-flex items-center gap-2 rounded-full border border-[#2D3A4B] bg-[#111925]/90 px-4 py-2 text-sm font-semibold text-[#D6E2EF]"><FiUsers size={15} />{friendGameData?.network.mutualFriendsCount ?? 0} Food-Friends</span>
+                <span className="inline-flex items-center gap-2 rounded-full border border-[#5A2E08] bg-[#291808] px-4 py-2 text-sm font-semibold text-[#FFE4C8]"><FiZap size={15} />{profilePoints} Punkte</span>
+                <span className="inline-flex items-center gap-2 rounded-full border border-[#333333] bg-[#1C1C1C]/90 px-4 py-2 text-sm font-semibold text-[#DDD0C4]"><FiAward size={15} />{friendGameData?.viewer.currentLevelName ?? levelInfo.currentLevelName}</span>
+                <span className="inline-flex items-center gap-2 rounded-full border border-[#333333] bg-[#1C1C1C]/90 px-4 py-2 text-sm font-semibold text-[#DDD0C4]"><FiCheckCircle size={15} />{profileCompletion.percent}% komplett</span>
+                <span className="inline-flex items-center gap-2 rounded-full border border-[#333333] bg-[#1C1C1C]/90 px-4 py-2 text-sm font-semibold text-[#DDD0C4]"><FiUsers size={15} />{friendGameData?.network.mutualFriendsCount ?? 0} Food-Friends</span>
               </div>
             </div>
           </div>
@@ -1270,7 +1270,7 @@ export default function ProfilPage() {
       </section>
 
       {(profileNotice || profileError) && (
-        <div className={`mt-6 rounded-[24px] border px-4 py-3 text-sm ${profileError ? "border-[#6A3434] bg-[#2A1313] text-red-100" : profileNotice?.tone === "success" ? "border-[#2D5B41] bg-[#173023] text-[#D9FFE6]" : "border-[#41586F] bg-[#122233] text-[#DCEEFF]"}`}>
+        <div className={`mt-6 rounded-lg border px-4 py-3 text-sm ${profileError ? "border-[#6A3434] bg-[#2A1313] text-red-100" : profileNotice?.tone === "success" ? "border-[#333333] bg-[#291808] text-[#FFE4C8]" : "border-[#41586F] bg-[#122233] text-[#DCEEFF]"}`}>
           {profileError || profileNotice?.text}
         </div>
       )}
@@ -1303,7 +1303,7 @@ export default function ProfilPage() {
 
       <div className="mt-8 space-y-6">
         {activeTab === "overview" && (
-          <SectionShell eyebrow="Profil" title="Dein Snapshot" description="Hier landet nur das, was dein Profil nach außen ausmacht: Lieblingsprodukt, Liga-Momentum und dein aktuelles Level." action={<button type="button" onClick={() => setActiveTab("settings")} className="inline-flex min-h-11 items-center gap-2 rounded-2xl border border-[#2D3A4B] bg-[#141C27] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:border-[#5EE287] hover:text-[#E8FFF0]"><FiEdit3 size={15} />Profil bearbeiten</button>}>
+          <SectionShell eyebrow="Profil" title="Dein Snapshot" description="Hier landet nur das, was dein Profil nach außen ausmacht: Lieblingsprodukt, Liga-Momentum und dein aktuelles Level." action={<button type="button" onClick={() => setActiveTab("settings")} className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-[#333333] bg-[#222222] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:border-[#E8750A] hover:text-[#FFE4C8]"><FiEdit3 size={15} />Profil bearbeiten</button>}>
             {profileSnapshotCards}
           </SectionShell>
         )}
@@ -1320,7 +1320,7 @@ export default function ProfilPage() {
         )}
 
         {activeTab === "badges" && (
-          <SectionShell eyebrow="Badges" title="Freigeschaltete Profil-Vibes" description="Mehr Aktivität und ein rundes Profil schalten automatisch neue kleine Status-Momente frei." action={<span className="inline-flex rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#D6E2EF]">{unlockedBadgeCount}/{profileBadges.length} offen</span>}>
+          <SectionShell eyebrow="Badges" title="Freigeschaltete Profil-Vibes" description="Mehr Aktivität und ein rundes Profil schalten automatisch neue kleine Status-Momente frei." action={<span className="inline-flex rounded-full border border-[#333333] bg-[#222222] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#DDD0C4]">{unlockedBadgeCount}/{profileBadges.length} offen</span>}>
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               {profileBadges.map((badge) => (
                 <BadgeCard key={badge.id} badge={badge} />
@@ -1333,10 +1333,10 @@ export default function ProfilPage() {
           <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
             <SectionShell eyebrow="Profil Setup" title="Dein Auftritt" description="Username, Bio und Look bearbeitest du jetzt gesammelt in deinem eigenen Einstellungsbereich.">
               <div className="grid gap-5 lg:grid-cols-2">
-                <div className="rounded-[26px] border border-[#2A394B] bg-[#111925]/88 p-4">
-                  <p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">Username</p>
+                <div className="rounded-lg border border-[#2A2A2A] bg-[#1C1C1C]/88 p-4">
+                  <p className="text-xs uppercase tracking-[0.18em] text-[#9A8F83]">Username</p>
                   {hasUsername ? (
-                    <div className="mt-3 rounded-[22px] border border-[#35503D] bg-[linear-gradient(135deg,rgba(94,226,135,0.12),rgba(15,22,33,0.95))] px-4 py-4">
+                    <div className="mt-3 rounded-md border border-[#5A2E08] bg-[linear-gradient(135deg,rgba(232,117,10,0.12),rgba(20,20,20,0.95))] px-4 py-4">
                       <p className="text-sm font-semibold text-white">{username}</p>
                       <p className="mt-2 text-sm text-[#BFE7CC]">Dein Username ist fest gespeichert und bereit für die Freundes-Suche.</p>
                     </div>
@@ -1352,7 +1352,7 @@ export default function ProfilPage() {
                             setProfileNotice(null);
                           }}
                           placeholder="Eindeutigen Username eingeben"
-                          className="w-full rounded-2xl border border-[#2D3A4B] bg-[#0F1621] px-4 py-3 text-white outline-none transition-colors placeholder:text-[#7F93A8] focus:border-[#5EE287]"
+                          className="w-full rounded-lg border border-[#333333] bg-[#0F1621] px-4 py-3 text-white outline-none transition-colors placeholder:text-[#7F93A8] focus:border-[#E8750A]"
                         />
                         <button
                           type="button"
@@ -1363,7 +1363,7 @@ export default function ProfilPage() {
                               setProfileNotice({ tone: "success", text: "Username erfolgreich gespeichert." });
                             }
                           }}
-                          className="inline-flex min-h-11 items-center rounded-2xl bg-[#5EE287] px-5 py-3 font-semibold text-[#0C1910] transition-colors hover:bg-[#79F29C] disabled:cursor-not-allowed disabled:opacity-60"
+                          className="inline-flex min-h-11 items-center rounded-lg bg-[#E8750A] px-5 py-3 font-semibold text-[#1A0E04] transition-colors hover:bg-[#F5963C] disabled:cursor-not-allowed disabled:opacity-60"
                         >
                           {savingUsername ? "Speichere..." : "Username festlegen"}
                         </button>
@@ -1373,16 +1373,16 @@ export default function ProfilPage() {
                   )}
                 </div>
 
-                <div className="rounded-[26px] border border-[#2A394B] bg-[#111925]/88 p-4">
+                <div className="rounded-lg border border-[#2A2A2A] bg-[#1C1C1C]/88 p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">Bio</p>
+                      <p className="text-xs uppercase tracking-[0.18em] text-[#9A8F83]">Bio</p>
                       <p className="mt-2 text-sm text-[#9EB0C3]">Zeig in zwei Sätzen, was deinen Geschmack ausmacht.</p>
                     </div>
-                    <span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-xs font-semibold text-[#D6E2EF]">{bioInput.length}/{profileLimits.bioMax}</span>
+                    <span className="rounded-full border border-[#333333] bg-[#222222] px-3 py-1 text-xs font-semibold text-[#DDD0C4]">{bioInput.length}/{profileLimits.bioMax}</span>
                   </div>
 
-                  {!supportsProfileDetails && <p className="mt-4 rounded-2xl border border-[#41586F] bg-[#122233] px-4 py-3 text-sm text-[#DCEEFF]">Bio und Profilbild werden aktiv, sobald die neuen Profilspalten in Supabase eingespielt sind.</p>}
+                  {!supportsProfileDetails && <p className="mt-4 rounded-lg border border-[#41586F] bg-[#122233] px-4 py-3 text-sm text-[#DCEEFF]">Bio und Profilbild werden aktiv, sobald die neuen Profilspalten in Supabase eingespielt sind.</p>}
 
                   <textarea
                     value={bioInput}
@@ -1393,7 +1393,7 @@ export default function ProfilPage() {
                     }}
                     disabled={!supportsProfileDetails || !hasUsername}
                     placeholder={hasUsername ? "Zum Beispiel: Crunchy Fan, Vanille first, Kommentare immer ehrlich." : "Lege zuerst deinen Username fest, dann kannst du deine Bio speichern."}
-                    className="mt-4 min-h-32 w-full rounded-[22px] border border-[#2D3A4B] bg-[#0F1621] px-4 py-3 text-white outline-none transition-colors placeholder:text-[#7F93A8] focus:border-[#5EE287] disabled:cursor-not-allowed disabled:opacity-60"
+                    className="mt-4 min-h-32 w-full rounded-md border border-[#333333] bg-[#0F1621] px-4 py-3 text-white outline-none transition-colors placeholder:text-[#7F93A8] focus:border-[#E8750A] disabled:cursor-not-allowed disabled:opacity-60"
                   />
 
                   <div className="mt-4 flex flex-wrap gap-3">
@@ -1403,7 +1403,7 @@ export default function ProfilPage() {
                       onClick={() => {
                         void handleSaveBio();
                       }}
-                      className="inline-flex min-h-11 items-center gap-2 rounded-2xl bg-[#5EE287] px-5 py-3 font-semibold text-[#0C1910] transition-colors hover:bg-[#79F29C] disabled:cursor-not-allowed disabled:opacity-50"
+                      className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-[#E8750A] px-5 py-3 font-semibold text-[#1A0E04] transition-colors hover:bg-[#F5963C] disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <FiEdit3 size={16} />
                       {savingProfileDetails ? "Speichere..." : "Bio speichern"}
@@ -1412,7 +1412,7 @@ export default function ProfilPage() {
                       type="button"
                       disabled={!supportsProfileDetails || !hasUsername || savingProfileDetails}
                       onClick={() => setBioInput(bio)}
-                      className="inline-flex min-h-11 items-center gap-2 rounded-2xl border border-[#2D3A4B] bg-[#141C27] px-5 py-3 font-semibold text-white transition-colors hover:border-[#5EE287] disabled:cursor-not-allowed disabled:opacity-50"
+                      className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-[#333333] bg-[#222222] px-5 py-3 font-semibold text-white transition-colors hover:border-[#E8750A] disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <FiClock size={16} />
                       Zurücksetzen
@@ -1423,21 +1423,21 @@ export default function ProfilPage() {
             </SectionShell>
 
             <SectionShell eyebrow="Completion" title="Profil Fortschritt" description="Fortschritt und Profilpflege bleiben sichtbar, aber bewusst außerhalb deiner Hauptansicht.">
-              <div className="rounded-[26px] border border-[#2A394B] bg-[#111925]/88 p-5">
+              <div className="rounded-lg border border-[#2A2A2A] bg-[#1C1C1C]/88 p-5">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                   <div>
                     <p className="text-4xl font-black tracking-tight text-white">{profileCompletion.percent}%</p>
                     <p className="mt-2 text-sm text-[#9EB0C3]">{profileCompletion.completedCount} von {profileCompletion.totalCount} Profil-Meilensteinen erledigt.</p>
                   </div>
-                  <div className="rounded-[22px] border border-[#2D3A4B] bg-[#141C27] px-4 py-3">
-                    <p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">Level Fortschritt</p>
+                  <div className="rounded-md border border-[#333333] bg-[#222222] px-4 py-3">
+                    <p className="text-xs uppercase tracking-[0.18em] text-[#9A8F83]">Level Fortschritt</p>
                     <p className="mt-2 text-sm font-semibold text-white">{friendGameData?.viewer.currentLevelName ?? levelInfo.currentLevelName}</p>
-                    <p className="mt-1 text-xs text-[#AFC1D3]">{levelInfo.nextLevelName ? `${levelInfo.pointsToNextLevel} Punkte bis ${levelInfo.nextLevelName}` : "Maximales Level erreicht"}</p>
+                    <p className="mt-1 text-xs text-[#A89880]">{levelInfo.nextLevelName ? `${levelInfo.pointsToNextLevel} Punkte bis ${levelInfo.nextLevelName}` : "Maximales Level erreicht"}</p>
                   </div>
                 </div>
 
                 <div className="mt-5 h-3 overflow-hidden rounded-full bg-[#0E1520]">
-                  <div className="h-full rounded-full bg-[linear-gradient(90deg,#5EE287,#8BC9FF)] transition-all duration-500" style={{ width: formatPercent(profileCompletion.percent) }} />
+                  <div className="h-full rounded-full bg-[linear-gradient(90deg,#E8750A,#8BC9FF)] transition-all duration-500" style={{ width: formatPercent(profileCompletion.percent) }} />
                 </div>
 
                 <div className="mt-5 grid gap-3 sm:grid-cols-2">
@@ -1454,18 +1454,18 @@ export default function ProfilPage() {
           <>
             <div className="grid gap-6 xl:grid-cols-[1.02fr_0.98fr]">
               <SectionShell eyebrow="People" title="Profile suchen und vernetzen" description="Finde andere User, folge ihnen und baue dir eine kleine Food-Crew auf.">
-                <form onSubmit={(event) => { event.preventDefault(); void handleSearchProfiles(); }} className="rounded-[26px] border border-[#2A394B] bg-[#111925]/88 p-4">
+                <form onSubmit={(event) => { event.preventDefault(); void handleSearchProfiles(); }} className="rounded-lg border border-[#2A2A2A] bg-[#1C1C1C]/88 p-4">
                   <div className="flex flex-col gap-3 sm:flex-row">
-                    <div className="flex min-h-12 flex-1 items-center gap-3 rounded-2xl border border-[#2D3A4B] bg-[#0F1621] px-4 py-3 focus-within:border-[#5EE287] transition-colors"><FiSearch className="text-[#8CA1B8]" /><input type="text" value={profileSearchQuery} onChange={(event) => { setProfileSearchQuery(event.target.value); setProfileSearchError(null); }} placeholder="Username suchen" className="w-full bg-transparent text-white outline-none placeholder:text-[#7F93A8]" /></div>
-                    <button type="submit" disabled={searchingProfiles} className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-[#5EE287] px-5 py-3 font-semibold text-[#0C1910] transition-colors hover:bg-[#79F29C] disabled:cursor-not-allowed disabled:opacity-60">{searchingProfiles ? "Suche..." : "Suchen"}</button>
+                    <div className="flex min-h-12 flex-1 items-center gap-3 rounded-lg border border-[#333333] bg-[#0F1621] px-4 py-3 focus-within:border-[#E8750A] transition-colors"><FiSearch className="text-[#9A8F83]" /><input type="text" value={profileSearchQuery} onChange={(event) => { setProfileSearchQuery(event.target.value); setProfileSearchError(null); }} placeholder="Username suchen" className="w-full bg-transparent text-white outline-none placeholder:text-[#7F93A8]" /></div>
+                    <button type="submit" disabled={searchingProfiles} className="inline-flex min-h-12 items-center justify-center rounded-lg bg-[#E8750A] px-5 py-3 font-semibold text-[#1A0E04] transition-colors hover:bg-[#F5963C] disabled:cursor-not-allowed disabled:opacity-60">{searchingProfiles ? "Suche..." : "Suchen"}</button>
                   </div>
                   <p className="mt-3 text-sm text-[#9EB0C3]">Suche nach Usernames, folge spannenden Profilen und bring deine Liga in Bewegung.</p>
                   {profileSearchError && <p className="mt-3 text-sm text-red-200">{profileSearchError}</p>}
-                  {followMessage && <p className="mt-3 text-sm text-[#8AF5AC]">{followMessage}</p>}
+                  {followMessage && <p className="mt-3 text-sm text-[#F5963C]">{followMessage}</p>}
                 </form>
 
                 <div className="mt-5">
-                  {searchingProfiles && <div className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4 text-sm text-[#9EB0C3]">Suche läuft...</div>}
+                  {searchingProfiles && <div className="rounded-lg border border-[#2A2A2A] bg-[#1C1C1C]/88 p-4 text-sm text-[#9EB0C3]">Suche läuft...</div>}
                   {!searchingProfiles && profileSearchResults.length > 0 && (
                     <ul className="grid gap-3">
                       {profileSearchResults.map((entry) => (
@@ -1474,7 +1474,7 @@ export default function ProfilPage() {
                           username={entry.username}
                           href={`/profil/${entry.userId}`}
                           subtitle={entry.isFollowing ? "Schon in deiner Food-Crew" : "Noch nicht vernetzt"}
-                          action={<button type="button" disabled={followMutationUserId === entry.userId} onClick={() => { void handleToggleFollow(entry.userId, !entry.isFollowing, entry.username); }} className={`rounded-2xl border px-4 py-2 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${entry.isFollowing ? "border-[#2D3A4B] bg-[#141C27] text-white hover:border-red-300" : "border-[#5EE287] bg-[#5EE287] text-[#0C1910] hover:bg-[#79F29C]"}`}>{followMutationUserId === entry.userId ? "Speichere..." : entry.isFollowing ? "Entfolgen" : "Folgen"}</button>}
+                          action={<button type="button" disabled={followMutationUserId === entry.userId} onClick={() => { void handleToggleFollow(entry.userId, !entry.isFollowing, entry.username); }} className={`rounded-lg border px-4 py-2 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${entry.isFollowing ? "border-[#333333] bg-[#222222] text-white hover:border-red-300" : "border-[#E8750A] bg-[#E8750A] text-[#1A0E04] hover:bg-[#F5963C]"}`}>{followMutationUserId === entry.userId ? "Speichere..." : entry.isFollowing ? "Entfolgen" : "Folgen"}</button>}
                         />
                       ))}
                     </ul>
@@ -1485,22 +1485,22 @@ export default function ProfilPage() {
 
               <SectionShell eyebrow="Netzwerk" title="Follower und Following" description="Öffne gezielt deine Listen und springe schnell in fremde Profile hinein.">
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <button type="button" onClick={() => setOpenFollowList((prev) => prev === "following" ? null : "following")} className="rounded-[26px] border border-[#2A394B] bg-[#111925]/88 p-5 text-left transition-all duration-300 hover:-translate-y-1 hover:border-[#5EE287]/25"><p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">Ich folge</p><p className="mt-3 text-3xl font-black tracking-tight text-white">{followingCount}</p><p className="mt-2 text-sm text-[#AFC1D3]">Tippe, um deine Following-Liste ein- oder auszublenden.</p></button>
-                  <button type="button" onClick={() => setOpenFollowList((prev) => prev === "followers" ? null : "followers")} className="rounded-[26px] border border-[#2A394B] bg-[#111925]/88 p-5 text-left transition-all duration-300 hover:-translate-y-1 hover:border-[#5EE287]/25"><p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">Follower</p><p className="mt-3 text-3xl font-black tracking-tight text-white">{followersCount}</p><p className="mt-2 text-sm text-[#AFC1D3]">So viele Leute verfolgen bereits deine Food-Meinungen.</p></button>
+                  <button type="button" onClick={() => setOpenFollowList((prev) => prev === "following" ? null : "following")} className="rounded-lg border border-[#2A2A2A] bg-[#1C1C1C]/88 p-5 text-left transition-all duration-300 hover:-translate-y-1 hover:border-[#E8750A]/25"><p className="text-xs uppercase tracking-[0.18em] text-[#9A8F83]">Ich folge</p><p className="mt-3 text-3xl font-black tracking-tight text-white">{followingCount}</p><p className="mt-2 text-sm text-[#A89880]">Tippe, um deine Following-Liste ein- oder auszublenden.</p></button>
+                  <button type="button" onClick={() => setOpenFollowList((prev) => prev === "followers" ? null : "followers")} className="rounded-lg border border-[#2A2A2A] bg-[#1C1C1C]/88 p-5 text-left transition-all duration-300 hover:-translate-y-1 hover:border-[#E8750A]/25"><p className="text-xs uppercase tracking-[0.18em] text-[#9A8F83]">Follower</p><p className="mt-3 text-3xl font-black tracking-tight text-white">{followersCount}</p><p className="mt-2 text-sm text-[#A89880]">So viele Leute verfolgen bereits deine Food-Meinungen.</p></button>
                 </div>
 
                 <div className="mt-5">
-                  {!followsLoaded && <div className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4 text-sm text-[#9EB0C3]">Netzwerk wird geladen...</div>}
+                  {!followsLoaded && <div className="rounded-lg border border-[#2A2A2A] bg-[#1C1C1C]/88 p-4 text-sm text-[#9EB0C3]">Netzwerk wird geladen...</div>}
                   {followsLoaded && openFollowList === null && <EmptyPanel icon={FiUsers} title="Wähle eine Liste" description="Mit einem Klick auf die Karten oben öffnest du entweder die Profile, denen du folgst, oder deine Follower." />}
-                  {followsLoaded && openFollowList === "following" && (followingCount === 0 ? <EmptyPanel icon={FiUsers} title="Noch niemand in deiner Crew" description="Suche oben nach Profilen, um deine erste kleine Food-Crew aufzubauen." /> : <ul className="grid gap-3">{followingProfiles.map((entry) => <PersonListItem key={`following-${entry.userId}`} username={entry.username} href={`/profil/${entry.userId}`} subtitle="Du folgst diesem Profil" action={<button type="button" disabled={followMutationUserId === entry.userId} onClick={() => { void handleToggleFollow(entry.userId, false, entry.username); }} className="rounded-2xl border border-[#2D3A4B] bg-[#141C27] px-4 py-2 text-sm font-semibold text-white transition-colors hover:border-red-300 disabled:cursor-not-allowed disabled:opacity-60">{followMutationUserId === entry.userId ? "Speichere..." : "Entfolgen"}</button>} />)}</ul>)}
-                  {followsLoaded && openFollowList === "followers" && (followersCount === 0 ? <EmptyPanel icon={FiUsers} title="Noch keine Follower" description="Mit mehr Bewertungen, Kommentaren und einem schönen Profil wächst deine Reichweite fast automatisch." /> : <ul className="grid gap-3">{followerProfiles.map((entry) => <PersonListItem key={`follower-${entry.userId}`} username={entry.username} href={`/profil/${entry.userId}`} subtitle={entry.isFollowing ? "Ihr seid bereits verbunden" : "Folgt dir schon"} action={<button type="button" disabled={followMutationUserId === entry.userId} onClick={() => { void handleToggleFollow(entry.userId, !entry.isFollowing, entry.username); }} className={`rounded-2xl border px-4 py-2 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${entry.isFollowing ? "border-[#2D3A4B] bg-[#141C27] text-white hover:border-red-300" : "border-[#5EE287] bg-[#5EE287] text-[#0C1910] hover:bg-[#79F29C]"}`}>{followMutationUserId === entry.userId ? "Speichere..." : entry.isFollowing ? "Entfolgen" : "Zurückfolgen"}</button>} />)}</ul>)}
+                  {followsLoaded && openFollowList === "following" && (followingCount === 0 ? <EmptyPanel icon={FiUsers} title="Noch niemand in deiner Crew" description="Suche oben nach Profilen, um deine erste kleine Food-Crew aufzubauen." /> : <ul className="grid gap-3">{followingProfiles.map((entry) => <PersonListItem key={`following-${entry.userId}`} username={entry.username} href={`/profil/${entry.userId}`} subtitle="Du folgst diesem Profil" action={<button type="button" disabled={followMutationUserId === entry.userId} onClick={() => { void handleToggleFollow(entry.userId, false, entry.username); }} className="rounded-lg border border-[#333333] bg-[#222222] px-4 py-2 text-sm font-semibold text-white transition-colors hover:border-red-300 disabled:cursor-not-allowed disabled:opacity-60">{followMutationUserId === entry.userId ? "Speichere..." : "Entfolgen"}</button>} />)}</ul>)}
+                  {followsLoaded && openFollowList === "followers" && (followersCount === 0 ? <EmptyPanel icon={FiUsers} title="Noch keine Follower" description="Mit mehr Bewertungen, Kommentaren und einem schönen Profil wächst deine Reichweite fast automatisch." /> : <ul className="grid gap-3">{followerProfiles.map((entry) => <PersonListItem key={`follower-${entry.userId}`} username={entry.username} href={`/profil/${entry.userId}`} subtitle={entry.isFollowing ? "Ihr seid bereits verbunden" : "Folgt dir schon"} action={<button type="button" disabled={followMutationUserId === entry.userId} onClick={() => { void handleToggleFollow(entry.userId, !entry.isFollowing, entry.username); }} className={`rounded-lg border px-4 py-2 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${entry.isFollowing ? "border-[#333333] bg-[#222222] text-white hover:border-red-300" : "border-[#E8750A] bg-[#E8750A] text-[#1A0E04] hover:bg-[#F5963C]"}`}>{followMutationUserId === entry.userId ? "Speichere..." : entry.isFollowing ? "Entfolgen" : "Zurückfolgen"}</button>} />)}</ul>)}
                 </div>
               </SectionShell>
             </div>
 
-            <SectionShell eyebrow="Freundesliga" title="Deine Social-Gamification" description="Rang, Level, Geschmacksmatch und Liga-Tabelle machen dein Profil lebendiger." action={friendGameData ? <span className="inline-flex rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#D6E2EF]">{friendGameData.network.comparedAsFriends ? `${friendGameData.network.mutualFriendsCount} Food-Friends` : `${friendGameData.network.followingCount} verglichene Profile`}</span> : null}>
-              {!friendGameLoaded && <div className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4 text-sm text-[#9EB0C3]">Freundesliga wird geladen...</div>}
-              {friendGameLoaded && friendGameError && <div className="rounded-[24px] border border-[#6A3434] bg-[#2A1313] p-4 text-sm text-red-100">{friendGameError}</div>}
+            <SectionShell eyebrow="Freundesliga" title="Deine Social-Gamification" description="Rang, Level, Geschmacksmatch und Liga-Tabelle machen dein Profil lebendiger." action={friendGameData ? <span className="inline-flex rounded-full border border-[#333333] bg-[#222222] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#DDD0C4]">{friendGameData.network.comparedAsFriends ? `${friendGameData.network.mutualFriendsCount} Food-Friends` : `${friendGameData.network.followingCount} verglichene Profile`}</span> : null}>
+              {!friendGameLoaded && <div className="rounded-lg border border-[#2A2A2A] bg-[#1C1C1C]/88 p-4 text-sm text-[#9EB0C3]">Freundesliga wird geladen...</div>}
+              {friendGameLoaded && friendGameError && <div className="rounded-lg border border-[#6A3434] bg-[#2A1313] p-4 text-sm text-red-100">{friendGameError}</div>}
               {friendGameLoaded && !friendGameError && friendGameData && (
                 <>
                   <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
@@ -1533,14 +1533,14 @@ export default function ProfilPage() {
                   </div>
 
                   {tasteMatchExpanded && friendGameData.tasteMatch && (
-                    <div className="mt-6 rounded-[28px] border border-[#34506D] bg-[linear-gradient(145deg,rgba(18,28,40,0.98),rgba(14,20,31,0.96))] p-5 shadow-[0_20px_46px_rgba(0,0,0,0.28)]">
+                    <div className="mt-6 rounded-lg border border-[#34506D] bg-[linear-gradient(145deg,rgba(18,28,40,0.98),rgba(14,14,14,0.96))] p-5 shadow-[0_20px_46px_rgba(0,0,0,0.28)]">
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                         <div>
-                          <p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">Gemeinsam bewertet</p>
+                          <p className="text-xs uppercase tracking-[0.18em] text-[#9A8F83]">Gemeinsam bewertet</p>
                           <h3 className="mt-2 text-lg font-semibold text-white">
                             Du und {friendGameData.tasteMatch.username} im Direktvergleich
                           </h3>
-                          <p className="mt-1 text-sm text-[#AFC1D3]">
+                          <p className="mt-1 text-sm text-[#A89880]">
                             Alle Produkte, die ihr beide bewertet habt. Sortiert nach Nähe eurer Einschätzung.
                           </p>
                         </div>
@@ -1550,20 +1550,20 @@ export default function ProfilPage() {
                       </div>
 
                       {tasteMatchDetailLoading && (
-                        <div className="mt-5 rounded-[22px] border border-[#2A394B] bg-[#111925]/88 p-4 text-sm text-[#9EB0C3]">
+                        <div className="mt-5 rounded-md border border-[#2A2A2A] bg-[#1C1C1C]/88 p-4 text-sm text-[#9EB0C3]">
                           Gemeinsame Produkte werden geladen...
                         </div>
                       )}
 
                       {!tasteMatchDetailLoading && tasteMatchDetailError && (
-                        <div className="mt-5 rounded-[22px] border border-[#6A3434] bg-[#2A1313] p-4 text-sm text-red-100">
+                        <div className="mt-5 rounded-md border border-[#6A3434] bg-[#2A1313] p-4 text-sm text-red-100">
                           <p>{tasteMatchDetailError}</p>
                           <button
                             type="button"
                             onClick={() => {
                               void loadTasteMatchDetail(friendGameData.tasteMatch!.userId);
                             }}
-                            className="mt-3 inline-flex min-h-10 items-center rounded-2xl border border-[#34506D] bg-[#132234] px-4 py-2 font-semibold text-[#DCEEFF] transition-colors hover:border-[#7CC8FF]"
+                            className="mt-3 inline-flex min-h-10 items-center rounded-lg border border-[#34506D] bg-[#132234] px-4 py-2 font-semibold text-[#DCEEFF] transition-colors hover:border-[#7CC8FF]"
                           >
                             Erneut laden
                           </button>
@@ -1576,7 +1576,7 @@ export default function ProfilPage() {
                             <span className="rounded-full border border-[#34506D] bg-[#132234] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#DCEEFF]">
                               Match {tasteMatchDetailData.comparison.matchScore}%
                             </span>
-                            <span className="rounded-full border border-[#34503B] bg-[#173023] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#D9FFE6]">
+                            <span className="rounded-full border border-[#5A2E08] bg-[#291808] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#FFE4C8]">
                               Ø Differenz {tasteMatchDetailData.comparison.averageDifference.toFixed(2)}
                             </span>
                             {tasteMatchDetailData.comparison.sharedFavoritesCount > 0 && (
@@ -1603,14 +1603,14 @@ export default function ProfilPage() {
                           )}
 
                           {tasteMatchDetailData.comparison.sharedFavoritesCount > 0 && (
-                            <div className="mt-5 rounded-[22px] border border-[#2A394B] bg-[#111925]/88 p-4">
-                              <p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">Gemeinsame Favoriten</p>
+                            <div className="mt-5 rounded-md border border-[#2A2A2A] bg-[#1C1C1C]/88 p-4">
+                              <p className="text-xs uppercase tracking-[0.18em] text-[#9A8F83]">Gemeinsame Favoriten</p>
                               <div className="mt-3 flex flex-wrap gap-2.5">
                                 {tasteMatchDetailData.comparison.sharedFavorites.map((item) => (
                                   <Link
                                     key={`taste-match-favorite-${item.productSlug}`}
                                     href={`/produkt/${item.productSlug}`}
-                                    className="inline-flex items-center rounded-full border border-[#34503B] bg-[#173023] px-4 py-2 text-sm font-semibold text-[#D9FFE6] transition-colors hover:bg-[#21402E]"
+                                    className="inline-flex items-center rounded-full border border-[#5A2E08] bg-[#291808] px-4 py-2 text-sm font-semibold text-[#FFE4C8] transition-colors hover:bg-[#21402E]"
                                   >
                                     {item.name}
                                   </Link>
@@ -1642,7 +1642,7 @@ export default function ProfilPage() {
                       />
                     </div>
                   ) : (
-                    <div className="mt-6 rounded-[28px] border border-[#2A394B] bg-[#111925]/88 p-5">
+                    <div className="mt-6 rounded-lg border border-[#2A2A2A] bg-[#1C1C1C]/88 p-5">
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                         <div>
                           <h3 className="text-lg font-semibold text-white">Liga-Tabelle</h3>
@@ -1652,7 +1652,7 @@ export default function ProfilPage() {
                               : "Bis zu gegenseitigen Follows vergleichst du dich mit den Profilen, denen du folgst."}
                           </p>
                         </div>
-                        <span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#D6E2EF]">
+                        <span className="rounded-full border border-[#333333] bg-[#222222] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#DDD0C4]">
                           Top {leagueStandings.length}
                         </span>
                       </div>
@@ -1660,32 +1660,32 @@ export default function ProfilPage() {
                         {leagueStandings.map((entry) => (
                           <li
                             key={`league-${entry.userId}`}
-                            className={`flex items-center justify-between gap-3 rounded-[24px] border p-4 transition-all duration-300 ${
+                            className={`flex items-center justify-between gap-3 rounded-lg border p-4 transition-all duration-300 ${
                               entry.isViewer
-                                ? "border-[#5EE287] bg-[linear-gradient(135deg,rgba(94,226,135,0.14),rgba(20,28,39,0.96))]"
-                                : "border-[#2D3A4B] bg-[#101822] hover:-translate-y-1 hover:border-[#5EE287]/25"
+                                ? "border-[#E8750A] bg-[linear-gradient(135deg,rgba(232,117,10,0.14),rgba(20,20,20,0.96))]"
+                                : "border-[#333333] bg-[#1C1C1C] hover:-translate-y-1 hover:border-[#E8750A]/25"
                             }`}
                           >
                             <div className="flex min-w-0 items-center gap-3">
-                              <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[#2D3A4B] bg-[#141C27] text-sm font-black text-white">
+                              <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-[#333333] bg-[#222222] text-sm font-black text-white">
                                 #{entry.rank}
                               </span>
                               <div className="min-w-0">
                                 {entry.isViewer ? (
                                   <p className="font-semibold text-white">Du</p>
                                 ) : (
-                                  <Link href={`/profil/${entry.userId}`} className="font-semibold text-white transition-colors hover:text-[#8AF5AC]">
+                                  <Link href={`/profil/${entry.userId}`} className="font-semibold text-white transition-colors hover:text-[#F5963C]">
                                     {entry.username}
                                   </Link>
                                 )}
-                                <p className="mt-1 text-xs text-[#8CA1B8]">
+                                <p className="mt-1 text-xs text-[#9A8F83]">
                                   {entry.currentLevelName} | {entry.ratingCount} Bewertungen | {entry.commentCount} Kommentare | {entry.favoriteCount} Favoriten
                                 </p>
                               </div>
                             </div>
                             <div className="text-right">
-                              <p className="text-lg font-black text-[#8AF5AC]">{entry.points}</p>
-                              <p className="text-xs uppercase tracking-[0.16em] text-[#8CA1B8]">Punkte</p>
+                              <p className="text-lg font-black text-[#F5963C]">{entry.points}</p>
+                              <p className="text-xs uppercase tracking-[0.16em] text-[#9A8F83]">Punkte</p>
                             </div>
                           </li>
                         ))}
@@ -1708,7 +1708,7 @@ export default function ProfilPage() {
             </div>
 
             <SectionShell eyebrow="Eigene Listen" title="Deine benannten Sammlungen" description="Erstelle Listen mit eigenem Namen und baue dir kleine Themenwelten wie Protein-Favoriten, Date-Night-Pizzen oder Guilty Pleasures.">
-              <div className="rounded-[26px] border border-[#2A394B] bg-[#111925]/88 p-4">
+              <div className="rounded-lg border border-[#2A2A2A] bg-[#1C1C1C]/88 p-4">
                 <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
                   <div>
                     <p className="text-sm font-semibold text-white">Neue Liste anlegen</p>
@@ -1726,7 +1726,7 @@ export default function ProfilPage() {
                         setCustomListMessage(null);
                       }}
                       placeholder="Zum Beispiel Protein-Favoriten"
-                      className="min-h-11 w-full min-w-[260px] rounded-2xl border border-[#2D3A4B] bg-[#0F1621] px-4 py-3 text-white outline-none transition-colors placeholder:text-[#7F93A8] focus:border-[#5EE287]"
+                      className="min-h-11 w-full min-w-[260px] rounded-lg border border-[#333333] bg-[#0F1621] px-4 py-3 text-white outline-none transition-colors placeholder:text-[#7F93A8] focus:border-[#E8750A]"
                     />
                     <button
                       type="button"
@@ -1734,7 +1734,7 @@ export default function ProfilPage() {
                       onClick={() => {
                         void handleCreateCustomList();
                       }}
-                      className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-[#5EE287] px-5 py-3 font-semibold text-[#0C1910] transition-colors hover:bg-[#79F29C] disabled:cursor-not-allowed disabled:opacity-60"
+                      className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#E8750A] px-5 py-3 font-semibold text-[#1A0E04] transition-colors hover:bg-[#F5963C] disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       <FiPlus size={16} />
                       {creatingList ? "Erstelle..." : "Liste anlegen"}
@@ -1743,27 +1743,27 @@ export default function ProfilPage() {
                 </div>
 
                 {(customListsError || customListMessage) && (
-                  <div className={`mt-4 rounded-2xl border px-4 py-3 text-sm ${customListsError ? "border-[#6A3434] bg-[#2A1313] text-red-100" : "border-[#2D5B41] bg-[#173023] text-[#D9FFE6]"}`}>
+                  <div className={`mt-4 rounded-lg border px-4 py-3 text-sm ${customListsError ? "border-[#6A3434] bg-[#2A1313] text-red-100" : "border-[#333333] bg-[#291808] text-[#FFE4C8]"}`}>
                     {customListsError || customListMessage}
                   </div>
                 )}
               </div>
 
               {!customListsLoaded ? (
-                <div className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4 text-sm text-[#9EB0C3]">
+                <div className="rounded-lg border border-[#2A2A2A] bg-[#1C1C1C]/88 p-4 text-sm text-[#9EB0C3]">
                   Eigene Listen werden geladen...
                 </div>
               ) : customLists.length === 0 ? (
-                <div className="flex flex-col items-center rounded-[28px] border border-dashed border-[#35503D] bg-[linear-gradient(145deg,rgba(17,25,37,0.94),rgba(13,20,30,0.98))] px-6 py-8 text-center">
+                <div className="flex flex-col items-center rounded-lg border border-dashed border-[#5A2E08] bg-[linear-gradient(145deg,rgba(20,20,20,0.94),rgba(13,20,30,0.98))] px-6 py-8 text-center">
                   <div aria-hidden="true" className="relative mb-5 h-20 w-24">
-                    <div className="absolute left-1 top-6 h-12 w-12 rotate-[-10deg] rounded-[16px] border border-[#35503D] bg-[#122118] shadow-[0_12px_24px_rgba(0,0,0,0.18)]" />
-                    <div className="absolute right-1 top-7 h-12 w-12 rotate-[10deg] rounded-[16px] border border-[#2D3A4B] bg-[#131C28] shadow-[0_12px_24px_rgba(0,0,0,0.16)]" />
-                    <div className="absolute left-1/2 top-1 flex h-14 w-14 -translate-x-1/2 items-center justify-center rounded-[18px] border border-[#4C7A5A] bg-[linear-gradient(145deg,rgba(94,226,135,0.18),rgba(22,35,27,0.96))] text-[#CFF9DC] shadow-[0_16px_32px_rgba(0,0,0,0.24)]">
+                    <div className="absolute left-1 top-6 h-12 w-12 rotate-[-10deg] rounded-[16px] border border-[#5A2E08] bg-[#122118] shadow-[0_12px_24px_rgba(0,0,0,0.18)]" />
+                    <div className="absolute right-1 top-7 h-12 w-12 rotate-[10deg] rounded-[16px] border border-[#333333] bg-[#131C28] shadow-[0_12px_24px_rgba(0,0,0,0.16)]" />
+                    <div className="absolute left-1/2 top-1 flex h-14 w-14 -translate-x-1/2 items-center justify-center rounded-md border border-[#444444] bg-[linear-gradient(145deg,rgba(232,117,10,0.18),rgba(20,18,14,0.96))] text-[#FFD9B0] shadow-[0_16px_32px_rgba(0,0,0,0.24)]">
                       <FiGrid size={20} />
                     </div>
                   </div>
                   <h3 className="text-lg font-semibold text-white">Noch keine eigenen Listen</h3>
-                  <p className="mt-2 max-w-md text-sm text-[#AFC1D3]">
+                  <p className="mt-2 max-w-md text-sm text-[#A89880]">
                     Starte mit einer ersten benannten Sammlung und sortiere danach Produkte direkt auf den Detailseiten ein.
                   </p>
                   <button
@@ -1772,7 +1772,7 @@ export default function ProfilPage() {
                       customListInputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
                       customListInputRef.current?.focus();
                     }}
-                    className="mt-6 inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-[#5EE287] px-6 py-3 text-base font-semibold text-[#0C1910] transition-colors hover:bg-[#79F29C]"
+                    className="mt-6 inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-[#E8750A] px-6 py-3 text-base font-semibold text-[#1A0E04] transition-colors hover:bg-[#F5963C]"
                   >
                     <FiPlus size={18} />
                     Erste Liste erstellen
@@ -1783,17 +1783,17 @@ export default function ProfilPage() {
                   {customLists.map((list) => (
                     <div
                       key={list.id}
-                      className="rounded-[26px] border border-[#2A394B] bg-[#111925]/88 p-5 transition-all duration-300 hover:-translate-y-1 hover:border-[#5EE287]/25"
+                      className="rounded-lg border border-[#2A2A2A] bg-[#1C1C1C]/88 p-5 transition-all duration-300 hover:-translate-y-1 hover:border-[#E8750A]/25"
                     >
                       <div className="flex items-start justify-between gap-4">
                         <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-2">
                             <h3 className="text-lg font-semibold text-white">{list.name}</h3>
-                            <span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#D6E2EF]">
+                            <span className="rounded-full border border-[#333333] bg-[#222222] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#DDD0C4]">
                               {list.itemCount} Produkte
                             </span>
                           </div>
-                          <p className="mt-2 text-sm text-[#8CA1B8]">
+                          <p className="mt-2 text-sm text-[#9A8F83]">
                             Zuletzt aktiv {formatShortDate(list.updatedAt || list.insertedAt)}
                           </p>
                         </div>
@@ -1804,7 +1804,7 @@ export default function ProfilPage() {
                           onClick={() => {
                             void handleDeleteCustomListEntry(list.id, list.name);
                           }}
-                          className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[#5A2A2A] bg-[#2A1111] text-red-200 transition-colors hover:bg-[#3A1717] disabled:cursor-not-allowed disabled:opacity-60"
+                          className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-[#5A2A2A] bg-[#2A1111] text-red-200 transition-colors hover:bg-[#3A1717] disabled:cursor-not-allowed disabled:opacity-60"
                           aria-label={`Liste ${list.name} löschen`}
                         >
                           <FiTrash2 size={16} />
@@ -1812,7 +1812,7 @@ export default function ProfilPage() {
                       </div>
 
                       {list.items.length === 0 ? (
-                        <p className="mt-4 rounded-[20px] border border-dashed border-[#35503D] bg-[#0F1722] px-4 py-3 text-sm text-[#AFC1D3]">
+                        <p className="mt-4 rounded-md border border-dashed border-[#5A2E08] bg-[#0F1722] px-4 py-3 text-sm text-[#A89880]">
                           Die Liste ist noch leer. Füge Produkte direkt auf deren Detailseiten hinzu.
                         </p>
                       ) : (
@@ -1820,15 +1820,15 @@ export default function ProfilPage() {
                           {list.items.slice(0, 6).map((item) => (
                             <li
                               key={`${list.id}-${item.productSlug}`}
-                              className="rounded-[20px] border border-[#2D3A4B] bg-[#101822] px-4 py-3"
+                              className="rounded-md border border-[#333333] bg-[#1C1C1C] px-4 py-3"
                             >
                               <Link
                                 href={`/produkt/${item.routeSlug}`}
-                                className="font-semibold text-white transition-colors hover:text-[#8AF5AC]"
+                                className="font-semibold text-white transition-colors hover:text-[#F5963C]"
                               >
                                 {item.name}
                               </Link>
-                              <p className="mt-1 text-sm text-[#8CA1B8]">{item.category}</p>
+                              <p className="mt-1 text-sm text-[#9A8F83]">{item.category}</p>
                             </li>
                           ))}
                         </ul>
@@ -1841,15 +1841,15 @@ export default function ProfilPage() {
 
             <div className="grid gap-6 xl:grid-cols-3">
               <SectionShell eyebrow="Favoriten" title="Deine Hall of Fame" description="Die Produkte, die du immer wieder empfehlen würdest.">
-                {!listsLoaded ? <div className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4 text-sm text-[#9EB0C3]">Favoriten werden geladen...</div> : favoriteProducts.length === 0 ? <EmptyPanel icon={FiHeart} title="Noch keine Favoriten" description="Sobald du auf Produktseiten Favoriten speicherst, entsteht hier deine persönliche Food Hall of Fame." /> : <ul className="grid gap-3">{favoriteProducts.map((item) => <CollectionProductCard key={`favorite-${item.slug}`} item={item} accent="mint" />)}</ul>}
+                {!listsLoaded ? <div className="rounded-lg border border-[#2A2A2A] bg-[#1C1C1C]/88 p-4 text-sm text-[#9EB0C3]">Favoriten werden geladen...</div> : favoriteProducts.length === 0 ? <EmptyPanel icon={FiHeart} title="Noch keine Favoriten" description="Sobald du auf Produktseiten Favoriten speicherst, entsteht hier deine persönliche Food Hall of Fame." /> : <ul className="grid gap-3">{favoriteProducts.map((item) => <CollectionProductCard key={`favorite-${item.slug}`} item={item} accent="mint" />)}</ul>}
               </SectionShell>
 
               <SectionShell eyebrow="Watchlist" title="Produkte für später" description="Hier landen die Dinge, die du als Nächstes testen möchtest.">
-                {!listsLoaded ? <div className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4 text-sm text-[#9EB0C3]">Watchlist wird geladen...</div> : wantToTryProducts.length === 0 ? <EmptyPanel icon={FiBookmark} title="Noch keine Watchlist" description="Speichere Produkte auf deiner Probieren-Liste, damit dein Profil mehr Tiefe und Zukunftspläne zeigt." /> : <ul className="grid gap-3">{wantToTryProducts.map((item) => <CollectionProductCard key={`want-to-try-${item.slug}`} item={item} accent="amber" />)}</ul>}
+                {!listsLoaded ? <div className="rounded-lg border border-[#2A2A2A] bg-[#1C1C1C]/88 p-4 text-sm text-[#9EB0C3]">Watchlist wird geladen...</div> : wantToTryProducts.length === 0 ? <EmptyPanel icon={FiBookmark} title="Noch keine Watchlist" description="Speichere Produkte auf deiner Probieren-Liste, damit dein Profil mehr Tiefe und Zukunftspläne zeigt." /> : <ul className="grid gap-3">{wantToTryProducts.map((item) => <CollectionProductCard key={`want-to-try-${item.slug}`} item={item} accent="amber" />)}</ul>}
               </SectionShell>
 
               <SectionShell eyebrow="Probiert" title="Bereits getestet" description="Produkte, die du schon probiert hast, auch wenn du noch keine Sterne vergeben willst.">
-                {!listsLoaded ? <div className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4 text-sm text-[#9EB0C3]">Probiert-Liste wird geladen...</div> : triedProducts.length === 0 ? <EmptyPanel icon={FiCheckCircle} title="Noch nichts als probiert markiert" description="Auf Produktseiten kannst du Lebensmittel einfach als bereits probiert abhaken, ohne direkt ein Rating abzugeben." /> : <ul className="grid gap-3">{triedProducts.map((item) => <CollectionProductCard key={`tried-${item.slug}`} item={item} accent="sky" />)}</ul>}
+                {!listsLoaded ? <div className="rounded-lg border border-[#2A2A2A] bg-[#1C1C1C]/88 p-4 text-sm text-[#9EB0C3]">Probiert-Liste wird geladen...</div> : triedProducts.length === 0 ? <EmptyPanel icon={FiCheckCircle} title="Noch nichts als probiert markiert" description="Auf Produktseiten kannst du Lebensmittel einfach als bereits probiert abhaken, ohne direkt ein Rating abzugeben." /> : <ul className="grid gap-3">{triedProducts.map((item) => <CollectionProductCard key={`tried-${item.slug}`} item={item} accent="sky" />)}</ul>}
               </SectionShell>
             </div>
           </>
@@ -1864,11 +1864,11 @@ export default function ProfilPage() {
             </div>
 
             <SectionShell eyebrow="Aktivität" title="Deine Produkt-Historie" description={ratingsLoaded ? `Du hast bisher ${ratedProducts.length} Einträge gespeichert.` : "Deine gespeicherten Ratings und Kommentare werden geladen."}>
-              {!ratingsLoaded && <div className="rounded-[24px] border border-[#2A394B] bg-[#111925]/88 p-4 text-sm text-[#9EB0C3]">Bewertungen werden geladen...</div>}
-              {ratingsLoaded && ratedProducts.length > 0 && <div className="grid gap-3 sm:grid-cols-2 mb-5"><select value={selectedRatedCategory} onChange={(event) => setSelectedRatedCategory(event.target.value)} className="w-full rounded-2xl border border-[#2D3A4B] bg-[#141C27] px-4 py-3 text-white outline-none transition-colors focus:border-[#5EE287]"><option value="all">Alle Produktarten</option>{ratedCategories.map((category) => <option key={category} value={category}>{category}</option>)}</select><select value={ratedSortMode} onChange={(event) => setRatedSortMode(event.target.value as RatedSortMode)} className="w-full rounded-2xl border border-[#2D3A4B] bg-[#141C27] px-4 py-3 text-white outline-none transition-colors focus:border-[#5EE287]"><option value="rating-desc">Bewertung: hoch zu niedrig</option><option value="rating-asc">Bewertung: niedrig zu hoch</option><option value="category-asc">Produktart: A-Z</option><option value="category-desc">Produktart: Z-A</option><option value="name-asc">Name: A-Z</option><option value="name-desc">Name: Z-A</option></select></div>}
+              {!ratingsLoaded && <div className="rounded-lg border border-[#2A2A2A] bg-[#1C1C1C]/88 p-4 text-sm text-[#9EB0C3]">Bewertungen werden geladen...</div>}
+              {ratingsLoaded && ratedProducts.length > 0 && <div className="grid gap-3 sm:grid-cols-2 mb-5"><select value={selectedRatedCategory} onChange={(event) => setSelectedRatedCategory(event.target.value)} className="w-full rounded-lg border border-[#333333] bg-[#222222] px-4 py-3 text-white outline-none transition-colors focus:border-[#E8750A]"><option value="all">Alle Produktarten</option>{ratedCategories.map((category) => <option key={category} value={category}>{category}</option>)}</select><select value={ratedSortMode} onChange={(event) => setRatedSortMode(event.target.value as RatedSortMode)} className="w-full rounded-lg border border-[#333333] bg-[#222222] px-4 py-3 text-white outline-none transition-colors focus:border-[#E8750A]"><option value="rating-desc">Bewertung: hoch zu niedrig</option><option value="rating-asc">Bewertung: niedrig zu hoch</option><option value="category-asc">Produktart: A-Z</option><option value="category-desc">Produktart: Z-A</option><option value="name-asc">Name: A-Z</option><option value="name-desc">Name: Z-A</option></select></div>}
               {ratingsLoaded && ratedProducts.length === 0 && <EmptyPanel icon={FiStar} title="Noch keine Aktivität" description="Sobald du Produkte bewertest oder kommentierst, baut sich hier automatisch deine persönliche Food-Historie auf." />}
               {ratingsLoaded && ratedProducts.length > 0 && visibleRatedProducts.length === 0 && <EmptyPanel icon={FiSliders} title="Kein Treffer für diesen Filter" description="In dieser Kategorie hast du aktuell noch keine Einträge." />}
-              {ratingsLoaded && visibleRatedProducts.length > 0 && <ul className="grid gap-3 sm:gap-4">{visibleRatedProducts.map((item) => <li key={item.slug} className="rounded-[26px] border border-[#2A394B] bg-[#111925]/88 p-4 transition-all duration-300 hover:-translate-y-1 hover:border-[#5EE287]/25"><div className="flex items-start justify-between gap-3"><div className="flex min-w-0 items-start gap-3"><Link href={`/produkt/${item.slug}`} aria-label={`${item.name} öffnen`} className="relative mt-0.5 h-8 w-8 shrink-0 overflow-hidden rounded-xl border border-[#2D3A4B] bg-[#101822] shadow-[0_10px_20px_rgba(0,0,0,0.18)]"><ProductCardImage routeSlug={item.slug} alt={item.name} fallbackSrc={item.imageUrl} className="h-full w-full object-cover" /></Link><div className="min-w-0"><Link href={`/produkt/${item.slug}`} className="font-semibold text-white transition-colors hover:text-[#8AF5AC]">{item.name}</Link><p className="mt-1 text-sm text-[#8CA1B8]">{item.category}</p></div></div><span className="shrink-0 rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1 text-sm font-semibold text-[#FFD86C]">{item.rating > 0 ? `Rating ${item.rating.toFixed(1)}/5` : "Nur Kommentar"}</span></div><p className="mt-4 text-sm leading-relaxed text-[#D3DFEB] sm:pl-11">{item.comment || "Kein Kommentar hinterlegt."}</p></li>)}</ul>}
+              {ratingsLoaded && visibleRatedProducts.length > 0 && <ul className="grid gap-3 sm:gap-4">{visibleRatedProducts.map((item) => <li key={item.slug} className="rounded-lg border border-[#2A2A2A] bg-[#1C1C1C]/88 p-4 transition-all duration-300 hover:-translate-y-1 hover:border-[#E8750A]/25"><div className="flex items-start justify-between gap-3"><div className="flex min-w-0 items-start gap-3"><Link href={`/produkt/${item.slug}`} aria-label={`${item.name} öffnen`} className="relative mt-0.5 h-8 w-8 shrink-0 overflow-hidden rounded-xl border border-[#333333] bg-[#1C1C1C] shadow-[0_10px_20px_rgba(0,0,0,0.18)]"><ProductCardImage routeSlug={item.slug} alt={item.name} fallbackSrc={item.imageUrl} className="h-full w-full object-cover" /></Link><div className="min-w-0"><Link href={`/produkt/${item.slug}`} className="font-semibold text-white transition-colors hover:text-[#F5963C]">{item.name}</Link><p className="mt-1 text-sm text-[#9A8F83]">{item.category}</p></div></div><span className="shrink-0 rounded-full border border-[#333333] bg-[#222222] px-3 py-1 text-sm font-semibold text-[#FFD86C]">{item.rating > 0 ? `Rating ${item.rating.toFixed(1)}/5` : "Nur Kommentar"}</span></div><p className="mt-4 text-sm leading-relaxed text-[#D3DFEB] sm:pl-11">{item.comment || "Kein Kommentar hinterlegt."}</p></li>)}</ul>}
             </SectionShell>
           </>
         )}

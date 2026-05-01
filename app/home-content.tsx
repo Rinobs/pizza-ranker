@@ -1,21 +1,29 @@
-"use client";
+﻿"use client";
 /* eslint-disable @next/next/no-img-element */
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useSession } from "next-auth/react";
 import ReviewLikeButton from "./components/ReviewLikeButton";
+import MiniStars from "./components/MiniStars";
+import { useToast, ToastContainer } from "./components/Toast";
 import {
   FiArrowRight,
   FiBookmark,
+  FiCheck,
+  FiChevronLeft,
+  FiChevronRight,
+  FiGrid,
   FiHeart,
+  FiList,
   FiMessageSquare,
   FiStar,
   FiUsers,
 } from "react-icons/fi";
 import ProductCardImage from "./components/ProductCardImage";
 import { useReviewLikes } from "./hooks/useReviewLikes";
+import { useUserRatings } from "./hooks/useUserRatings";
 import {
   ALL_PRODUCTS,
   PIZZA_PRODUCTS,
@@ -330,16 +338,16 @@ function Panel({
 }) {
   return (
     <section
-      className={`w-full min-w-0 rounded-[30px] border border-[#2A394B] bg-[linear-gradient(145deg,rgba(18,26,38,0.98),rgba(11,17,26,0.96))] p-5 shadow-[0_20px_50px_rgba(0,0,0,0.26)] sm:p-6 ${className}`}
+      className={`w-full min-w-0 rounded-xl border border-[#2A2A2A] bg-[linear-gradient(145deg,rgba(20,20,20,0.98),rgba(11,17,26,0.96))] p-5 shadow-[0_20px_50px_rgba(0,0,0,0.26)] sm:p-6 ${className}`}
     >
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0">
-          <p className="text-[11px] uppercase tracking-[0.24em] text-[#8CA1B8]">{eyebrow}</p>
-          <h2 className="mt-2 break-words text-2xl font-black tracking-tight text-[#F3FFF6]">
+          <p className="text-[11px] uppercase tracking-[0.24em] text-[#9A8F83]">{eyebrow}</p>
+          <h2 className="mt-2 break-words text-2xl font-black tracking-tight text-[#FFF0E4]">
             {title}
           </h2>
           {description ? (
-            <p className="mt-2 max-w-2xl break-words text-sm leading-relaxed text-[#AFC1D3]">
+            <p className="mt-2 max-w-2xl break-words text-sm leading-relaxed text-[#A89880]">
               {description}
             </p>
           ) : null}
@@ -351,38 +359,136 @@ function Panel({
   );
 }
 
+
+function SkeletonFeedCard() {
+  return (
+    <li className="animate-pulse rounded-lg border border-[#2A2A2A] bg-[#1C1C1C] p-4">
+      <div className="flex items-start gap-4">
+        <div className="h-11 w-11 rounded-lg bg-[#1A2535] shrink-0" />
+        <div className="flex-1 space-y-3">
+          <div className="h-3.5 bg-[#1A2535] rounded-full w-2/5" />
+          <div className="h-3 bg-[#1A2535] rounded-full w-4/5" />
+          <div className="h-3 bg-[#1A2535] rounded-full w-3/5" />
+        </div>
+        <div className="hidden sm:block h-36 w-28 rounded-md bg-[#1A2535] shrink-0" />
+      </div>
+    </li>
+  );
+}
+
+function SkeletonListCard() {
+  return (
+    <li className="animate-pulse rounded-lg border border-[#2A2A2A] bg-[#1C1C1C] p-4 space-y-4">
+      <div className="flex items-center gap-3">
+        <div className="h-11 w-11 rounded-lg bg-[#1A2535] shrink-0" />
+        <div className="flex-1 space-y-2">
+          <div className="h-4 bg-[#1A2535] rounded-full w-3/5" />
+          <div className="h-3 bg-[#1A2535] rounded-full w-2/5" />
+        </div>
+      </div>
+      <div className="grid grid-cols-3 gap-3">
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="aspect-[0.72] rounded-md bg-[#1A2535]" />
+        ))}
+      </div>
+    </li>
+  );
+}
+
+function QuickRateStars({
+  slug,
+  currentRating,
+  onRate,
+}: {
+  slug: string;
+  currentRating?: number | null;
+  onRate: (slug: string, value: number) => void;
+}) {
+  const [hovered, setHovered] = useState<number | null>(null);
+  const display = hovered ?? currentRating ?? 0;
+
+  return (
+    <div
+      className="flex items-center gap-0.5"
+      onMouseLeave={() => setHovered(null)}
+      onClick={(e) => e.preventDefault()}
+    >
+      {[1, 2, 3, 4, 5].map((star) => (
+        <button
+          key={star}
+          type="button"
+          aria-label={`${star} Sterne`}
+          onMouseEnter={() => setHovered(star)}
+          onClick={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            onRate(slug, star);
+          }}
+          className="relative h-5 w-5 shrink-0 touch-manipulation"
+        >
+          <svg className="absolute inset-0 text-[#3A3A3A]" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.54 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z" />
+          </svg>
+          {star <= display && (
+            <svg className="absolute inset-0 text-[#F6C85C]" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.54 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z" />
+            </svg>
+          )}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function ProductCard({
   product,
   eager = false,
   className = "",
   variant = "default",
+  userRating,
+  isLoggedIn = false,
+  onQuickRate,
 }: {
   product: RankedProduct;
   eager?: boolean;
   className?: string;
   variant?: "default" | "shelf";
+  userRating?: number | null;
+  isLoggedIn?: boolean;
+  onQuickRate?: (slug: string, value: number) => void;
 }) {
   const categoryAccent = getCategoryAccent(product.category);
   const isShelfCard = variant === "shelf";
 
   if (isShelfCard) {
     return (
-      <Link
-        href={`/produkt/${product.routeSlug}`}
-        aria-label={`${product.name} öffnen`}
-        className={`group relative block overflow-hidden rounded-[24px] border border-[#2D3A4B] bg-[#131B26] shadow-[0_14px_34px_rgba(0,0,0,0.3)] transition-all duration-300 hover:-translate-y-1.5 ${categoryAccent.cardClass} ${className}`}
+      <div
+        className={`group relative overflow-hidden rounded-lg border border-[#333333] bg-[#1E1E1E] shadow-[0_14px_34px_rgba(0,0,0,0.3)] transition-all duration-300 hover:-translate-y-1.5 ${categoryAccent.cardClass} ${className}`}
       >
-        <div className={`absolute inset-x-0 top-0 z-[1] h-1 ${categoryAccent.accentBarClass}`} />
+        <Link
+          href={`/produkt/${product.routeSlug}`}
+          aria-label={`${product.name} öffnen`}
+          className="absolute inset-0 z-[1] rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F5963C]"
+        />
+
+        <div className={`absolute inset-x-0 top-0 z-[2] h-1 ${categoryAccent.accentBarClass}`} />
+
+        {userRating != null && (
+          <span className="absolute right-3 top-3 z-[3] inline-flex items-center gap-1 rounded-full border border-[#5A2E08] bg-[#291808] px-2 py-1 text-[10px] font-semibold text-[#F5963C]">
+            <FiCheck size={10} />
+            {userRating.toFixed(1)}
+          </span>
+        )}
 
         <div
           title={product.category}
-          className={`absolute left-3 top-3 z-[2] max-w-[calc(100%-1.5rem)] truncate rounded-full border px-2.5 py-1 text-[10px] font-semibold leading-none uppercase tracking-[0.16em] ${categoryAccent.badgeClass}`}
+          className={`absolute left-3 top-3 z-[3] max-w-[calc(100%-4rem)] truncate rounded-full border px-2.5 py-1 text-[10px] font-semibold leading-none uppercase tracking-[0.16em] ${categoryAccent.badgeClass}`}
         >
           {product.category}
         </div>
 
         <div className="px-3 pb-1 pt-12 sm:px-4 sm:pt-14">
-          <div className="relative aspect-[1.45] overflow-hidden rounded-[18px] border border-white/6 bg-[#0D1520]">
+          <div className="relative z-[2] aspect-[0.75] overflow-hidden rounded-md border border-white/6 bg-[#141414]">
             <ProductCardImage
               routeSlug={product.routeSlug}
               alt={product.name}
@@ -393,28 +499,40 @@ function ProductCard({
           </div>
         </div>
 
-        <div className="p-3 pt-2 sm:p-4 sm:pt-3">
+        <div className="relative z-[2] p-3 pt-2 sm:p-4 sm:pt-3">
           <h3 className="line-clamp-2 text-[13px] font-semibold leading-[1.2] text-white sm:text-[15px]">
             {product.name}
           </h3>
           {product.ratingAvg !== null ? (
-            <p className="mt-2 text-[11px] font-semibold text-[#FFD86C] sm:text-sm">
-              {formatRatingValue(product.ratingAvg)} / 5
-            </p>
+            <div className="mt-2">
+              <MiniStars rating={product.ratingAvg} count={product.ratingCount > 0 ? product.ratingCount : undefined} size="xs" />
+            </div>
+          ) : null}
+          {isLoggedIn && onQuickRate ? (
+            <div className="mt-2.5 flex items-center gap-2">
+              <span className="text-[10px] uppercase tracking-[0.14em] text-[#9A8F83]">
+                {userRating != null ? "Neu bewerten" : "Schnell bewerten"}
+              </span>
+              <QuickRateStars
+                slug={product.routeSlug}
+                currentRating={userRating}
+                onRate={onQuickRate}
+              />
+            </div>
           ) : null}
         </div>
-      </Link>
+      </div>
     );
   }
 
   return (
     <div
-      className={`group relative aspect-[0.8] overflow-hidden rounded-[24px] border border-[#2D3A4B] bg-[#131B26] shadow-[0_14px_34px_rgba(0,0,0,0.3)] transition-all duration-300 hover:-translate-y-1.5 sm:aspect-[0.72] ${categoryAccent.cardClass} ${className}`}
+      className={`group relative aspect-[0.8] overflow-hidden rounded-lg border border-[#333333] bg-[#1E1E1E] shadow-[0_14px_34px_rgba(0,0,0,0.3)] transition-all duration-300 hover:-translate-y-1.5 sm:aspect-[0.72] ${categoryAccent.cardClass} ${className}`}
     >
       <Link
         href={`/produkt/${product.routeSlug}`}
         aria-label={`${product.name} öffnen`}
-        className="absolute inset-0 z-10 rounded-[24px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8AF5AC] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0F151E]"
+        className="absolute inset-0 z-10 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F5963C] focus-visible:ring-offset-2 focus-visible:ring-offset-[#141414]"
       />
 
       <div className={`absolute inset-x-0 top-0 z-[1] h-1 ${categoryAccent.accentBarClass}`} />
@@ -437,13 +555,19 @@ function ProductCard({
       </div>
 
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 p-2.5 sm:p-4">
+        {userRating != null && (
+          <span className="pointer-events-none mb-1.5 inline-flex items-center gap-1 rounded-full border border-[#5A2E08] bg-[#291808]/90 px-2 py-0.5 text-[10px] font-semibold text-[#F5963C]">
+            <FiCheck size={9} />
+            Bewertet
+          </span>
+        )}
         <h3 className="line-clamp-2 text-[12px] font-semibold leading-[1.2] text-white sm:text-[15px] lg:text-base">
           {product.name}
         </h3>
         {product.ratingAvg !== null ? (
-          <p className="mt-1.5 text-[11px] font-semibold text-[#FFD86C] sm:mt-2 sm:text-sm">
-            {formatRatingValue(product.ratingAvg)} / 5
-          </p>
+          <div className="mt-1.5">
+            <MiniStars rating={product.ratingAvg} size="xs" />
+          </div>
         ) : null}
       </div>
     </div>
@@ -456,13 +580,45 @@ function ProductShelf({
   description,
   products,
   actionHref,
+  userRatings,
+  isLoggedIn,
+  onQuickRate,
 }: {
   eyebrow: string;
   title: string;
   description: string;
   products: RankedProduct[];
   actionHref?: string;
+  userRatings?: Record<string, number>;
+  isLoggedIn?: boolean;
+  onQuickRate?: (slug: string, value: number) => void;
 }) {
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const updateScrollState = useCallback(() => {
+    const el = carouselRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 8);
+    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 8);
+  }, []);
+
+  useEffect(() => {
+    const el = carouselRef.current;
+    if (!el) return;
+    updateScrollState();
+    const observer = new ResizeObserver(updateScrollState);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [updateScrollState, products]);
+
+  function scrollCarousel(direction: "left" | "right") {
+    const el = carouselRef.current;
+    if (!el) return;
+    el.scrollBy({ left: direction === "right" ? el.clientWidth * 0.75 : -(el.clientWidth * 0.75), behavior: "smooth" });
+  }
+
   if (products.length === 0) return null;
 
   return (
@@ -474,10 +630,10 @@ function ProductShelf({
         actionHref ? (
           <Link
             href={actionHref}
-            className="inline-flex self-start items-center gap-3 rounded-full border border-[#5EE287]/35 bg-[linear-gradient(135deg,rgba(94,226,135,0.16),rgba(18,27,39,0.94))] px-3 py-2 text-sm font-semibold text-[#F3FFF6] shadow-[0_12px_28px_rgba(0,0,0,0.18)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#8AF5AC] hover:bg-[linear-gradient(135deg,rgba(94,226,135,0.24),rgba(18,27,39,0.98))] hover:shadow-[0_16px_34px_rgba(94,226,135,0.14)] sm:px-4 sm:py-2.5"
+            className="inline-flex self-start items-center gap-3 rounded-full border border-[#E8750A]/35 bg-[linear-gradient(135deg,rgba(232,117,10,0.16),rgba(20,20,20,0.94))] px-3 py-2 text-sm font-semibold text-[#FFF0E4] shadow-[0_12px_28px_rgba(0,0,0,0.18)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#F5963C] hover:bg-[linear-gradient(135deg,rgba(232,117,10,0.24),rgba(20,20,20,0.98))] hover:shadow-[0_16px_34px_rgba(232,117,10,0.14)] sm:px-4 sm:py-2.5"
           >
             <span>Mehr sehen</span>
-            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-[#8AF5AC]/35 bg-[#173023] text-[#CFFFE0]">
+            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-[#F5963C]/35 bg-[#291808] text-[#CFFFE0]">
               <FiArrowRight size={15} />
             </span>
           </Link>
@@ -492,27 +648,61 @@ function ProductShelf({
                 product={product}
                 eager={index < 2}
                 variant="shelf"
+                userRating={userRatings?.[product.routeSlug] ?? null}
+                isLoggedIn={isLoggedIn}
+                onQuickRate={onQuickRate}
               />
             </div>
           ))}
         </div>
 
-        <div className="home-shelf-carousel hidden gap-3 overflow-x-auto pb-3 pr-[24px] snap-x snap-proximity sm:flex sm:gap-4 sm:pr-[30px]">
+        <div
+          ref={carouselRef}
+          onScroll={updateScrollState}
+          className="home-shelf-carousel hidden gap-3 overflow-x-auto pb-3 pr-6 snap-x snap-proximity sm:flex sm:gap-4"
+        >
           {products.map((product, index) => (
             <div
               key={`${title}-${product.routeSlug}`}
-              className="w-[calc((100%-1rem-1.875rem)/2)] min-w-0 shrink-0 snap-start"
+              className="w-44 min-w-0 shrink-0 snap-start sm:w-48"
             >
               <ProductCard
                 product={product}
-                eager={index < 2}
+                eager={index < 4}
                 variant="shelf"
+                userRating={userRatings?.[product.routeSlug] ?? null}
+                isLoggedIn={isLoggedIn}
+                onQuickRate={onQuickRate}
               />
             </div>
           ))}
         </div>
 
-        <div className="pointer-events-none absolute bottom-3 right-0 top-0 hidden w-16 bg-[linear-gradient(90deg,rgba(11,17,26,0),rgba(11,17,26,0.98)_72%)] sm:block" />
+        {canScrollLeft && (
+          <div className="pointer-events-none absolute bottom-3 left-0 top-0 hidden w-20 bg-[linear-gradient(90deg,rgba(20,20,20,0.97)_30%,rgba(20,20,20,0))] sm:block" />
+        )}
+        <div className={`pointer-events-none absolute bottom-3 right-0 top-0 hidden w-20 bg-[linear-gradient(90deg,rgba(20,20,20,0),rgba(20,20,20,0.97)_70%)] sm:block transition-opacity ${canScrollRight ? "opacity-100" : "opacity-0"}`} />
+
+        {canScrollLeft && (
+          <button
+            type="button"
+            onClick={() => scrollCarousel("left")}
+            aria-label="Zurück scrollen"
+            className="absolute left-2 top-1/2 z-30 hidden -translate-y-1/2 items-center justify-center rounded-full border border-[#444444] bg-[#242424]/95 p-2 text-white shadow-lg backdrop-blur-sm transition-all hover:bg-[#333333] sm:flex"
+          >
+            <FiChevronLeft size={18} />
+          </button>
+        )}
+        {canScrollRight && (
+          <button
+            type="button"
+            onClick={() => scrollCarousel("right")}
+            aria-label="Weiter scrollen"
+            className="absolute right-2 top-1/2 z-30 hidden -translate-y-1/2 items-center justify-center rounded-full border border-[#444444] bg-[#242424]/95 p-2 text-white shadow-lg backdrop-blur-sm transition-all hover:bg-[#333333] sm:flex"
+          >
+            <FiChevronRight size={18} />
+          </button>
+        )}
       </div>
     </Panel>
   );
@@ -528,7 +718,7 @@ function MiniAvatar({
   const initials = getProfileInitials(name);
 
   return (
-    <span className="relative inline-flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-[#35503D] bg-[radial-gradient(circle_at_top,rgba(94,226,135,0.28),rgba(15,22,33,0.96)_70%)] text-sm font-black tracking-[0.12em] text-white shadow-[0_10px_24px_rgba(0,0,0,0.24)]">
+    <span className="relative inline-flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#5A2E08] bg-[radial-gradient(circle_at_top,rgba(232,117,10,0.28),rgba(20,20,20,0.96)_70%)] text-sm font-black tracking-[0.12em] text-white shadow-[0_10px_24px_rgba(0,0,0,0.24)]">
       {src ? (
         <img
           src={src}
@@ -553,8 +743,8 @@ function FeatureTile({
   description: string;
 }) {
   return (
-    <div className="rounded-[24px] border border-[#253548] bg-[#101722]/80 p-4">
-      <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[#32455B] bg-[#141F2C] text-[#D9FFE6]">
+    <div className="rounded-lg border border-[#253548] bg-[#1C1C1C]/80 p-4">
+      <span className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-[#32455B] bg-[#141F2C] text-[#FFE4C8]">
         {icon}
       </span>
       <h3 className="mt-4 text-base font-semibold text-white">{title}</h3>
@@ -584,7 +774,7 @@ function FollowPreviewCluster({ previews }: { previews: FollowingPreview[] }) {
 
 function TopListCard({ list }: { list: TopListSummary }) {
   return (
-    <li className="rounded-[26px] border border-[#2A394B] bg-[linear-gradient(145deg,rgba(19,27,38,0.96),rgba(12,18,27,0.98))] p-4 transition-all duration-300 hover:-translate-y-1 hover:border-[#5EE287]/30">
+    <li className="rounded-lg border border-[#2A2A2A] bg-[linear-gradient(145deg,rgba(20,20,20,0.96),rgba(12,18,27,0.98))] p-4 transition-all duration-300 hover:-translate-y-1 hover:border-[#E8750A]/30">
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           <Link href={`/profil/${list.userId}`}>
@@ -594,15 +784,15 @@ function TopListCard({ list }: { list: TopListSummary }) {
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <h3 className="truncate text-lg font-semibold text-white">{list.name}</h3>
-              <span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#D6E2EF]">
+              <span className="rounded-full border border-[#333333] bg-[#222222] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#DDD0C4]">
                 {list.itemCount} Produkte
               </span>
             </div>
 
-            <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-[#8CA1B8]">
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-[#9A8F83]">
               <Link
                 href={`/profil/${list.userId}`}
-                className="font-semibold text-[#D7E2EC] transition-colors hover:text-[#8AF5AC]"
+                className="font-semibold text-[#D7E2EC] transition-colors hover:text-[#F5963C]"
               >
                 {list.username}
               </Link>
@@ -611,7 +801,7 @@ function TopListCard({ list }: { list: TopListSummary }) {
           </div>
         </div>
 
-        <FiBookmark className="shrink-0 text-[#8CA1B8]" size={18} />
+        <FiBookmark className="shrink-0 text-[#9A8F83]" size={18} />
       </div>
 
       {list.items.length > 0 ? (
@@ -623,7 +813,7 @@ function TopListCard({ list }: { list: TopListSummary }) {
                 href={`/produkt/${item.routeSlug}`}
                 className="group"
               >
-                <div className="relative overflow-hidden rounded-[18px] border border-[#2D3A4B] bg-[#101822]" style={{ aspectRatio: "0.72" }}>
+                <div className="relative overflow-hidden rounded-md border border-[#333333] bg-[#1C1C1C]" style={{ aspectRatio: "0.72" }}>
                   <ProductCardImage
                     routeSlug={item.routeSlug}
                     alt={item.name}
@@ -631,7 +821,7 @@ function TopListCard({ list }: { list: TopListSummary }) {
                     className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                   />
                 </div>
-                <p className="mt-2 line-clamp-2 text-sm font-semibold text-white transition-colors group-hover:text-[#8AF5AC]">
+                <p className="mt-2 line-clamp-2 text-sm font-semibold text-white transition-colors group-hover:text-[#F5963C]">
                   {item.name}
                 </p>
               </Link>
@@ -643,7 +833,7 @@ function TopListCard({ list }: { list: TopListSummary }) {
               <Link
                 key={`${list.id}-${item.productSlug}-tag`}
                 href={`/produkt/${item.routeSlug}`}
-                className="rounded-full border border-[#2D3A4B] bg-[#101822] px-3 py-1.5 text-xs font-semibold text-[#D6E2EF] transition-colors hover:border-[#5EE287] hover:text-[#D9FFE6]"
+                className="rounded-full border border-[#333333] bg-[#1C1C1C] px-3 py-1.5 text-xs font-semibold text-[#DDD0C4] transition-colors hover:border-[#E8750A] hover:text-[#FFE4C8]"
               >
                 {item.name}
               </Link>
@@ -691,7 +881,7 @@ function ActivityCard({
     activity.kind === "review"
       ? {
           label: "Review",
-          className: "border-[#34503B] bg-[#173023] text-[#D9FFE6]",
+          className: "border-[#5A2E08] bg-[#291808] text-[#FFE4C8]",
         }
       : activity.kind === "rating"
         ? {
@@ -710,11 +900,11 @@ function ActivityCard({
             }
             : {
                 label: "Liste",
-                className: "border-[#35503D] bg-[#122619] text-[#D9FFE6]",
+                className: "border-[#5A2E08] bg-[#221508] text-[#FFE4C8]",
               };
 
   return (
-    <li className="min-w-0 overflow-hidden rounded-[26px] border border-[#2A394B] bg-[linear-gradient(145deg,rgba(19,27,38,0.96),rgba(12,18,27,0.98))] p-4 transition-all duration-300 hover:-translate-y-1 hover:border-[#5EE287]/30">
+    <li className="min-w-0 overflow-hidden rounded-lg border border-[#2A2A2A] bg-[linear-gradient(145deg,rgba(20,20,20,0.96),rgba(12,18,27,0.98))] p-4 transition-all duration-300 hover:-translate-y-1 hover:border-[#E8750A]/30">
       <div className="flex items-start gap-4">
         <Link href={profileHref}>
           <MiniAvatar src={activity.avatarUrl} name={activity.username} />
@@ -724,7 +914,7 @@ function ActivityCard({
           <div className="flex flex-wrap items-center gap-2">
             <Link
               href={profileHref}
-              className="break-words font-semibold text-white transition-colors hover:text-[#8AF5AC]"
+              className="break-words font-semibold text-white transition-colors hover:text-[#F5963C]"
             >
               {activity.username}
             </Link>
@@ -733,7 +923,7 @@ function ActivityCard({
             >
               {badge.label}
             </span>
-            <span className="text-xs uppercase tracking-[0.16em] text-[#8CA1B8]">
+            <span className="text-xs uppercase tracking-[0.16em] text-[#9A8F83]">
               {formatRelativeTime(activity.createdAt)}
             </span>
           </div>
@@ -744,7 +934,7 @@ function ActivityCard({
                 hat eine Review zu{" "}
                 <Link
                   href={productHref}
-                  className="break-words font-semibold text-white transition-colors hover:text-[#8AF5AC]"
+                  className="break-words font-semibold text-white transition-colors hover:text-[#F5963C]"
                 >
                   {activity.product.name}
                 </Link>{" "}
@@ -755,7 +945,7 @@ function ActivityCard({
                 hat{" "}
                 <Link
                   href={productHref}
-                  className="break-words font-semibold text-white transition-colors hover:text-[#8AF5AC]"
+                  className="break-words font-semibold text-white transition-colors hover:text-[#F5963C]"
                 >
                   {activity.product.name}
                 </Link>{" "}
@@ -766,7 +956,7 @@ function ActivityCard({
                 hat{" "}
                 <Link
                   href={productHref}
-                  className="break-words font-semibold text-white transition-colors hover:text-[#8AF5AC]"
+                  className="break-words font-semibold text-white transition-colors hover:text-[#F5963C]"
                 >
                   {activity.product.name}
                 </Link>{" "}
@@ -777,7 +967,7 @@ function ActivityCard({
                 hat{" "}
                 <Link
                   href={productHref}
-                  className="break-words font-semibold text-white transition-colors hover:text-[#8AF5AC]"
+                  className="break-words font-semibold text-white transition-colors hover:text-[#F5963C]"
                 >
                   {activity.product.name}
                 </Link>{" "}
@@ -788,7 +978,7 @@ function ActivityCard({
                 hat{" "}
                 <Link
                   href={productHref}
-                  className="break-words font-semibold text-white transition-colors hover:text-[#8AF5AC]"
+                  className="break-words font-semibold text-white transition-colors hover:text-[#F5963C]"
                 >
                   {activity.product.name}
                 </Link>{" "}
@@ -801,7 +991,7 @@ function ActivityCard({
             )}
           </p>
 
-          <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-[#8CA1B8]">
+          <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-[#9A8F83]">
             <span className={`rounded-full border px-2.5 py-1 ${categoryAccent.subtleBadgeClass}`}>
               {activity.product.category}
             </span>
@@ -813,7 +1003,7 @@ function ActivityCard({
           </div>
 
           {activity.comment ? (
-            <div className="mt-4 overflow-hidden rounded-[20px] border border-[#2D3A4B] bg-[#0F1722]/92 p-4 text-sm leading-relaxed text-[#D3DFEB]">
+            <div className="mt-4 overflow-hidden rounded-md border border-[#333333] bg-[#0F1722]/92 p-4 text-sm leading-relaxed text-[#D3DFEB]">
               <p className="line-clamp-4">{activity.comment}</p>
             </div>
           ) : null}
@@ -846,7 +1036,7 @@ function ActivityCard({
 
         <Link
           href={productHref}
-          className={`relative hidden h-36 w-28 shrink-0 overflow-hidden rounded-[22px] border bg-[#101822] shadow-[0_16px_36px_rgba(0,0,0,0.24)] sm:block lg:h-40 lg:w-32 ${categoryAccent.thumbClass}`}
+          className={`relative hidden h-36 w-28 shrink-0 overflow-hidden rounded-md border bg-[#1C1C1C] shadow-[0_16px_36px_rgba(0,0,0,0.24)] sm:block lg:h-40 lg:w-32 ${categoryAccent.thumbClass}`}
         >
           <ProductCardImage
             routeSlug={activity.product.routeSlug}
@@ -923,7 +1113,7 @@ function FeedPanel({
         feedData.viewerAuthenticated && feedData.followingCount > 0 ? (
           <div className="flex min-w-0 flex-wrap items-center gap-3">
             <FollowPreviewCluster previews={feedData.followingPreview} />
-            <span className="rounded-full border border-[#2D3A4B] bg-[#111925] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#D6E2EF]">
+            <span className="rounded-full border border-[#333333] bg-[#1C1C1C] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#DDD0C4]">
               {feedData.followingCount} gefolgt
             </span>
           </div>
@@ -932,18 +1122,20 @@ function FeedPanel({
       className="overflow-hidden"
     >
       {feedLoading ? (
-        <div className="rounded-[26px] border border-[#2A394B] bg-[#101822] p-5 text-sm text-[#9EB0C3]">
-          Feed wird geladen...
-        </div>
+        <ul className="grid min-w-0 gap-4">
+          <SkeletonFeedCard />
+          <SkeletonFeedCard />
+          <SkeletonFeedCard />
+        </ul>
       ) : feedError ? (
-        <div className="rounded-[26px] border border-[#5E3340] bg-[#24131A] p-5 text-sm text-[#FFD8E1]">
+        <div className="rounded-lg border border-[#5E3340] bg-[#24131A] p-5 text-sm text-[#FFD8E1]">
           Der Following-Feed konnte gerade nicht geladen werden: {feedError}
         </div>
       ) : !feedData.viewerAuthenticated ? (
-        <div className="grid gap-4 rounded-[28px] border border-[#2A394B] bg-[linear-gradient(135deg,rgba(94,226,135,0.08),rgba(17,25,37,0.98))] p-5 md:grid-cols-[1.1fr_0.9fr]">
+        <div className="grid gap-4 rounded-lg border border-[#2A2A2A] bg-[linear-gradient(135deg,rgba(232,117,10,0.08),rgba(20,20,20,0.98))] p-5 md:grid-cols-[1.1fr_0.9fr]">
           <div>
             <h3 className="text-xl font-semibold text-white">Logge dich ein und baue dir deinen Feed</h3>
-            <p className="mt-3 text-sm leading-relaxed text-[#AFC1D3]">
+            <p className="mt-3 text-sm leading-relaxed text-[#A89880]">
               Folge anderen Food-Profilen und sieh hier sofort, welche Tiefkühlpizza,
               Proteinriegel oder Snacks zuletzt bewertet, kommentiert oder gemerkt wurden.
             </p>
@@ -967,24 +1159,24 @@ function FeedPanel({
           </div>
         </div>
       ) : feedData.followingCount === 0 ? (
-        <div className="rounded-[28px] border border-dashed border-[#35503D] bg-[#111925]/85 p-6">
+        <div className="rounded-lg border border-dashed border-[#5A2E08] bg-[#1C1C1C]/85 p-6">
           <p className="text-lg font-semibold text-white">Noch kein Following-Feed</p>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#AFC1D3]">
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#A89880]">
             Du folgst noch niemandem. Sobald du im Profil ein paar Food-Accounts abonnierst,
             erscheinen hier deren letzte Ratings, Reviews, Favoriten und Watchlist-Updates.
           </p>
           <Link
             href="/profil"
-            className="mt-4 inline-flex items-center gap-2 rounded-full border border-[#5EE287] bg-[#173023] px-4 py-2 text-sm font-semibold text-[#D9FFE6] transition-colors hover:bg-[#1E3A2A]"
+            className="mt-4 inline-flex items-center gap-2 rounded-full border border-[#E8750A] bg-[#291808] px-4 py-2 text-sm font-semibold text-[#FFE4C8] transition-colors hover:bg-[#1E3A2A]"
           >
             Profile finden
             <FiArrowRight size={16} />
           </Link>
         </div>
       ) : !hasActivities ? (
-        <div className="rounded-[28px] border border-[#2A394B] bg-[#101822] p-6">
+        <div className="rounded-lg border border-[#2A2A2A] bg-[#1C1C1C] p-6">
           <p className="text-lg font-semibold text-white">Dein Feed wartet auf neue Aktivität</p>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#AFC1D3]">
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#A89880]">
             Deine gefolgten Profile waren zuletzt ruhig. Sobald sie Produkte bewerten, Reviews
             schreiben oder Listen aktualisieren, taucht das hier automatisch auf.
           </p>
@@ -994,10 +1186,10 @@ function FeedPanel({
           {categoryOptions.length > 1 ? (
             <div className="mb-5 min-w-0">
               <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-                <p className="text-[11px] uppercase tracking-[0.2em] text-[#8CA1B8]">
+                <p className="text-[11px] uppercase tracking-[0.2em] text-[#9A8F83]">
                   Kategorie filtern
                 </p>
-                <p className="text-xs text-[#8CA1B8]">
+                <p className="text-xs text-[#9A8F83]">
                   {resolvedCategoryFilter === "all"
                     ? `${feedData.activities.length} Aktivitäten`
                     : `${filteredActivities.length} von ${feedData.activities.length} Aktivitäten`}
@@ -1010,8 +1202,8 @@ function FeedPanel({
                   onClick={() => setActiveCategoryFilter("all")}
                   className={`whitespace-nowrap rounded-full border px-3 py-2 text-xs font-semibold transition-colors ${
                     resolvedCategoryFilter === "all"
-                      ? "border-[#5EE287] bg-[#173023] text-[#D9FFE6]"
-                      : "border-[#2D3A4B] bg-[#111925] text-[#D6E2EF] hover:border-[#5EE287] hover:text-white"
+                      ? "border-[#E8750A] bg-[#291808] text-[#FFE4C8]"
+                      : "border-[#333333] bg-[#1C1C1C] text-[#DDD0C4] hover:border-[#E8750A] hover:text-white"
                   }`}
                 >
                   Alle
@@ -1066,11 +1258,11 @@ function FeedPanel({
               ))}
             </ul>
           ) : (
-            <div className="rounded-[28px] border border-dashed border-[#35503D] bg-[#111925]/85 p-6">
+            <div className="rounded-lg border border-dashed border-[#5A2E08] bg-[#1C1C1C]/85 p-6">
               <p className="text-lg font-semibold text-white">
                 Keine Feed-Einträge für {resolvedCategoryFilter}
               </p>
-              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#AFC1D3]">
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#A89880]">
                 Sobald jemand aus deinem Netzwerk in dieser Kategorie bewertet, reviewed
                 oder Produkte speichert, taucht das hier auf.
               </p>
@@ -1102,7 +1294,7 @@ function TopListsPanel({
       description="Benannte User-Listen bringen Charakter in die Startseite. Hier siehst du die aktuell größten und aktivsten Sammlungen."
       action={
         topListsData.lists.length > 0 ? (
-          <span className="rounded-full border border-[#2D3A4B] bg-[#111925] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#D6E2EF]">
+          <span className="rounded-full border border-[#333333] bg-[#1C1C1C] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#DDD0C4]">
             {topListsData.lists.length} Listen
           </span>
         ) : null
@@ -1110,17 +1302,18 @@ function TopListsPanel({
       className="overflow-hidden"
     >
       {topListsLoading ? (
-        <div className="rounded-[26px] border border-[#2A394B] bg-[#101822] p-5 text-sm text-[#9EB0C3]">
-          Top-Listen werden geladen...
-        </div>
+        <ul className="grid gap-4">
+          <SkeletonListCard />
+          <SkeletonListCard />
+        </ul>
       ) : topListsError ? (
-        <div className="rounded-[26px] border border-[#5E3340] bg-[#24131A] p-5 text-sm text-[#FFD8E1]">
+        <div className="rounded-lg border border-[#5E3340] bg-[#24131A] p-5 text-sm text-[#FFD8E1]">
           Die Top-Listen konnten gerade nicht geladen werden: {topListsError}
         </div>
       ) : topListsData.lists.length === 0 ? (
-        <div className="rounded-[28px] border border-dashed border-[#35503D] bg-[#111925]/85 p-6">
+        <div className="rounded-lg border border-dashed border-[#5A2E08] bg-[#1C1C1C]/85 p-6">
           <p className="text-lg font-semibold text-white">Noch keine Community-Listen</p>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#AFC1D3]">
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#A89880]">
             Sobald Nutzer eigene Listen anlegen und mit Produkten füllen, tauchen hier die spannendsten Sammlungen auf.
           </p>
         </div>
@@ -1134,7 +1327,7 @@ function TopListsPanel({
 
       <Link
         href="/profil"
-        className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#8AF5AC] transition-colors hover:text-[#B7FFD0]"
+        className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#F5963C] transition-colors hover:text-[#B7FFD0]"
       >
         Eigene Listen erstellen
         <FiArrowRight size={16} />
@@ -1151,12 +1344,12 @@ function NetworkPanel({ feedData }: { feedData: HomeFeedData }) {
       description="FoodRanker wird mit Follows am spannendsten. Dann bekommst du statt einer statischen Startseite echte Aktivität aus deinem Kreis."
     >
       {!feedData.viewerAuthenticated ? (
-        <div className="rounded-[24px] border border-[#2A394B] bg-[#101822] p-4 text-sm leading-relaxed text-[#AFC1D3]">
+        <div className="rounded-lg border border-[#2A2A2A] bg-[#1C1C1C] p-4 text-sm leading-relaxed text-[#A89880]">
           Nach dem Login kannst du andere Profile finden, ihnen folgen und dir so einen
           persönlichen Startseiten-Feed aufbauen.
         </div>
       ) : feedData.followingCount === 0 ? (
-        <div className="rounded-[24px] border border-dashed border-[#35503D] bg-[#111925] p-4">
+        <div className="rounded-lg border border-dashed border-[#5A2E08] bg-[#1C1C1C] p-4">
           <p className="text-sm font-semibold text-white">Noch keine Profile gefolgt</p>
           <p className="mt-2 text-sm leading-relaxed text-[#9EB0C3]">
             Fang mit ein paar Accounts an, damit Ratings und Reviews von anderen direkt hier
@@ -1168,23 +1361,23 @@ function NetworkPanel({ feedData }: { feedData: HomeFeedData }) {
           {feedData.followingPreview.map((profile) => (
             <li
               key={profile.userId}
-              className="flex items-center justify-between gap-3 rounded-[22px] border border-[#2A394B] bg-[#101822] p-3.5"
+              className="flex items-center justify-between gap-3 rounded-md border border-[#2A2A2A] bg-[#1C1C1C] p-3.5"
             >
               <div className="flex min-w-0 items-center gap-3">
                 <MiniAvatar src={profile.avatarUrl} name={profile.username} />
                 <div className="min-w-0">
                   <Link
                     href={`/profil/${profile.userId}`}
-                    className="truncate font-semibold text-white transition-colors hover:text-[#8AF5AC]"
+                    className="truncate font-semibold text-white transition-colors hover:text-[#F5963C]"
                   >
                     {profile.username}
                   </Link>
-                  <p className="mt-1 text-xs text-[#8CA1B8]">
+                  <p className="mt-1 text-xs text-[#9A8F83]">
                     gefolgt {formatRelativeTime(profile.followedAt)}
                   </p>
                 </div>
               </div>
-              <FiUsers className="shrink-0 text-[#8CA1B8]" size={16} />
+              <FiUsers className="shrink-0 text-[#9A8F83]" size={16} />
             </li>
           ))}
         </ul>
@@ -1192,7 +1385,7 @@ function NetworkPanel({ feedData }: { feedData: HomeFeedData }) {
 
       <Link
         href="/profil"
-        className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#8AF5AC] transition-colors hover:text-[#B7FFD0]"
+        className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#F5963C] transition-colors hover:text-[#B7FFD0]"
       >
         Zu Profil, Listen und Social Features
         <FiArrowRight size={16} />
@@ -1216,16 +1409,16 @@ function CategoryPanel() {
             <Link
               key={category.slug}
               href={category.href}
-              className={`group flex items-start gap-2.5 rounded-[20px] border p-3 transition-all duration-300 hover:-translate-y-1 sm:gap-3 sm:rounded-[22px] sm:p-4 ${accent.navCardClass}`}
+              className={`group flex items-start gap-2.5 rounded-md border p-3 transition-all duration-300 hover:-translate-y-1 sm:gap-3 sm:rounded-md sm:p-4 ${accent.navCardClass}`}
             >
-              <span className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border text-xl leading-none sm:h-12 sm:w-12 sm:rounded-2xl sm:text-2xl ${accent.iconWrapClass}`}>
+              <span className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border text-xl leading-none sm:h-12 sm:w-12 sm:rounded-lg sm:text-2xl ${accent.iconWrapClass}`}>
                 {category.icon}
               </span>
               <div className="min-w-0">
                 <p className={`text-sm font-semibold text-white transition-colors sm:text-base ${accent.navTitleClass}`}>
                   {category.name}
                 </p>
-                <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-[#8CA1B8] sm:text-sm">
+                <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-[#9A8F83] sm:text-sm">
                   {category.description}
                 </p>
               </div>
@@ -1237,6 +1430,48 @@ function CategoryPanel() {
   );
 }
 
+function CategoryStrip() {
+  return (
+    <div className="mt-5 flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
+      {CATEGORY_NAV_ITEMS.map((category) => {
+        const accent = getCategoryAccent(category.name);
+        return (
+          <Link
+            key={category.slug}
+            href={category.href}
+            className={`flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 ${accent.navCardClass}`}
+          >
+            <span className="text-base leading-none">{category.icon}</span>
+            <span>{category.shortName}</span>
+          </Link>
+        );
+      })}
+    </div>
+  );
+}
+
+function JoinBanner() {
+  return (
+    <div className="rounded-lg border border-[#333333] bg-[#1C1C1C] px-5 py-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="font-semibold text-white">Bau deinen persönlichen Feed</p>
+          <p className="mt-1 text-sm text-[#9A8F83]">
+            Nach dem Login siehst du hier Ratings, Reviews und Listen von Profilen, denen du folgst.
+          </p>
+        </div>
+        <Link
+          href="/api/auth/signin"
+          className="shrink-0 inline-flex items-center gap-2 rounded-full bg-[#E8750A] px-5 py-2.5 text-sm font-semibold text-[#1A0E04] transition-colors hover:bg-[#F5963C]"
+        >
+          Einloggen
+          <FiArrowRight size={15} />
+        </Link>
+      </div>
+    </div>
+  );
+}
+
 function HomeHero({
   heroProducts,
   catalogProductCount,
@@ -1245,6 +1480,9 @@ function HomeHero({
   feedData,
   isLoading,
   hasLiveRatings,
+  userRatings,
+  isLoggedIn,
+  onQuickRate,
 }: {
   heroProducts: RankedProduct[];
   catalogProductCount: number;
@@ -1253,6 +1491,9 @@ function HomeHero({
   feedData: HomeFeedData;
   isLoading: boolean;
   hasLiveRatings: boolean;
+  userRatings?: Record<string, number>;
+  isLoggedIn?: boolean;
+  onQuickRate?: (slug: string, value: number) => void;
 }) {
   const heroShelfEyebrow = hasLiveRatings ? "Top bewertet diese Woche" : "Aktuelle Highlights";
   const heroShelfDescription = hasLiveRatings
@@ -1260,33 +1501,31 @@ function HomeHero({
     : "Diese Auswahl zeigt dir zum Start die spannendsten Produkte im aktuellen Katalog.";
 
   return (
-    <section className="overflow-hidden rounded-[32px] border border-[#314258] bg-[radial-gradient(circle_at_top_left,rgba(94,226,135,0.16),rgba(9,14,21,0.98)_38%),radial-gradient(circle_at_top_right,rgba(255,216,108,0.08),transparent_34%),linear-gradient(145deg,rgba(18,26,38,0.99),rgba(8,12,18,0.97))] p-5 shadow-[0_30px_80px_rgba(0,0,0,0.34)] sm:rounded-[40px] sm:p-8 lg:p-10">
+    <section className="overflow-hidden rounded-xl border border-[#333333] bg-[radial-gradient(circle_at_top_left,rgba(232,117,10,0.16),rgba(12,12,12,0.98)_38%),radial-gradient(circle_at_top_right,rgba(255,216,108,0.08),transparent_34%),linear-gradient(145deg,rgba(20,20,20,0.99),rgba(10,10,10,0.97))] p-5 shadow-[0_30px_80px_rgba(0,0,0,0.34)] sm:rounded-xl sm:p-8 lg:p-10">
       <div className="grid gap-8 xl:grid-cols-[1.1fr_0.9fr] xl:items-start">
         <div>
           <p className="text-xs uppercase tracking-[0.26em] text-[#9CC9AE]">
             Das Food-Diary für Ratings und Reviews
           </p>
           <h1 className="mt-4 max-w-3xl text-3xl font-black tracking-tight text-[#F6FFF8] sm:text-5xl lg:text-6xl">
-            Bewerte Lebensmittel, führe Listen und sieh sofort, was dein Netzwerk zuletzt
-            probiert hat.
+            Bewerte Lebensmittel, bau deine Listen und bleib nah dran, was andere probieren.
           </h1>
           <p className="mt-5 max-w-3xl text-sm leading-relaxed text-[#C9D8E7] sm:text-lg">
-            FoodRanker positioniert sich jetzt klar als Bewertungsseite für Lebensmittel:
-            Tiefkühlpizza, Chips, Eis, Proteinriegel und mehr. Denk eher an Letterboxd für
-            Supermarktregale als an einen simplen Produktkatalog.
+            Tiefkühlpizza, Chips, Eis, Proteinriegel — alles bewertbar, alles diskutierbar.
+            Folge Menschen mit ähnlichem Geschmack und entdecke, was wirklich lohnt.
           </p>
 
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
               href="/?sort=best"
-              className="inline-flex items-center gap-2 rounded-full bg-[#5EE287] px-5 py-3 text-sm font-semibold text-[#0C1910] transition-colors hover:bg-[#79F29C]"
+              className="inline-flex items-center gap-2 rounded-full bg-[#E8750A] px-5 py-3 text-sm font-semibold text-[#1A0E04] transition-colors hover:bg-[#F5963C]"
             >
               Beste Lebensmittel entdecken
               <FiArrowRight size={16} />
             </Link>
             <Link
               href="/profil"
-              className="inline-flex items-center gap-2 rounded-full border border-[#2D3A4B] bg-[#121B27] px-5 py-3 text-sm font-semibold text-white transition-colors hover:border-[#5EE287] hover:text-[#D9FFE6]"
+              className="inline-flex items-center gap-2 rounded-full border border-[#333333] bg-[#1E1E1E] px-5 py-3 text-sm font-semibold text-white transition-colors hover:border-[#E8750A] hover:text-[#FFE4C8]"
             >
               Profil und Feed aufbauen
               <FiUsers size={16} />
@@ -1294,43 +1533,25 @@ function HomeHero({
           </div>
 
           <div className="mt-6 flex flex-wrap gap-2.5 text-sm">
-            <span className="rounded-full border border-[#34503B] bg-[#173023] px-4 py-2 font-semibold text-[#D9FFE6]">
+            <span className="rounded-full border border-[#5A2E08] bg-[#291808] px-4 py-2 font-semibold text-[#FFE4C8]">
               {catalogProductCount}+ Lebensmittel im Katalog
             </span>
-            <span className="rounded-full border border-[#2D3A4B] bg-[#111925]/90 px-4 py-2 font-semibold text-[#D6E2EF]">
+            <span className="rounded-full border border-[#333333] bg-[#1C1C1C]/90 px-4 py-2 font-semibold text-[#DDD0C4]">
               {CATEGORY_NAV_ITEMS.length} Kategorien
             </span>
-            <span className="rounded-full border border-[#2D3A4B] bg-[#111925]/90 px-4 py-2 font-semibold text-[#D6E2EF]">
+            <span className="rounded-full border border-[#333333] bg-[#1C1C1C]/90 px-4 py-2 font-semibold text-[#DDD0C4]">
               {ratedProductCount > 0
                 ? `${formatCompactCount(ratedProductCount)} Produkte mit Score`
                 : "Neue Bewertungen willkommen"}
             </span>
-            <span className="rounded-full border border-[#2D3A4B] bg-[#111925]/90 px-4 py-2 font-semibold text-[#D6E2EF]">
+            <span className="rounded-full border border-[#333333] bg-[#1C1C1C]/90 px-4 py-2 font-semibold text-[#DDD0C4]">
               {feedData.followingCount > 0
                 ? `${feedData.followingCount} Profile im Feed`
                 : "Folgen schaltet Feed frei"}
             </span>
           </div>
 
-          <div className="mt-8 grid gap-3 md:grid-cols-3">
-            <FeatureTile
-              icon={<FiStar size={18} />}
-              title="Bewerten"
-              description="Vergib Sterne und mach aus Produkten echte Community-Scores."
-            />
-            <FeatureTile
-              icon={<FiHeart size={18} />}
-              title="Listen"
-              description="Baue Favoriten und Watchlist wie in einem persönlichen Food-Journal."
-            />
-            <FeatureTile
-              icon={<FiUsers size={18} />}
-              title="Folgen"
-              description="Die Home startet mit Aktivität von Leuten, deren Geschmack du spannend findest."
-            />
-          </div>
-
-          <p className="mt-6 text-sm text-[#8CA1B8]">
+          <p className="mt-5 text-sm text-[#9A8F83]">
             {isLoading
               ? "Highlights werden geladen..."
               : hasLiveRatings
@@ -1339,12 +1560,12 @@ function HomeHero({
           </p>
         </div>
 
-        <div className="rounded-[30px] border border-[#2A394B] bg-[linear-gradient(145deg,rgba(15,22,32,0.92),rgba(10,16,24,0.94))] p-4 shadow-[0_22px_50px_rgba(0,0,0,0.24)] sm:p-5">
+        <div className="rounded-xl border border-[#2A2A2A] bg-[linear-gradient(145deg,rgba(15,22,32,0.92),rgba(10,16,24,0.94))] p-4 shadow-[0_22px_50px_rgba(0,0,0,0.24)] sm:p-5">
           <div className="mb-4">
-            <p className="text-sm font-black uppercase tracking-[0.22em] text-[#F3FFF6] sm:text-base">
+            <p className="text-sm font-black uppercase tracking-[0.22em] text-[#FFF0E4] sm:text-base">
               {heroShelfEyebrow}
             </p>
-            <p className="mt-2 text-sm leading-relaxed text-[#D6E2EF] sm:text-[15px]">
+            <p className="mt-2 text-sm leading-relaxed text-[#DDD0C4] sm:text-[15px]">
               {heroShelfDescription}
             </p>
           </div>
@@ -1355,6 +1576,9 @@ function HomeHero({
                 key={`hero-${product.routeSlug}`}
                 product={product}
                 eager={index < 2}
+                userRating={userRatings?.[product.routeSlug] ?? null}
+                isLoggedIn={isLoggedIn}
+                onQuickRate={onQuickRate}
               />
             ))}
           </div>
@@ -1368,6 +1592,18 @@ export default function HomeContent() {
   const searchParams = useSearchParams();
   const { data: session, status: sessionStatus } = useSession();
   const sessionUserEmail = session?.user?.email ?? null;
+  const { user: ratingUser, ratings: userRatings, saveRating } = useUserRatings();
+  const isLoggedIn = Boolean(ratingUser);
+  const { toasts, showToast, dismissToast } = useToast();
+
+  async function handleQuickRate(slug: string, value: number) {
+    const result = await saveRating(slug, value);
+    if (result.success) {
+      showToast(`${value} ★ gespeichert!`);
+    } else {
+      showToast(result.error || "Bewertung fehlgeschlagen.", "error");
+    }
+  }
   const searchQuery = (searchParams.get("q") || "").trim();
   const rawCategory = searchParams.get("category");
   const rawSort = searchParams.get("sort");
@@ -1809,35 +2045,72 @@ export default function HomeContent() {
       .slice(0, 4);
   }, [sections]);
 
+  const unratedSuggestions = useMemo((): RankedProduct[] => {
+    if (!isLoggedIn || !userRatings || Object.keys(userRatings).length === 0) return [];
+
+    const ratedSlugs = new Set(Object.keys(userRatings));
+
+    // Categories the user has already rated
+    const ratedCategories = new Set<string>();
+    for (const slug of ratedSlugs) {
+      const product = mergedCatalogProducts.find((p) => p.routeSlug === slug);
+      if (product?.category) ratedCategories.add(product.category);
+    }
+    if (ratedCategories.size === 0) return [];
+
+    const suggestions: RankedProduct[] = [];
+    for (const product of mergedCatalogProducts) {
+      const slug = product.routeSlug ?? getProductRouteSlug(product);
+      if (ratedSlugs.has(slug)) continue;
+      if (!ratedCategories.has(product.category)) continue;
+      const stats = ratingStats[slug];
+      suggestions.push({
+        name: product.name,
+        category: product.category,
+        routeSlug: slug,
+        imageUrl: getProductImageUrl(product),
+        ratingAvg: stats?.ratingAvg ?? null,
+        ratingCount: stats?.ratingCount ?? 0,
+        weekRatingAvg: null,
+        weekRatingCount: 0,
+      });
+    }
+
+    suggestions.sort((a, b) => (b.ratingAvg ?? -1) - (a.ratingAvg ?? -1));
+    return suggestions.slice(0, 8);
+  }, [isLoggedIn, userRatings, mergedCatalogProducts, ratingStats]);
+
+  const [discoverView, setDiscoverView] = useState<"grid" | "list">("grid");
+
   const sortLabel =
     DISCOVER_SORT_OPTIONS.find((option) => option.value === sortMode)?.label ?? "Beliebt";
   const activeCategory =
     selectedCategory === "all" ? null : getCategoryNavigationItem(selectedCategory);
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(94,226,135,0.06),transparent_24%),linear-gradient(180deg,#0A1118_0%,#0F151E_52%,#0A1118_100%)] px-4 pb-24 text-white sm:px-8 lg:px-12">
+    <>
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(232,117,10,0.06),transparent_24%),linear-gradient(180deg,#141414_0%,#141414_52%,#141414_100%)] px-4 pb-24 text-white sm:px-8 lg:px-12">
       <div className="mx-auto max-w-7xl">
         {isDiscoverMode ? (
           <>
-            <section className="rounded-[36px] border border-[#2A394B] bg-[radial-gradient(circle_at_top_left,rgba(94,226,135,0.1),rgba(16,24,36,0.98)_42%),linear-gradient(145deg,rgba(19,27,38,0.98),rgba(10,15,22,0.97))] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.28)] sm:p-8">
+            <section className="rounded-xl border border-[#2A2A2A] bg-[radial-gradient(circle_at_top_left,rgba(232,117,10,0.1),rgba(20,20,20,0.98)_42%),linear-gradient(145deg,rgba(20,20,20,0.98),rgba(14,14,14,0.97))] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.28)] sm:p-8">
               <p className="text-xs uppercase tracking-[0.24em] text-[#9CC9AE]">
                 Lebensmittel entdecken
               </p>
-              <h1 className="mt-3 text-3xl font-black tracking-tight text-[#F3FFF6] sm:text-4xl">
+              <h1 className="mt-3 text-3xl font-black tracking-tight text-[#FFF0E4] sm:text-4xl">
                 Finde Produkte, die du als Nächstes bewerten willst.
               </h1>
               <p className="mt-4 max-w-3xl text-sm leading-relaxed text-[#C9D8E7] sm:text-base">
-                FoodRanker ist jetzt klar als Bewertungsseite für Lebensmittel inszeniert:
-                Suche gezielt nach Produkten, filtere nach Kategorie und sortiere wie in einem
-                echten Food-Discovery-Feed.
+                Suche gezielt nach Produkten, filtere nach Kategorie und sortiere nach dem, was
+                dir wichtig ist — Bewertung, Beliebtheit oder Neuheit.
               </p>
 
               <div className="mt-5 flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-[0.14em]">
-                <span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1.5 text-[#BFD0E2]">
+                <span className="rounded-full border border-[#333333] bg-[#222222] px-3 py-1.5 text-[#C4B8AC]">
                   {displayedBrowseProducts.length} Treffer
                 </span>
                 {activeCategory ? (
-                  <span className="rounded-full border border-[#5EE287]/35 bg-[#173023] px-3 py-1.5 text-[#D9FFE6]">
+                  <span className="rounded-full border border-[#E8750A]/35 bg-[#291808] px-3 py-1.5 text-[#FFE4C8]">
                     {activeCategory.shortName}
                   </span>
                 ) : null}
@@ -1846,11 +2119,11 @@ export default function HomeContent() {
                     Suche aktiv
                   </span>
                 ) : null}
-                <span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1.5 text-[#BFD0E2]">
+                <span className="rounded-full border border-[#333333] bg-[#222222] px-3 py-1.5 text-[#C4B8AC]">
                   Sortierung: {sortLabel}
                 </span>
                 {openFoodFactsSuggestions.length > 0 ? (
-                  <span className="rounded-full border border-[#35503D] bg-[#122619] px-3 py-1.5 text-[#D9FFE6]">
+                  <span className="rounded-full border border-[#5A2E08] bg-[#221508] px-3 py-1.5 text-[#FFE4C8]">
                     {openFoodFactsSuggestions.length} OFF-Vorschläge
                   </span>
                 ) : null}
@@ -1860,42 +2133,123 @@ export default function HomeContent() {
             <section className="mt-8">
               <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                  <p className="text-[11px] uppercase tracking-[0.24em] text-[#8CA1B8]">
+                  <p className="text-[11px] uppercase tracking-[0.24em] text-[#9A8F83]">
                     Ergebnisse
                   </p>
-                  <h2 className="mt-2 text-2xl font-black tracking-tight text-[#F3FFF6] sm:text-3xl">
+                  <h2 className="mt-2 text-2xl font-black tracking-tight text-[#FFF0E4] sm:text-3xl">
                     {searchQuery ? `Treffer für "${searchQuery}"` : "Gefilterte Produkte"}
                   </h2>
-                  <p className="mt-2 text-sm text-[#AFC1D3]">
+                  <p className="mt-2 text-sm text-[#A89880]">
                     {activeCategory
                       ? `${activeCategory.name} gefiltert, sortiert nach ${sortLabel}.`
                       : `Alle Lebensmittel, sortiert nach ${sortLabel}.`}
                   </p>
                 </div>
-                {!statsLoaded ? (
-                  <span className="text-sm text-[#8CA1B8]">
-                    Bewertungsdaten werden geladen...
-                  </span>
-                ) : null}
+                <div className="flex items-center gap-3">
+                  {!statsLoaded && (
+                    <span className="text-sm text-[#9A8F83]">Lade Bewertungsdaten...</span>
+                  )}
+                  <div className="flex rounded-lg border border-[#333333] bg-[#1C1C1C] p-0.5">
+                    <button
+                      type="button"
+                      onClick={() => setDiscoverView("grid")}
+                      title="Kachelansicht"
+                      className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-semibold transition-colors ${
+                        discoverView === "grid"
+                          ? "bg-[#333333] text-white"
+                          : "text-[#9A8F83] hover:text-white"
+                      }`}
+                    >
+                      <FiGrid size={15} />
+                      <span className="hidden sm:inline">Kacheln</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDiscoverView("list")}
+                      title="Listenansicht"
+                      className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-semibold transition-colors ${
+                        discoverView === "list"
+                          ? "bg-[#333333] text-white"
+                          : "text-[#9A8F83] hover:text-white"
+                      }`}
+                    >
+                      <FiList size={15} />
+                      <span className="hidden sm:inline">Liste</span>
+                    </button>
+                  </div>
+                </div>
               </div>
 
               {displayedBrowseProducts.length > 0 ? (
-                <div className="grid grid-cols-1 gap-4 min-[380px]:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
-                  {displayedBrowseProducts.map((product, index) => (
-                    <ProductCard
-                      key={`browse-${product.routeSlug}`}
-                      product={product}
-                      eager={index < 4}
-                    />
-                  ))}
-                </div>
+                discoverView === "grid" ? (
+                  <div className="grid grid-cols-1 gap-4 min-[380px]:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+                    {displayedBrowseProducts.map((product, index) => (
+                      <ProductCard
+                        key={`browse-${product.routeSlug}`}
+                        product={product}
+                        eager={index < 4}
+                        userRating={userRatings?.[product.routeSlug] ?? null}
+                        isLoggedIn={isLoggedIn}
+                        onQuickRate={handleQuickRate}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <ul className="space-y-2">
+                    {displayedBrowseProducts.map((product, index) => {
+                      const accent = getCategoryAccent(product.category);
+                      const rated = userRatings?.[product.routeSlug] ?? null;
+                      return (
+                        <li key={`list-${product.routeSlug}`} className="flex items-center gap-3 rounded-lg border border-[#2A2A2A] bg-[#1C1C1C] px-4 py-3 transition-colors hover:border-[#333333]">
+                          <span className="w-7 shrink-0 text-center text-sm font-bold tabular-nums text-[#9A8F83]">
+                            {index + 1}
+                          </span>
+                          <Link href={`/produkt/${product.routeSlug}`} className="shrink-0">
+                            <div className="relative h-14 w-11 overflow-hidden rounded-md border border-[#333333] bg-[#141414]">
+                              <ProductCardImage
+                                routeSlug={product.routeSlug}
+                                alt={product.name}
+                                fallbackSrc={product.imageUrl}
+                                className="h-full w-full object-contain p-1"
+                              />
+                            </div>
+                          </Link>
+                          <div className="min-w-0 flex-1">
+                            <Link
+                              href={`/produkt/${product.routeSlug}`}
+                              className="line-clamp-1 font-semibold text-white transition-colors hover:text-[#F5963C]"
+                            >
+                              {product.name}
+                            </Link>
+                            <span className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold ${accent.subtleBadgeClass}`}>
+                              {product.category}
+                            </span>
+                          </div>
+                          <div className="shrink-0 text-right">
+                            {product.ratingAvg !== null ? (
+                              <MiniStars rating={product.ratingAvg} count={product.ratingCount > 0 ? product.ratingCount : undefined} size="xs" />
+                            ) : (
+                              <span className="text-xs text-[#9A8F83]">Kein Score</span>
+                            )}
+                            {rated !== null && (
+                              <div className="mt-1 flex items-center justify-end gap-1 text-[11px] font-semibold text-[#F5963C]">
+                                <FiCheck size={10} />
+                                {rated.toFixed(1)} ★
+                              </div>
+                            )}
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )
               ) : discoverFallbackLoading && searchQuery.length >= 2 ? (
-                <div className="rounded-[28px] border border-[#2A394B] bg-[#111925]/90 p-6 text-[#C4D0DE]">
+                <div className="rounded-lg border border-[#2A2A2A] bg-[#1C1C1C]/90 p-6 text-[#C4D0DE]">
                   <p>Wir erweitern deine Suche gerade mit externen Produktdaten...</p>
                 </div>
               ) : openFoodFactsSuggestions.length > 0 ? (
                 <div className="space-y-5">
-                  <div className="rounded-[28px] border border-[#35503D] bg-[linear-gradient(145deg,rgba(18,38,28,0.9),rgba(10,19,16,0.96))] p-6 text-[#D6E2EF]">
+                  <div className="rounded-lg border border-[#5A2E08] bg-[#1E1E1E] p-5 text-[#DDD0C4]">
                     <p className="text-sm leading-relaxed">
                       Im eigenen Katalog gibt es noch keine passenden Treffer. Diese Vorschläge
                       kommen über Open Food Facts. Beim Öffnen übernehmen wir das Produkt
@@ -1909,12 +2263,15 @@ export default function HomeContent() {
                         key={`off-${product.routeSlug}`}
                         product={product}
                         eager={index < 4}
+                        userRating={userRatings?.[product.routeSlug] ?? null}
+                        isLoggedIn={isLoggedIn}
+                        onQuickRate={handleQuickRate}
                       />
                     ))}
                   </div>
                 </div>
               ) : (
-                <div className="rounded-[28px] border border-[#2A394B] bg-[#111925]/90 p-6 text-[#C4D0DE]">
+                <div className="rounded-lg border border-[#2A2A2A] bg-[#1C1C1C]/90 p-6 text-[#C4D0DE]">
                   <p>
                     Keine Treffer gefunden. Versuche andere Begriffe wie Pizza, Salami, Vanille,
                     Protein oder wähle eine andere Kategorie.
@@ -1929,13 +2286,13 @@ export default function HomeContent() {
                           from: "suche",
                         },
                       }}
-                      className="inline-flex items-center rounded-full bg-[#5EE287] px-4 py-2 text-sm font-semibold text-[#0C1910] transition-colors hover:bg-[#79F29C]"
+                      className="inline-flex items-center rounded-full bg-[#E8750A] px-4 py-2 text-sm font-semibold text-[#1A0E04] transition-colors hover:bg-[#F5963C]"
                     >
                       Produkt vorschlagen
                     </Link>
                     <Link
                       href="/"
-                      className="inline-flex items-center rounded-full border border-[#2D3A4B] bg-[#141C27] px-4 py-2 text-sm font-semibold text-white transition-colors hover:border-[#5EE287] hover:text-[#D9FFE6]"
+                      className="inline-flex items-center rounded-full border border-[#333333] bg-[#222222] px-4 py-2 text-sm font-semibold text-white transition-colors hover:border-[#E8750A] hover:text-[#FFE4C8]"
                     >
                       Zur Startseite
                     </Link>
@@ -1954,95 +2311,133 @@ export default function HomeContent() {
               feedData={feedData}
               isLoading={isLoading}
               hasLiveRatings={sections.hasLiveRatings}
+              userRatings={userRatings}
+              isLoggedIn={isLoggedIn}
+              onQuickRate={handleQuickRate}
             />
 
-            <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.8fr)]">
-              <div className="min-w-0 space-y-6">
-                <div className="min-w-0 space-y-3">
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setCommunityTab("feed")}
-                      className={`rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
-                        communityTab === "feed"
-                          ? "border-[#5EE287] bg-[#173023] text-[#D9FFE6]"
-                          : "border-[#2D3A4B] bg-[#121B27] text-white hover:border-[#5EE287]"
-                      }`}
-                    >
-                      Following Feed
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setCommunityTab("top-lists")}
-                      className={`rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
-                        communityTab === "top-lists"
-                          ? "border-[#5EE287] bg-[#173023] text-[#D9FFE6]"
-                          : "border-[#2D3A4B] bg-[#121B27] text-white hover:border-[#5EE287]"
-                      }`}
-                    >
-                      Top-Listen
-                    </button>
+            {/* ① Kategorie-Schnellzugriff */}
+            <CategoryStrip />
+
+            {/* Community-Feed + Sidebar */}
+            <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(280px,0.65fr)]">
+              <div className="min-w-0">
+                {!feedData.viewerAuthenticated ? (
+                  <JoinBanner />
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setCommunityTab("feed")}
+                        className={`rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
+                          communityTab === "feed"
+                            ? "border-[#E8750A] bg-[#291808] text-[#FFE4C8]"
+                            : "border-[#333333] bg-[#1E1E1E] text-white hover:border-[#E8750A]"
+                        }`}
+                      >
+                        Following Feed
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setCommunityTab("top-lists")}
+                        className={`rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
+                          communityTab === "top-lists"
+                            ? "border-[#E8750A] bg-[#291808] text-[#FFE4C8]"
+                            : "border-[#333333] bg-[#1E1E1E] text-white hover:border-[#E8750A]"
+                        }`}
+                      >
+                        Top-Listen
+                      </button>
+                    </div>
+
+                    <div className="relative">
+                      <div
+                        className={`transition-all duration-300 ${communityTab === "feed" ? "opacity-100 translate-y-0" : "pointer-events-none absolute inset-0 opacity-0 -translate-y-1"}`}
+                      >
+                        <FeedPanel
+                          feedData={feedData}
+                          feedLoading={feedLoading}
+                          feedError={feedError}
+                        />
+                      </div>
+                      <div
+                        className={`transition-all duration-300 ${communityTab === "top-lists" ? "opacity-100 translate-y-0" : "pointer-events-none absolute inset-0 opacity-0 -translate-y-1"}`}
+                      >
+                        <TopListsPanel
+                          topListsData={topListsData}
+                          topListsLoading={topListsLoading}
+                          topListsError={topListsError}
+                        />
+                      </div>
+                    </div>
                   </div>
-
-                  {communityTab === "feed" ? (
-                    <FeedPanel
-                      feedData={feedData}
-                      feedLoading={feedLoading}
-                      feedError={feedError}
-                    />
-                  ) : (
-                    <TopListsPanel
-                      topListsData={topListsData}
-                      topListsLoading={topListsLoading}
-                      topListsError={topListsError}
-                    />
-                  )}
-                </div>
-
-                <div className="grid min-w-0 gap-6 lg:grid-cols-2">
-                  <ProductShelf
-                    eyebrow="Community Favoriten"
-                    title="Beste Bewertungen der Woche"
-                    description="Produkte mit den stärksten aktuellen Scores und Momentum."
-                    products={sections.bestThisWeek.slice(0, 4)}
-                    actionHref="/?sort=best"
-                  />
-                  <ProductShelf
-                    eyebrow="Momentum"
-                    title="Trendet gerade"
-                    description="Das bespricht und bewertet die Community momentan besonders häufig."
-                    products={sections.trending.slice(0, 4)}
-                    actionHref="/?sort=popular"
-                  />
-                </div>
-
-                <div className="grid min-w-0 gap-6 lg:grid-cols-2">
-                  <ProductShelf
-                    eyebrow="Neu im Katalog"
-                    title="Frisch hinzugefügt"
-                    description="Neue Lebensmittel, die auf ihre ersten Reviews und Rankings warten."
-                    products={sections.newlyAdded.slice(0, 4)}
-                    actionHref="/?sort=new"
-                  />
-                  <ProductShelf
-                    eyebrow="Hall of Fame"
-                    title="Starke Tiefkühlpizzen"
-                    description="Ein klarer Callout für Pizza, ohne dass die Homepage nur noch Pizza ist."
-                    products={sections.topPizza.slice(0, 4)}
-                    actionHref="/?category=pizza&sort=best"
-                  />
-                </div>
+                )}
               </div>
 
               <div className="min-w-0 space-y-6">
                 <NetworkPanel feedData={feedData} />
-                <CategoryPanel />
               </div>
+            </div>
+
+            {/* ① Full-width Product Shelves */}
+            <div className="mt-8 space-y-6">
+              <ProductShelf
+                eyebrow="Community Favoriten"
+                title="Beste Bewertungen der Woche"
+                description="Produkte mit den stärksten aktuellen Scores und Momentum."
+                products={sections.bestThisWeek.slice(0, 8)}
+                actionHref="/?sort=best"
+                userRatings={userRatings}
+                isLoggedIn={isLoggedIn}
+                onQuickRate={handleQuickRate}
+              />
+              <ProductShelf
+                eyebrow="Momentum"
+                title="Trendet gerade"
+                description="Das bespricht und bewertet die Community momentan besonders häufig."
+                products={sections.trending.slice(0, 8)}
+                actionHref="/?sort=popular"
+                userRatings={userRatings}
+                isLoggedIn={isLoggedIn}
+                onQuickRate={handleQuickRate}
+              />
+              <ProductShelf
+                eyebrow="Neu im Katalog"
+                title="Frisch hinzugefügt"
+                description="Neue Lebensmittel, die auf ihre ersten Reviews und Rankings warten."
+                products={sections.newlyAdded.slice(0, 8)}
+                actionHref="/?sort=new"
+                userRatings={userRatings}
+                isLoggedIn={isLoggedIn}
+                onQuickRate={handleQuickRate}
+              />
+              <ProductShelf
+                eyebrow="Hall of Fame"
+                title="Starke Tiefkühlpizzen"
+                description="Die besten Tiefkühlpizzen, gewählt von der Community."
+                products={sections.topPizza.slice(0, 8)}
+                actionHref="/?category=pizza&sort=best"
+                userRatings={userRatings}
+                isLoggedIn={isLoggedIn}
+                onQuickRate={handleQuickRate}
+              />
+              {unratedSuggestions.length > 0 && (
+                <ProductShelf
+                  eyebrow="Für dich"
+                  title="Noch nicht bewertet"
+                  description="Produkte aus deinen Kategorien, die du noch nicht bewertet hast — mit den höchsten Community-Scores zuerst."
+                  products={unratedSuggestions}
+                  userRatings={userRatings}
+                  isLoggedIn={isLoggedIn}
+                  onQuickRate={handleQuickRate}
+                />
+              )}
             </div>
           </>
         )}
 
-        <p className="mt-10 text-center text-xs text-[#8CA1B8]">
+        <p className="mt-10 text-center text-xs text-[#9A8F83]">
           {isDiscoverMode
             ? openFoodFactsSuggestions.length > 0
               ? `${openFoodFactsSuggestions.length} Vorschläge kommen aktuell direkt von Open Food Facts.`
@@ -2053,5 +2448,7 @@ export default function HomeContent() {
         </p>
       </div>
     </main>
+    <ToastContainer toasts={toasts} onDismiss={dismissToast} />
+    </>
   );
 }
