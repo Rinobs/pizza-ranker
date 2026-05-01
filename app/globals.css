@@ -1,29 +1,27 @@
 @import "tailwindcss";
 
 :root {
-  --app-bg-start: #0f141a;
-  --app-bg-mid: #121a24;
-  --app-bg-end: #0f141a;
-  --surface-1: #1b222d;
-  --surface-2: #212b38;
-  --border-1: #2d3a4b;
-  --text-main: #e8edf5;
-  --text-muted: #8ca1b8;
-  --accent: #5ee287;
+  --app-bg: #141414;
+  --surface-1: #242424;
+  --surface-2: #2A2A2A;
+  --border-1: #333333;
+  --text-main: #EDE0D4;
+  --text-muted: #9A8F83;
+  --accent: #E8750A;
 }
 
 html {
   width: 100%;
   min-height: 100%;
   overflow-x: hidden;
-  background: linear-gradient(180deg, var(--app-bg-start) 0%, var(--app-bg-mid) 48%, var(--app-bg-end) 100%);
+  background: #141414;
 }
 
 body {
   width: 100%;
   min-height: 100vh;
   overflow-x: hidden;
-  background: linear-gradient(180deg, var(--app-bg-start) 0%, var(--app-bg-mid) 48%, var(--app-bg-end) 100%);
+  background: #141414;
   color: var(--text-main);
 }
 
@@ -31,7 +29,7 @@ body {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-x: contain;
   scrollbar-width: thin;
-  scrollbar-color: rgba(138, 245, 172, 0.55) rgba(16, 24, 34, 0.88);
+  scrollbar-color: rgba(232, 117, 10, 0.5) rgba(28, 28, 28, 0.9);
   touch-action: pan-x;
 }
 
@@ -40,16 +38,16 @@ body {
 }
 
 .home-shelf-carousel::-webkit-scrollbar-track {
-  background: rgba(16, 24, 34, 0.88);
+  background: rgba(28, 28, 28, 0.9);
   border-radius: 999px;
 }
 
 .home-shelf-carousel::-webkit-scrollbar-thumb {
-  background: linear-gradient(90deg, rgba(94, 226, 135, 0.78), rgba(156, 201, 174, 0.72));
+  background: linear-gradient(90deg, rgba(232, 117, 10, 0.75), rgba(245, 150, 60, 0.65));
   border-radius: 999px;
-  border: 2px solid rgba(16, 24, 34, 0.88);
+  border: 2px solid rgba(28, 28, 28, 0.9);
 }
 
 .home-shelf-carousel::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(90deg, rgba(117, 243, 155, 0.9), rgba(207, 255, 224, 0.84));
+  background: linear-gradient(90deg, rgba(232, 117, 10, 0.95), rgba(245, 150, 60, 0.85));
 }

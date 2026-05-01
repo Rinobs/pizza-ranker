@@ -17,13 +17,13 @@ export function Toast({ message, type = "success", onDismiss }: ToastProps) {
 
   return (
     <div
-      className={`flex items-center gap-3 rounded-2xl border px-4 py-3 shadow-[0_16px_40px_rgba(0,0,0,0.4)] backdrop-blur-md transition-all duration-300 animate-in slide-in-from-bottom-4 ${
+      className={`flex items-center gap-3 rounded-lg border px-4 py-3 shadow-[0_16px_40px_rgba(0,0,0,0.4)] backdrop-blur-md transition-all duration-300 animate-in slide-in-from-bottom-4 ${
         type === "success"
-          ? "border-[#34503B] bg-[#0E2018]/95 text-[#D9FFE6]"
+          ? "border-[#5A2E08] bg-[#1E0E06]/95 text-[#FFE4C8]"
           : "border-[#5E3340] bg-[#1A0A10]/95 text-[#FFD8E1]"
       }`}
     >
-      <span className={`shrink-0 ${type === "success" ? "text-[#8AF5AC]" : "text-[#FF8FAB]"}`}>
+      <span className={`shrink-0 ${type === "success" ? "text-[#E8750A]" : "text-[#FF8FAB]"}`}>
         {type === "success" ? <FiCheck size={16} strokeWidth={2.5} /> : <FiX size={16} />}
       </span>
       <span className="text-sm font-semibold">{message}</span>

@@ -10,14 +10,14 @@ type CategoryAccent = {
 };
 
 const DEFAULT_ACCENT: CategoryAccent = {
-  badgeClass: "border-white/12 bg-[#0D1420]/88 text-[#DCE9F5]",
-  subtleBadgeClass: "border-[#2D3A4B] bg-[#101822] text-[#D6E2EF]",
-  cardClass: "hover:border-[#5EE287] hover:shadow-[0_20px_44px_rgba(34,197,94,0.18)]",
-  accentBarClass: "bg-[linear-gradient(90deg,#5EE287,#9AF7B7)]",
-  navCardClass: "border-[#2A394B] bg-[#101822] hover:border-[#5EE287]/35",
-  navTitleClass: "group-hover:text-[#8AF5AC]",
-  iconWrapClass: "border-[#35503D] bg-[radial-gradient(circle_at_top,rgba(94,226,135,0.18),rgba(15,22,33,0.96)_72%)] text-[#D9FFE6]",
-  thumbClass: "border-[#35503D]/35",
+  badgeClass: "border-white/12 bg-[#1C1C1C]/88 text-[#EDD8C5]",
+  subtleBadgeClass: "border-[#333333] bg-[#1C1C1C] text-[#DDD0C4]",
+  cardClass: "hover:border-[#E8750A] hover:shadow-[0_20px_44px_rgba(232,117,10,0.18)]",
+  accentBarClass: "bg-[linear-gradient(90deg,#E8750A,#F5A050)]",
+  navCardClass: "border-[#2A2A2A] bg-[#1C1C1C] hover:border-[#E8750A]/35",
+  navTitleClass: "group-hover:text-[#F5963C]",
+  iconWrapClass: "border-[#5A2E08] bg-[radial-gradient(circle_at_top,rgba(232,117,10,0.18),rgba(20,20,20,0.96)_72%)] text-[#FFE4C8]",
+  thumbClass: "border-[#5A2E08]/35",
 };
 
 const PIZZA_ACCENT: CategoryAccent = {

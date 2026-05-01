@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { type Product } from "@/app/data/products";
@@ -162,16 +162,16 @@ export default function ProductComparisonPanel({
   const comparisonReady = products.length >= 2;
 
   return (
-    <section className="mb-8 rounded-[28px] border border-[#2D3A4B] bg-[linear-gradient(135deg,rgba(15,24,34,0.98),rgba(19,30,43,0.96))] p-5 sm:p-6 shadow-[0_18px_42px_rgba(0,0,0,0.22)]">
+    <section className="mb-8 rounded-lg border border-[#333333] bg-[linear-gradient(135deg,rgba(15,24,34,0.98),rgba(19,30,43,0.96))] p-5 sm:p-6 shadow-[0_18px_42px_rgba(0,0,0,0.22)]">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.22em] text-[#8CA1B8]">Produktvergleich</p>
-          <h2 className="mt-2 text-2xl font-bold tracking-tight text-[#E8F6ED]">
+          <p className="text-xs uppercase tracking-[0.22em] text-[#9A8F83]">Produktvergleich</p>
+          <h2 className="mt-2 text-2xl font-bold tracking-tight text-[#F0E4D4]">
             {comparisonReady
               ? `${products.length} Produkte im Direktvergleich`
               : "Wähle noch ein Produkt für den Vergleich aus"}
           </h2>
-          <p className="mt-2 max-w-2xl text-sm text-[#8CA1B8]">
+          <p className="mt-2 max-w-2xl text-sm text-[#9A8F83]">
             {comparisonReady
               ? "Bewertung, Preis und Makros liegen direkt nebeneinander, damit du schneller entscheiden kannst."
               : `Du kannst bis zu ${limit} Produkte aus ${title} auswählen und direkt gegenüberstellen.`}
@@ -185,7 +185,7 @@ export default function ProductComparisonPanel({
           <button
             type="button"
             onClick={onClear}
-            className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-[#C4D0DE] transition-colors hover:border-[#5EE287] hover:text-white"
+            className="rounded-full border border-[#333333] bg-[#222222] px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-[#C4D0DE] transition-colors hover:border-[#E8750A] hover:text-white"
           >
             Auswahl leeren
           </button>
@@ -199,10 +199,10 @@ export default function ProductComparisonPanel({
           return (
             <article
               key={product.routeSlug}
-              className="rounded-2xl border border-[#2D3A4B] bg-[#141C27]/90 p-4"
+              className="rounded-lg border border-[#333333] bg-[#222222]/90 p-4"
             >
               <div className="flex items-start gap-3">
-                <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[#2D3A4B] bg-[#101822] p-1.5">
+                <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[#333333] bg-[#1C1C1C] p-1.5">
                   <img
                     src={`/api/product-image/${product.routeSlug}`}
                     alt={product.name}
@@ -223,17 +223,17 @@ export default function ProductComparisonPanel({
                 </div>
 
                 <div className="min-w-0 flex-1">
-                  <h3 className="text-sm font-semibold leading-snug text-[#E8F6ED]">
+                  <h3 className="text-sm font-semibold leading-snug text-[#F0E4D4]">
                     {product.name}
                   </h3>
-                  <p className="mt-1 text-xs text-[#BFD0E2]">{formatRating(product)}</p>
+                  <p className="mt-1 text-xs text-[#C4B8AC]">{formatRating(product)}</p>
 
                   {quickFacts.length > 0 && (
                     <div className="mt-2 flex flex-wrap gap-2">
                       {quickFacts.map((fact) => (
                         <span
                           key={`${product.routeSlug}-${fact}`}
-                          className="rounded-full border border-[#2D3A4B] bg-[#101822] px-2.5 py-1 text-[11px] font-medium text-[#C4D0DE]"
+                          className="rounded-full border border-[#333333] bg-[#1C1C1C] px-2.5 py-1 text-[11px] font-medium text-[#C4D0DE]"
                         >
                           {fact}
                         </span>
@@ -247,7 +247,7 @@ export default function ProductComparisonPanel({
                 <div className="flex flex-wrap items-center gap-2">
                   <Link
                     href={`/produkt/${product.routeSlug}`}
-                    className="text-sm font-semibold text-[#8AF5AC] transition-colors hover:text-[#CFFFE0]"
+                    className="text-sm font-semibold text-[#F5963C] transition-colors hover:text-[#CFFFE0]"
                   >
                     Zum Produkt
                   </Link>
@@ -266,7 +266,7 @@ export default function ProductComparisonPanel({
       </div>
 
       {!comparisonReady ? (
-        <p className="mt-4 rounded-2xl border border-[#2D3A4B] bg-[#111923] px-4 py-3 text-sm text-[#8CA1B8]">
+        <p className="mt-4 rounded-lg border border-[#333333] bg-[#111923] px-4 py-3 text-sm text-[#9A8F83]">
           Wähle noch ein weiteres Produkt aus {title}, dann erscheint hier der direkte Vergleich.
         </p>
       ) : (
@@ -275,13 +275,13 @@ export default function ProductComparisonPanel({
             <table className="min-w-[720px] w-full border-separate border-spacing-0">
               <thead>
                 <tr>
-                  <th className="sticky left-0 z-20 min-w-40 rounded-tl-2xl border border-[#2D3A4B] bg-[#0F1822] px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.18em] text-[#8CA1B8]">
+                  <th className="sticky left-0 z-20 min-w-40 rounded-tl-2xl border border-[#333333] bg-[#0F1822] px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.18em] text-[#9A8F83]">
                     Merkmal
                   </th>
                   {products.map((product, index) => (
                     <th
                       key={product.routeSlug}
-                      className={`min-w-56 border border-[#2D3A4B] bg-[#0F1822] px-4 py-3 text-left text-sm font-semibold text-[#E8F6ED] ${
+                      className={`min-w-56 border border-[#333333] bg-[#0F1822] px-4 py-3 text-left text-sm font-semibold text-[#F0E4D4] ${
                         index === products.length - 1 ? "rounded-tr-2xl" : ""
                       }`}
                     >
@@ -299,7 +299,7 @@ export default function ProductComparisonPanel({
                     <tr key={metric.key}>
                       <th
                         scope="row"
-                        className={`sticky left-0 z-10 border border-[#2D3A4B] bg-[#111923] px-4 py-3 text-left text-sm font-semibold text-[#E8F6ED] ${
+                        className={`sticky left-0 z-10 border border-[#333333] bg-[#111923] px-4 py-3 text-left text-sm font-semibold text-[#F0E4D4] ${
                           isLastRow ? "rounded-bl-2xl" : ""
                         }`}
                       >
@@ -313,10 +313,10 @@ export default function ProductComparisonPanel({
                         return (
                           <td
                             key={`${metric.key}-${product.routeSlug}`}
-                            className={`border border-[#2D3A4B] px-4 py-3 text-sm ${
+                            className={`border border-[#333333] px-4 py-3 text-sm ${
                               isHighlighted
-                                ? "bg-[#173023] font-semibold text-[#E8F6ED]"
-                                : "bg-[#141C27] text-[#C4D0DE]"
+                                ? "bg-[#291808] font-semibold text-[#F0E4D4]"
+                                : "bg-[#222222] text-[#C4D0DE]"
                             } ${isLastRow && isLastColumn ? "rounded-br-2xl" : ""}`}
                           >
                             {metric.getDisplayValue(product)}
@@ -330,7 +330,7 @@ export default function ProductComparisonPanel({
             </table>
           </div>
 
-          <p className="mt-3 text-xs text-[#8CA1B8]">
+          <p className="mt-3 text-xs text-[#9A8F83]">
             Grün markiert: bester Wert innerhalb deiner Auswahl. Bei Kalorien, Fett und
             Kohlenhydraten ist der niedrigere Wert markiert.
           </p>

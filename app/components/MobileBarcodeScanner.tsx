@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -588,8 +588,8 @@ export default function MobileBarcodeScanner({
       aria-label={ariaLabel || label}
       className={
         variant === "button"
-          ? `inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-[#35503D] bg-[linear-gradient(135deg,rgba(94,226,135,0.18),rgba(18,27,39,0.96))] px-5 py-3 text-sm font-semibold text-[#E9FFF0] transition-colors hover:border-[#5EE287] hover:bg-[linear-gradient(135deg,rgba(94,226,135,0.26),rgba(18,27,39,0.98))] disabled:cursor-not-allowed disabled:opacity-60 ${className}`
-          : `inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#2D3A4B] bg-[#18222E] text-[#D6E2EF] transition-colors hover:border-[#5EE287] hover:text-[#F3FFF6] disabled:cursor-not-allowed disabled:opacity-60 ${className}`
+          ? `inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-[#5A2E08] bg-[linear-gradient(135deg,rgba(232,117,10,0.18),rgba(20,20,20,0.96))] px-5 py-3 text-sm font-semibold text-[#FFE4C8] transition-colors hover:border-[#E8750A] hover:bg-[linear-gradient(135deg,rgba(232,117,10,0.26),rgba(20,20,20,0.98))] disabled:cursor-not-allowed disabled:opacity-60 ${className}`
+          : `inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#333333] bg-[#18222E] text-[#DDD0C4] transition-colors hover:border-[#E8750A] hover:text-[#FFF0E4] disabled:cursor-not-allowed disabled:opacity-60 ${className}`
       }
     >
       {isBusy ? (
@@ -609,24 +609,24 @@ export default function MobileBarcodeScanner({
               role="dialog"
               aria-modal="true"
               aria-label="Barcode scannen"
-              className="w-full max-w-[420px] rounded-[32px] border border-[#2D3A4B] bg-[linear-gradient(145deg,rgba(18,26,38,0.98),rgba(9,14,21,0.98))] p-5 shadow-[0_28px_70px_rgba(0,0,0,0.45)]"
+              className="w-full max-w-[420px] rounded-xl border border-[#333333] bg-[linear-gradient(145deg,rgba(20,20,20,0.98),rgba(12,12,12,0.98))] p-5 shadow-[0_28px_70px_rgba(0,0,0,0.45)]"
             >
               <div className="text-center">
                 <p className="text-[11px] uppercase tracking-[0.24em] text-[#9CC9AE]">
                   Barcode Scanner
                 </p>
-                <p className="mt-3 text-sm leading-relaxed text-[#D6E2EF]">
+                <p className="mt-3 text-sm leading-relaxed text-[#DDD0C4]">
                   Halte die Kamera auf den Barcode der Verpackung
                 </p>
               </div>
 
-              <div className="relative mx-auto mt-5 aspect-square w-full max-w-[320px] overflow-hidden rounded-[28px] border border-[#2D3A4B] bg-[#0B1118]">
+              <div className="relative mx-auto mt-5 aspect-square w-full max-w-[320px] overflow-hidden rounded-lg border border-[#333333] bg-[#0B1118]">
                 <div id={scannerElementId} className="h-full w-full" />
                 <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_48%,rgba(0,0,0,0.28)_100%)]" />
-                <div className="pointer-events-none absolute inset-[14%] rounded-[26px] border-2 border-[#F24848] shadow-[0_0_0_1px_rgba(242,72,72,0.24),0_0_28px_rgba(242,72,72,0.18)]" />
+                <div className="pointer-events-none absolute inset-[14%] rounded-lg border-2 border-[#F24848] shadow-[0_0_0_1px_rgba(242,72,72,0.24),0_0_28px_rgba(242,72,72,0.18)]" />
                 {isPreparing || isStartingScanner ? (
-                  <div className="absolute inset-0 flex items-center justify-center bg-[#0B1118]/70 text-sm text-[#D6E2EF]">
-                    <span className="inline-flex items-center gap-2 rounded-full border border-[#2D3A4B] bg-[#111925] px-4 py-2">
+                  <div className="absolute inset-0 flex items-center justify-center bg-[#0B1118]/70 text-sm text-[#DDD0C4]">
+                    <span className="inline-flex items-center gap-2 rounded-full border border-[#333333] bg-[#1C1C1C] px-4 py-2">
                       <FiLoader className="animate-spin" size={16} />
                       Kamera startet...
                     </span>
@@ -637,7 +637,7 @@ export default function MobileBarcodeScanner({
               <button
                 type="button"
                 onClick={closeScanner}
-                className="mt-5 inline-flex w-full items-center justify-center rounded-2xl border border-[#2D3A4B] bg-[#141C27] px-4 py-3 text-sm font-semibold text-white transition-colors hover:border-[#5EE287] hover:text-[#D9FFE6]"
+                className="mt-5 inline-flex w-full items-center justify-center rounded-lg border border-[#333333] bg-[#222222] px-4 py-3 text-sm font-semibold text-white transition-colors hover:border-[#E8750A] hover:text-[#FFE4C8]"
               >
                 Abbrechen
               </button>
@@ -655,11 +655,11 @@ export default function MobileBarcodeScanner({
               role="dialog"
               aria-modal="true"
               aria-label={feedback.title}
-              className="w-full max-w-[420px] rounded-[30px] border border-[#2D3A4B] bg-[linear-gradient(145deg,rgba(18,26,38,0.98),rgba(9,14,21,0.98))] p-5 shadow-[0_24px_60px_rgba(0,0,0,0.42)]"
+              className="w-full max-w-[420px] rounded-xl border border-[#333333] bg-[linear-gradient(145deg,rgba(20,20,20,0.98),rgba(12,12,12,0.98))] p-5 shadow-[0_24px_60px_rgba(0,0,0,0.42)]"
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-lg font-semibold text-[#F3FFF6]">{feedback.title}</p>
+                  <p className="text-lg font-semibold text-[#FFF0E4]">{feedback.title}</p>
                   <p className="mt-2 text-sm leading-relaxed text-[#C9D8E7]">
                     {feedback.message}
                   </p>
@@ -668,7 +668,7 @@ export default function MobileBarcodeScanner({
                 <button
                   type="button"
                   onClick={() => setFeedback(null)}
-                  className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#2D3A4B] bg-[#121B27] text-white transition-colors hover:border-[#5EE287]"
+                  className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#333333] bg-[#1E1E1E] text-white transition-colors hover:border-[#E8750A]"
                   aria-label="Hinweis schliessen"
                 >
                   <FiX size={18} />
@@ -676,7 +676,7 @@ export default function MobileBarcodeScanner({
               </div>
 
               {"barcode" in feedback ? (
-                <div className="mt-4 rounded-2xl border border-[#2D3A4B] bg-[#101822] px-4 py-3 text-sm text-[#D6E2EF]">
+                <div className="mt-4 rounded-lg border border-[#333333] bg-[#1C1C1C] px-4 py-3 text-sm text-[#DDD0C4]">
                   Barcode: <span className="font-semibold text-white">{feedback.barcode}</span>
                 </div>
               ) : null}
@@ -689,7 +689,7 @@ export default function MobileBarcodeScanner({
                       setFeedback(null);
                       router.push(feedback.manualHref);
                     }}
-                    className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-[#5EE287] px-4 py-2 text-sm font-semibold text-[#0C1910] transition-colors hover:bg-[#79F29C]"
+                    className="inline-flex min-h-11 items-center justify-center rounded-lg bg-[#E8750A] px-4 py-2 text-sm font-semibold text-[#1A0E04] transition-colors hover:bg-[#F5963C]"
                   >
                     Manuell hinzufuegen
                   </button>
@@ -698,7 +698,7 @@ export default function MobileBarcodeScanner({
                 <button
                   type="button"
                   onClick={() => setFeedback(null)}
-                  className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-[#2D3A4B] bg-[#141C27] px-4 py-2 text-sm font-semibold text-white transition-colors hover:border-[#5EE287] hover:text-[#D9FFE6]"
+                  className="inline-flex min-h-11 items-center justify-center rounded-lg border border-[#333333] bg-[#222222] px-4 py-2 text-sm font-semibold text-white transition-colors hover:border-[#E8750A] hover:text-[#FFE4C8]"
                 >
                   Schliessen
                 </button>

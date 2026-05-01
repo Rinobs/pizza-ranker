@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 /* eslint-disable @next/next/no-img-element */
 
 import React from "react";
@@ -155,7 +155,7 @@ export default function ProductCardImage({
           isLoaded ? "opacity-0" : "opacity-100"
         }`}
       >
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,rgba(94,226,135,0.14),transparent_42%),linear-gradient(145deg,rgba(29,39,53,0.95),rgba(13,19,29,0.98))]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,rgba(232,117,10,0.14),transparent_42%),linear-gradient(145deg,rgba(20,20,20,0.95),rgba(14,14,14,0.98))]" />
         <div className="absolute left-1/2 top-[42%] h-24 w-24 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/5 blur-2xl" />
         <div className="absolute inset-x-[14%] bottom-[18%] h-3 rounded-full bg-white/10" />
         <div className="absolute inset-x-[24%] bottom-[11%] h-2.5 rounded-full bg-white/7" />

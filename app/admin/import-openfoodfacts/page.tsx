@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState } from "react";
 
@@ -197,13 +197,13 @@ export default function ImportOpenFoodFactsAdminPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(94,226,135,0.08),transparent_24%),linear-gradient(180deg,#0A1118_0%,#0F151E_52%,#0A1118_100%)] px-4 pb-24 text-white sm:px-8 lg:px-12">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(232,117,10,0.08),transparent_24%),linear-gradient(180deg,#141414_0%,#141414_52%,#141414_100%)] px-4 pb-24 text-white sm:px-8 lg:px-12">
       <div className="mx-auto max-w-5xl pt-6">
-        <section className="rounded-[32px] border border-[#2A394B] bg-[linear-gradient(145deg,rgba(19,27,38,0.98),rgba(10,15,22,0.97))] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.28)] sm:p-8">
+        <section className="rounded-xl border border-[#2A2A2A] bg-[linear-gradient(145deg,rgba(20,20,20,0.98),rgba(14,14,14,0.97))] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.28)] sm:p-8">
           <p className="text-xs uppercase tracking-[0.24em] text-[#9CC9AE]">
             Admin Import
           </p>
-          <h1 className="mt-3 text-3xl font-black tracking-tight text-[#F3FFF6] sm:text-4xl">
+          <h1 className="mt-3 text-3xl font-black tracking-tight text-[#FFF0E4] sm:text-4xl">
             Open Food Facts einmalig importieren
           </h1>
           <p className="mt-4 max-w-3xl text-sm leading-relaxed text-[#C9D8E7] sm:text-base">
@@ -213,26 +213,26 @@ export default function ImportOpenFoodFactsAdminPage() {
           </p>
 
           <div className="mt-6 flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-[0.14em]">
-            <span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1.5 text-[#BFD0E2]">
+            <span className="rounded-full border border-[#333333] bg-[#222222] px-3 py-1.5 text-[#C4B8AC]">
               Land: en:germany
             </span>
-            <span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1.5 text-[#BFD0E2]">
+            <span className="rounded-full border border-[#333333] bg-[#222222] px-3 py-1.5 text-[#C4B8AC]">
               Max. 200 pro Kategorie
             </span>
-            <span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1.5 text-[#BFD0E2]">
+            <span className="rounded-full border border-[#333333] bg-[#222222] px-3 py-1.5 text-[#C4B8AC]">
               Nur mit Bild + Nährwerten
             </span>
           </div>
 
-          <div className="mt-8 flex flex-col gap-4 rounded-[26px] border border-[#2A394B] bg-[#111925]/88 p-5">
+          <div className="mt-8 flex flex-col gap-4 rounded-lg border border-[#2A2A2A] bg-[#1C1C1C]/88 p-5">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="text-sm font-semibold text-[#F3FFF6]">
+                <p className="text-sm font-semibold text-[#FFF0E4]">
                   {currentCategoryLabel
                     ? `Aktuell: ${currentCategoryLabel}`
                     : "Importstatus"}
                 </p>
-                <p className="mt-2 text-sm text-[#AFC1D3]">{currentStep}</p>
+                <p className="mt-2 text-sm text-[#A89880]">{currentStep}</p>
               </div>
 
               <button
@@ -241,40 +241,40 @@ export default function ImportOpenFoodFactsAdminPage() {
                   void handleImportStart();
                 }}
                 disabled={isRunning}
-                className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-[#5EE287] px-5 py-3 font-semibold text-[#0C1910] transition-colors hover:bg-[#79F29C] disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex min-h-11 items-center justify-center rounded-lg bg-[#E8750A] px-5 py-3 font-semibold text-[#1A0E04] transition-colors hover:bg-[#F5963C] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isRunning ? "Import läuft..." : "Import starten"}
               </button>
             </div>
 
             <div>
-              <div className="flex items-center justify-between text-xs uppercase tracking-[0.16em] text-[#8CA1B8]">
+              <div className="flex items-center justify-between text-xs uppercase tracking-[0.16em] text-[#9A8F83]">
                 <span>Fortschritt</span>
                 <span>{percent}%</span>
               </div>
               <div className="mt-3 h-3 overflow-hidden rounded-full bg-[#0E1520]">
                 <div
-                  className="h-full rounded-full bg-[linear-gradient(90deg,#5EE287,#7CC8FF)] transition-all duration-300"
+                  className="h-full rounded-full bg-[linear-gradient(90deg,#E8750A,#7CC8FF)] transition-all duration-300"
                   style={{ width: `${percent}%` }}
                 />
               </div>
               {totalTargetImports > 0 ? (
-                <p className="mt-2 text-xs text-[#8CA1B8]">
+                <p className="mt-2 text-xs text-[#9A8F83]">
                   Zielrahmen: bis zu {totalTargetImports} neue Produkte über alle Kategorien.
                 </p>
               ) : null}
             </div>
 
             <div className="grid gap-3 sm:grid-cols-3">
-              <div className="rounded-[22px] border border-[#35503D] bg-[#122619] p-4">
+              <div className="rounded-md border border-[#5A2E08] bg-[#221508] p-4">
                 <p className="text-xs uppercase tracking-[0.16em] text-[#9CC9AE]">Importiert</p>
-                <p className="mt-2 text-3xl font-black text-[#F3FFF6]">{imported}</p>
+                <p className="mt-2 text-3xl font-black text-[#FFF0E4]">{imported}</p>
               </div>
-              <div className="rounded-[22px] border border-[#2D3A4B] bg-[#141C27] p-4">
-                <p className="text-xs uppercase tracking-[0.16em] text-[#8CA1B8]">Übersprungen</p>
-                <p className="mt-2 text-3xl font-black text-[#F3FFF6]">{skipped}</p>
+              <div className="rounded-md border border-[#333333] bg-[#222222] p-4">
+                <p className="text-xs uppercase tracking-[0.16em] text-[#9A8F83]">Übersprungen</p>
+                <p className="mt-2 text-3xl font-black text-[#FFF0E4]">{skipped}</p>
               </div>
-              <div className="rounded-[22px] border border-[#5A2A2A] bg-[#2A1111] p-4">
+              <div className="rounded-md border border-[#5A2A2A] bg-[#2A1111] p-4">
                 <p className="text-xs uppercase tracking-[0.16em] text-red-200">Fehler</p>
                 <p className="mt-2 text-3xl font-black text-[#FBE7E7]">{errors}</p>
               </div>
@@ -282,24 +282,24 @@ export default function ImportOpenFoodFactsAdminPage() {
           </div>
 
           {errorMessage ? (
-            <div className="mt-6 rounded-[24px] border border-[#6A3434] bg-[#2A1313] p-4 text-sm text-red-100">
+            <div className="mt-6 rounded-lg border border-[#6A3434] bg-[#2A1313] p-4 text-sm text-red-100">
               {errorMessage}
             </div>
           ) : null}
 
           <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(280px,0.8fr)]">
-            <section className="rounded-[28px] border border-[#2A394B] bg-[#111925]/88 p-5">
+            <section className="rounded-lg border border-[#2A2A2A] bg-[#1C1C1C]/88 p-5">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-[11px] uppercase tracking-[0.24em] text-[#8CA1B8]">
+                  <p className="text-[11px] uppercase tracking-[0.24em] text-[#9A8F83]">
                     Kategorien
                   </p>
-                  <h2 className="mt-2 text-xl font-black tracking-tight text-[#F3FFF6]">
+                  <h2 className="mt-2 text-xl font-black tracking-tight text-[#FFF0E4]">
                     Importübersicht
                   </h2>
                 </div>
                 {hasSummary ? (
-                  <span className="rounded-full border border-[#35503D] bg-[#122619] px-3 py-1 text-xs font-semibold text-[#D9FFE6]">
+                  <span className="rounded-full border border-[#5A2E08] bg-[#221508] px-3 py-1 text-xs font-semibold text-[#FFE4C8]">
                     Final
                   </span>
                 ) : null}
@@ -309,19 +309,19 @@ export default function ImportOpenFoodFactsAdminPage() {
                 {orderedSummaryCategories.map((category) => (
                   <div
                     key={category.tag}
-                    className="rounded-[22px] border border-[#2D3A4B] bg-[#141C27] p-4"
+                    className="rounded-md border border-[#333333] bg-[#222222] p-4"
                   >
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <p className="font-semibold text-white">{category.label}</p>
-                      <span className="text-xs uppercase tracking-[0.16em] text-[#8CA1B8]">
+                      <span className="text-xs uppercase tracking-[0.16em] text-[#9A8F83]">
                         {category.tag}
                       </span>
                     </div>
                     <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-[0.14em]">
-                      <span className="rounded-full border border-[#35503D] bg-[#122619] px-3 py-1 text-[#D9FFE6]">
+                      <span className="rounded-full border border-[#5A2E08] bg-[#221508] px-3 py-1 text-[#FFE4C8]">
                         {category.imported} importiert
                       </span>
-                      <span className="rounded-full border border-[#2D3A4B] bg-[#101822] px-3 py-1 text-[#D6E2EF]">
+                      <span className="rounded-full border border-[#333333] bg-[#1C1C1C] px-3 py-1 text-[#DDD0C4]">
                         {category.skipped} übersprungen
                       </span>
                       <span className="rounded-full border border-[#5A2A2A] bg-[#2A1111] px-3 py-1 text-red-200">
@@ -333,11 +333,11 @@ export default function ImportOpenFoodFactsAdminPage() {
               </div>
             </section>
 
-            <section className="rounded-[28px] border border-[#2A394B] bg-[#111925]/88 p-5">
-              <p className="text-[11px] uppercase tracking-[0.24em] text-[#8CA1B8]">
+            <section className="rounded-lg border border-[#2A2A2A] bg-[#1C1C1C]/88 p-5">
+              <p className="text-[11px] uppercase tracking-[0.24em] text-[#9A8F83]">
                 Live Log
               </p>
-              <h2 className="mt-2 text-xl font-black tracking-tight text-[#F3FFF6]">
+              <h2 className="mt-2 text-xl font-black tracking-tight text-[#FFF0E4]">
                 Letzte Schritte
               </h2>
 
@@ -346,13 +346,13 @@ export default function ImportOpenFoodFactsAdminPage() {
                   logs.map((log, index) => (
                     <div
                       key={`${log}-${index}`}
-                      className="rounded-2xl border border-[#243242] bg-[#0F1722] px-3 py-2 text-sm text-[#D6E2EF]"
+                      className="rounded-lg border border-[#243242] bg-[#0F1722] px-3 py-2 text-sm text-[#DDD0C4]"
                     >
                       {log}
                     </div>
                   ))
                 ) : (
-                  <div className="rounded-2xl border border-dashed border-[#334458] bg-[#0F1722] px-4 py-3 text-sm text-[#9EB0C3]">
+                  <div className="rounded-lg border border-dashed border-[#334458] bg-[#0F1722] px-4 py-3 text-sm text-[#9EB0C3]">
                     Noch kein Import gestartet.
                   </div>
                 )}

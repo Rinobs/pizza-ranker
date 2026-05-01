@@ -30,8 +30,8 @@ import {
 function getChipClass(active: boolean) {
   return `max-w-full rounded-full border px-3 py-1.5 text-xs font-semibold leading-tight transition-all duration-200 sm:px-4 sm:py-2 sm:text-sm ${
     active
-      ? "border-[#5EE287] bg-[#173023] text-[#D9FFE6] shadow-[0_10px_24px_rgba(34,197,94,0.16)]"
-      : "border-[#2D3A4B] bg-[#141C27] text-[#B7C4D3] hover:border-[#5EE287] hover:text-white"
+      ? "border-[#E8750A] bg-[#291808] text-[#FFE4C8] shadow-[0_10px_24px_rgba(232,117,10,0.16)]"
+      : "border-[#333333] bg-[#222222] text-[#BAB0A6] hover:border-[#E8750A] hover:text-white"
   }`;
 }
 
@@ -227,8 +227,8 @@ export default function Header() {
   const navItemClass = (active: boolean) =>
     `min-h-11 shrink-0 touch-manipulation flex items-center gap-1.5 rounded-xl px-2.5 py-2 text-sm transition-all duration-300 sm:gap-2 sm:px-3 ${
       active
-        ? "bg-[#1B222D] border border-[#2D3A4B] text-white"
-        : "text-[#B7C4D3] hover:text-white hover:bg-[#1B222D]/70"
+        ? "bg-[#2A2A2A] border border-[#333333] text-white"
+        : "text-[#BAB0A6] hover:text-white hover:bg-[#2A2A2A]/70"
     }`;
 
   const discoverPanel = (
@@ -243,16 +243,16 @@ export default function Header() {
         }
       `}
     >
-      <div className="rounded-2xl border border-[#2D3A4B] bg-[#151F2B]/98 backdrop-blur-xl p-5 shadow-[0_18px_50px_rgba(0,0,0,0.45)]">
+      <div className="rounded-lg border border-[#333333] bg-[#242424]/98 backdrop-blur-xl p-5 shadow-[0_18px_50px_rgba(0,0,0,0.45)]">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">
+            <p className="text-xs uppercase tracking-[0.18em] text-[#9A8F83]">
               Filter & Sortierung
             </p>
-            <h3 className="mt-2 text-xl font-semibold text-[#E8F6ED]">
+            <h3 className="mt-2 text-xl font-semibold text-[#F0E4D4]">
               Suche und Navigation zusammen steuern
             </h3>
-            <p className="mt-2 max-w-2xl text-sm text-[#B7C4D3] leading-relaxed">
+            <p className="mt-2 max-w-2xl text-sm text-[#BAB0A6] leading-relaxed">
               Passe deinen Produkt-Feed direkt hier im Header an und springe danach sofort in die Ergebnisse.
             </p>
           </div>
@@ -260,14 +260,14 @@ export default function Header() {
           <button
             type="button"
             onClick={resetDiscover}
-            className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-4 py-2 text-sm font-semibold text-white transition-colors hover:border-[#5EE287]"
+            className="rounded-full border border-[#333333] bg-[#222222] px-4 py-2 text-sm font-semibold text-white transition-colors hover:border-[#E8750A]"
           >
             Alles zurücksetzen
           </button>
         </div>
 
         <div className="mt-5">
-          <p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">
+          <p className="text-xs uppercase tracking-[0.18em] text-[#9A8F83]">
             Schnellsuche
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
@@ -276,7 +276,7 @@ export default function Header() {
                 key={tag}
                 type="button"
                 onClick={() => applyQuickSearchTag(tag, { closeDiscover: true })}
-                className="rounded-full border border-[#2D3A4B] bg-[#141C27]/90 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-[#BFD0E2] transition-colors hover:border-[#5EE287] hover:text-white"
+                className="rounded-full border border-[#333333] bg-[#222222]/90 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-[#C4B8AC] transition-colors hover:border-[#E8750A] hover:text-white"
               >
                 {tag}
               </button>
@@ -285,7 +285,7 @@ export default function Header() {
         </div>
 
         <div className="mt-6">
-          <p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">
+          <p className="text-xs uppercase tracking-[0.18em] text-[#9A8F83]">
             Kategorien filtern
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
@@ -318,7 +318,7 @@ export default function Header() {
         </div>
 
         <div className="mt-6">
-          <p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">
+          <p className="text-xs uppercase tracking-[0.18em] text-[#9A8F83]">
             Sortieren nach
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
@@ -336,8 +336,8 @@ export default function Header() {
               </button>
             ))}
           </div>
-          <p className="mt-3 text-sm text-[#8CA1B8]">
-            Aktuell sortiert nach <span className="text-[#E8F6ED]">{sortLabel}</span>.
+          <p className="mt-3 text-sm text-[#9A8F83]">
+            Aktuell sortiert nach <span className="text-[#F0E4D4]">{sortLabel}</span>.
           </p>
         </div>
       </div>
@@ -360,28 +360,28 @@ export default function Header() {
         type="button"
         aria-label="Entdecken schließen"
         onClick={closeCategories}
-        className="absolute inset-0 bg-[#0A111A]/65 backdrop-blur-[2px]"
+        className="absolute inset-0 bg-[#141414]/65 backdrop-blur-[2px]"
       />
 
       <div
         ref={mobileSheetRef}
         className={`
           absolute left-0 right-0 bottom-0
-          rounded-t-3xl border-t border-[#2D3A4B]
-          bg-[#141E2A] px-4 pb-6 pt-3
+          rounded-t-3xl border-t border-[#333333]
+          bg-[#222222] px-4 pb-6 pt-3
           shadow-[0_-18px_40px_rgba(0,0,0,0.45)]
           transition-transform duration-300 ease-out
           ${isCategoriesOpen ? "translate-y-0" : "translate-y-full"}
         `}
       >
-        <div className="mx-auto mb-4 h-1.5 w-14 rounded-full bg-[#3B4A5E]" />
+        <div className="mx-auto mb-4 h-1.5 w-14 rounded-full bg-[#444444]" />
 
         <div className="flex items-start justify-between gap-3 mb-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">
+            <p className="text-xs uppercase tracking-[0.18em] text-[#9A8F83]">
               Suche, Filter & Kategorien
             </p>
-            <h3 className="text-lg font-semibold text-[#E8F6ED]">
+            <h3 className="text-lg font-semibold text-[#F0E4D4]">
               Im Header entdecken
             </h3>
           </div>
@@ -389,7 +389,7 @@ export default function Header() {
           <button
             type="button"
             onClick={closeCategories}
-            className="inline-flex min-h-10 min-w-10 items-center justify-center rounded-full border border-[#2D3A4B] bg-[#121B27] text-white"
+            className="inline-flex min-h-10 min-w-10 items-center justify-center rounded-full border border-[#333333] bg-[#1E1E1E] text-white"
             aria-label="Schließen"
           >
             <FiX size={18} />
@@ -397,15 +397,15 @@ export default function Header() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-3">
-          <div className="flex items-center gap-3 rounded-2xl border border-[#2D3A4B] bg-[#101822]/90 px-4 py-3 focus-within:border-[#5EE287] transition-colors">
-            <FiSearch className="text-[#8CA1B8]" />
+          <div className="flex items-center gap-3 rounded-lg border border-[#333333] bg-[#1C1C1C]/90 px-4 py-3 focus-within:border-[#E8750A] transition-colors">
+            <FiSearch className="text-[#9A8F83]" />
             <input
               type="text"
               name="q"
               value={discoverQuery}
               onChange={(event) => setDiscoverQuery(event.target.value)}
               placeholder="Produkte und Kategorien suchen..."
-              className="w-full bg-transparent text-sm text-white outline-none placeholder:text-[#6E8198]"
+              className="w-full bg-transparent text-sm text-white outline-none placeholder:text-[#7A6E64]"
             />
             <MobileBarcodeScanner
               ariaLabel="Barcode in der Suche scannen"
@@ -416,14 +416,14 @@ export default function Header() {
           <div className="flex gap-3">
             <button
               type="submit"
-              className="min-h-11 flex-1 rounded-2xl bg-[#5EE287] px-5 font-semibold text-[#0C1910] transition-colors hover:bg-[#79F29C]"
+              className="min-h-11 flex-1 rounded-lg bg-[#E8750A] px-5 font-semibold text-[#1A0E04] transition-colors hover:bg-[#F5963C]"
             >
               Ergebnisse ansehen
             </button>
             <button
               type="button"
               onClick={resetDiscover}
-              className="min-h-11 rounded-2xl border border-[#2D3A4B] bg-[#141C27] px-4 font-semibold text-white transition-colors hover:border-[#5EE287]"
+              className="min-h-11 rounded-lg border border-[#333333] bg-[#222222] px-4 font-semibold text-white transition-colors hover:border-[#E8750A]"
             >
               Reset
             </button>
@@ -431,7 +431,7 @@ export default function Header() {
         </form>
 
         <div className="mt-5">
-          <p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">
+          <p className="text-xs uppercase tracking-[0.18em] text-[#9A8F83]">
             Beliebte Suchen
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
@@ -440,7 +440,7 @@ export default function Header() {
                 key={`mobile-${tag}`}
                 type="button"
                 onClick={() => applyQuickSearchTag(tag, { closeCategories: true })}
-                className="rounded-full border border-[#2D3A4B] bg-[#141C27]/90 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-[#BFD0E2] transition-colors hover:border-[#5EE287] hover:text-white"
+                className="rounded-full border border-[#333333] bg-[#222222]/90 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-[#C4B8AC] transition-colors hover:border-[#E8750A] hover:text-white"
               >
                 {tag}
               </button>
@@ -448,9 +448,9 @@ export default function Header() {
           </div>
         </div>
 
-        <div className="mt-6 max-h-[min(68dvh,36rem)] overflow-y-auto rounded-3xl border border-[#2D3A4B] bg-[#111925]/90 p-5 overscroll-contain">
+        <div className="mt-6 max-h-[min(68dvh,36rem)] overflow-y-auto rounded-xl border border-[#333333] bg-[#1C1C1C]/90 p-5 overscroll-contain">
           <div>
-            <p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">
+            <p className="text-xs uppercase tracking-[0.18em] text-[#9A8F83]">
               Kategorien filtern
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
@@ -480,7 +480,7 @@ export default function Header() {
           </div>
 
           <div className="mt-6">
-            <p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">
+            <p className="text-xs uppercase tracking-[0.18em] text-[#9A8F83]">
               Sortieren nach
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
@@ -495,13 +495,13 @@ export default function Header() {
                 </button>
               ))}
             </div>
-            <p className="mt-3 text-sm text-[#8CA1B8]">
-              Aktuell sortiert nach <span className="text-[#E8F6ED]">{sortLabel}</span>.
+            <p className="mt-3 text-sm text-[#9A8F83]">
+              Aktuell sortiert nach <span className="text-[#F0E4D4]">{sortLabel}</span>.
             </p>
           </div>
 
-          <div className="mt-7 border-t border-[#223247] pt-6">
-            <p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">
+          <div className="mt-7 border-t border-[#2A2A2A] pt-6">
+            <p className="text-xs uppercase tracking-[0.18em] text-[#9A8F83]">
               Direkt zu Kategorien
             </p>
             <div className="mt-3 space-y-2.5 pr-1">
@@ -517,15 +517,15 @@ export default function Header() {
                       flex cursor-pointer items-start gap-3 rounded-xl border border-l-[3px] px-3 py-3 transition-[background-color] duration-150 ease-[ease]
                       ${
                         isActive
-                          ? "border-[#2D3A4B] border-l-[#5EE287] bg-[#2A2A2A] hover:bg-[#343434]"
-                          : "border-[#2D3A4B] border-l-transparent bg-[#121B27] hover:bg-[#252F3B]"
+                          ? "border-[#333333] border-l-[#E8750A] bg-[#2A2A2A] hover:bg-[#2E2E2E]"
+                          : "border-[#333333] border-l-transparent bg-[#1E1E1E] hover:bg-[#2E2E2E]"
                       }
                     `}
                   >
                     <span className="shrink-0 text-2xl leading-none">{category.icon}</span>
                     <div className="min-w-0">
                       <p className="truncate font-semibold text-white">{category.name}</p>
-                      <p className="mt-0.5 line-clamp-2 text-xs leading-relaxed text-[#8CA1B8]">
+                      <p className="mt-0.5 line-clamp-2 text-xs leading-relaxed text-[#9A8F83]">
                         {category.description}
                       </p>
                     </div>
@@ -541,12 +541,12 @@ export default function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full overflow-x-clip border-b border-[#233042]/80 bg-[#101722]/80 shadow-[0_10px_30px_rgba(0,0,0,0.25)] backdrop-blur-md">
+      <header className="sticky top-0 z-50 w-full overflow-x-clip border-b border-[#2A2A2A]/80 bg-[#1C1C1C]/80 shadow-[0_10px_30px_rgba(0,0,0,0.25)] backdrop-blur-md">
         <div className="relative max-w-7xl mx-auto px-4 sm:px-8 lg:px-12">
           <nav className="flex h-16 items-center justify-between gap-3 sm:h-20 sm:gap-4">
             <Link href="/" onClick={closeOverlays} className="group flex shrink-0 items-center gap-3">
               <span className="text-2xl">{"\u{1F355}"}</span>
-              <span className="hidden sm:inline text-xl font-semibold tracking-wide text-white group-hover:text-[#8AF5AC] transition-colors select-none">
+              <span className="hidden sm:inline text-xl font-semibold tracking-wide text-white group-hover:text-[#F5963C] transition-colors select-none">
                 FoodRanker
               </span>
             </Link>
@@ -554,20 +554,20 @@ export default function Header() {
             <div ref={discoverWrapperRef} className="relative hidden md:flex items-center gap-2 flex-1 max-w-2xl mx-2">
               <form
                 onSubmit={handleSubmit}
-                className="flex items-center gap-2 flex-1 bg-[#141C27] border border-[#2D3A4B] rounded-xl px-3 py-2 focus-within:border-[#5EE287] transition-colors"
+                className="flex items-center gap-2 flex-1 bg-[#222222] border border-[#333333] rounded-xl px-3 py-2 focus-within:border-[#E8750A] transition-colors"
               >
-                <FiSearch className="text-[#8CA1B8]" />
+                <FiSearch className="text-[#9A8F83]" />
                 <input
                   type="text"
                   name="q"
                   value={discoverQuery}
                   onChange={(event) => setDiscoverQuery(event.target.value)}
                   placeholder="Produkte und Kategorien suchen..."
-                  className="bg-transparent outline-none border-none text-sm text-white w-full placeholder:text-[#6E8198]"
+                  className="bg-transparent outline-none border-none text-sm text-white w-full placeholder:text-[#7A6E64]"
                 />
                 <button
                   type="submit"
-                  className="min-h-10 rounded-lg bg-[#5EE287] px-3 text-sm font-semibold text-[#0C1910] transition-colors hover:bg-[#79F29C]"
+                  className="min-h-10 rounded-lg bg-[#E8750A] px-3 text-sm font-semibold text-[#1A0E04] transition-colors hover:bg-[#F5963C]"
                 >
                   Suchen
                 </button>
@@ -582,14 +582,14 @@ export default function Header() {
                 aria-expanded={isDiscoverOpen}
                 className={`relative min-h-11 touch-manipulation inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-semibold transition-all duration-300 ${
                   isDiscoverOpen || activeFilterCount > 0
-                    ? "border-[#5EE287] bg-[#173023] text-[#D9FFE6]"
-                    : "border-[#2D3A4B] bg-[#141C27] text-white hover:border-[#5EE287]"
+                    ? "border-[#E8750A] bg-[#291808] text-[#FFE4C8]"
+                    : "border-[#333333] bg-[#222222] text-white hover:border-[#E8750A]"
                 }`}
               >
                 <FiSliders size={17} />
                 <span>Filter</span>
                 {activeFilterCount > 0 && (
-                  <span className="absolute -right-1.5 -top-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#5EE287] px-1 text-[10px] font-bold leading-none text-[#0C1910]">
+                  <span className="absolute -right-1.5 -top-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#E8750A] px-1 text-[10px] font-bold leading-none text-[#1A0E04]">
                     {activeFilterCount}
                   </span>
                 )}
@@ -644,13 +644,13 @@ export default function Header() {
                 >
                   <div
                     id="categories-flyout"
-                    className="rounded-2xl border border-[#2D3A4B] bg-[#151F2B]/98 backdrop-blur-xl p-4 shadow-[0_18px_50px_rgba(0,0,0,0.45)]"
+                    className="rounded-lg border border-[#333333] bg-[#242424]/98 backdrop-blur-xl p-4 shadow-[0_18px_50px_rgba(0,0,0,0.45)]"
                   >
                     <div className="mb-3 px-1">
-                      <p className="text-xs uppercase tracking-[0.18em] text-[#8CA1B8]">
+                      <p className="text-xs uppercase tracking-[0.18em] text-[#9A8F83]">
                         Schnellzugriff
                       </p>
-                      <h3 className="text-base font-semibold text-[#E8F6ED]">
+                      <h3 className="text-base font-semibold text-[#F0E4D4]">
                         Kategorien entdecken
                       </h3>
                     </div>
@@ -668,18 +668,18 @@ export default function Header() {
                               group cursor-pointer rounded-xl border border-l-[3px] px-3 py-3 transition-[background-color] duration-150 ease-[ease]
                               ${
                                 isActive
-                                  ? "border-[#2D3A4B] border-l-[#5EE287] bg-[#2A2A2A] hover:bg-[#343434]"
-                                  : "border-[#2D3A4B] border-l-transparent bg-[#121B27] hover:bg-[#252F3B]"
+                                  ? "border-[#333333] border-l-[#E8750A] bg-[#2A2A2A] hover:bg-[#2E2E2E]"
+                                  : "border-[#333333] border-l-transparent bg-[#1E1E1E] hover:bg-[#2E2E2E]"
                               }
                             `}
                           >
                             <div className="flex items-start gap-3">
                               <span className="text-2xl leading-none">{category.icon}</span>
                               <div className="min-w-0">
-                                <p className="font-semibold text-white group-hover:text-[#8AF5AC] transition-colors">
+                                <p className="font-semibold text-white group-hover:text-[#F5963C] transition-colors">
                                   {category.name}
                                 </p>
-                                <p className="text-xs text-[#8CA1B8] mt-1 leading-relaxed">
+                                <p className="text-xs text-[#9A8F83] mt-1 leading-relaxed">
                                   {category.description}
                                 </p>
                               </div>
@@ -699,7 +699,7 @@ export default function Header() {
                     signOut();
                   }}
                   aria-label="Logout"
-                  className="min-h-11 shrink-0 touch-manipulation rounded-xl border border-[#2D3A4B] bg-[#1B222D] px-2.5 py-2 text-sm text-white transition-all duration-300 hover:border-[#5EE287] hover:bg-[#212B38] sm:px-4"
+                  className="min-h-11 shrink-0 touch-manipulation rounded-xl border border-[#333333] bg-[#2A2A2A] px-2.5 py-2 text-sm text-white transition-all duration-300 hover:border-[#E8750A] hover:bg-[#2A2A2A] sm:px-4"
                 >
                   <span className="inline-flex items-center gap-2">
                     <FiLogOut size={17} />
@@ -726,15 +726,15 @@ export default function Header() {
             onSubmit={handleSubmit}
             className="flex items-center gap-2 pb-3 md:hidden"
           >
-            <div className="flex min-w-0 flex-1 items-center gap-2 rounded-xl border border-[#2D3A4B] bg-[#141C27] px-3 py-2.5 focus-within:border-[#5EE287] transition-colors">
-              <FiSearch className="shrink-0 text-[#8CA1B8]" />
+            <div className="flex min-w-0 flex-1 items-center gap-2 rounded-xl border border-[#333333] bg-[#222222] px-3 py-2.5 focus-within:border-[#E8750A] transition-colors">
+              <FiSearch className="shrink-0 text-[#9A8F83]" />
               <input
                 type="text"
                 name="q"
                 value={discoverQuery}
                 onChange={(event) => setDiscoverQuery(event.target.value)}
                 placeholder="Produkte suchen..."
-                className="min-w-0 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-[#6E8198]"
+                className="min-w-0 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-[#7A6E64]"
               />
               <MobileBarcodeScanner
                 ariaLabel="Barcode in der Suche scannen"
@@ -744,7 +744,7 @@ export default function Header() {
 
             <button
               type="submit"
-              className="min-h-11 shrink-0 rounded-xl bg-[#5EE287] px-3.5 text-sm font-semibold text-[#0C1910] transition-colors hover:bg-[#79F29C]"
+              className="min-h-11 shrink-0 rounded-xl bg-[#E8750A] px-3.5 text-sm font-semibold text-[#1A0E04] transition-colors hover:bg-[#F5963C]"
             >
               Suchen
             </button>

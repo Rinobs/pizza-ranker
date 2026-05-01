@@ -78,14 +78,14 @@ const SORT_OPTIONS: Array<{ value: CategorySortMode; label: string; hint: string
 
 function getCompareChipClass(active: boolean, disabled: boolean) {
   if (active) {
-    return "border-[#5EE287] bg-[#173023]/95 text-[#D9FFE6] shadow-[0_10px_24px_rgba(34,197,94,0.18)]";
+    return "border-[#E8750A] bg-[#291808]/95 text-[#FFE4C8] shadow-[0_10px_24px_rgba(232,117,10,0.18)]";
   }
 
   if (disabled) {
     return "cursor-not-allowed border-[#384658] bg-[#111923]/95 text-[#70839A]";
   }
 
-  return "border-[#2D3A4B] bg-[#111923]/95 text-[#E8F6ED] hover:border-[#5EE287] hover:text-white";
+  return "border-[#333333] bg-[#111923]/95 text-[#F0E4D4] hover:border-[#E8750A] hover:text-white";
 }
 
 function compareByCategorySort(
@@ -314,17 +314,17 @@ export default function CategoryPage({
       <div className="flex items-center gap-4 mb-10">
         <span className="text-6xl">{icon}</span>
         <div>
-          <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-[#E8F6ED]">
+          <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-[#F0E4D4]">
             {title}
           </h1>
-          <p className="mt-2 text-[#B7C4D3] text-sm sm:text-base">
+          <p className="mt-2 text-[#BAB0A6] text-sm sm:text-base">
             Suche innerhalb der Kategorie, sortiere direkt auf der Seite und stelle Produkte
             nebeneinander.
           </p>
         </div>
       </div>
 
-      {!statsLoaded && <p className="text-[#8CA1B8] text-center mb-8">Lade Bewertungen...</p>}
+      {!statsLoaded && <p className="text-[#9A8F83] text-center mb-8">Lade Bewertungen...</p>}
 
       <ProductComparisonPanel
         title={title}
@@ -334,7 +334,7 @@ export default function CategoryPage({
         onClear={() => setSelectedRouteSlugs([])}
       />
 
-      <section className="mb-6 rounded-[24px] border border-[#2D3A4B] bg-[linear-gradient(145deg,rgba(19,27,38,0.96),rgba(12,18,27,0.98))] p-4 shadow-[0_18px_42px_rgba(0,0,0,0.2)]">
+      <section className="mb-6 rounded-lg border border-[#333333] bg-[linear-gradient(145deg,rgba(20,20,20,0.96),rgba(12,18,27,0.98))] p-4 shadow-[0_18px_42px_rgba(0,0,0,0.2)]">
         <div className="flex flex-wrap items-center gap-3">
           <div className="min-w-[220px] flex-1">
             <label htmlFor="category-search" className="sr-only">
@@ -346,11 +346,11 @@ export default function CategoryPage({
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
               placeholder={`In ${title} suchen, z. B. Salami oder Vanille`}
-              className="min-h-11 w-full rounded-2xl border border-[#2D3A4B] bg-[#101822]/90 px-4 text-white outline-none transition-colors placeholder:text-[#70839A] focus:border-[#5EE287]"
+              className="min-h-11 w-full rounded-lg border border-[#333333] bg-[#1C1C1C]/90 px-4 text-white outline-none transition-colors placeholder:text-[#70839A] focus:border-[#E8750A]"
             />
           </div>
 
-          <span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#BFD0E2]">
+          <span className="rounded-full border border-[#333333] bg-[#222222] px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#C4B8AC]">
             {visibleProducts.length} Produkte
           </span>
 
@@ -367,7 +367,7 @@ export default function CategoryPage({
               value={sortMode}
               onChange={(event) => setSortMode(event.target.value as CategorySortMode)}
               aria-label="Produkte sortieren"
-              className="min-h-11 w-full appearance-none rounded-2xl border border-[#2D3A4B] bg-[#141C27] px-4 pr-11 text-sm font-semibold text-white outline-none transition-colors focus:border-[#5EE287]"
+              className="min-h-11 w-full appearance-none rounded-lg border border-[#333333] bg-[#222222] px-4 pr-11 text-sm font-semibold text-white outline-none transition-colors focus:border-[#E8750A]"
             >
               {SORT_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -377,7 +377,7 @@ export default function CategoryPage({
             </select>
             <FiChevronDown
               size={18}
-              className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#8CA1B8]"
+              className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#9A8F83]"
             />
           </div>
         </div>
@@ -393,11 +393,11 @@ export default function CategoryPage({
               <div
                 key={product.routeSlug}
                 className="
-                group relative rounded-2xl overflow-hidden
-                bg-[#1B222D] border border-[#2D3A4B]
+                group relative rounded-lg overflow-hidden
+                bg-[#2A2A2A] border border-[#333333]
                 shadow-[0_8px_24px_rgba(0,0,0,0.24)]
-                hover:border-[#5EE287]
-                hover:shadow-[0_16px_40px_rgba(34,197,94,0.28)]
+                hover:border-[#E8750A]
+                hover:shadow-[0_16px_40px_rgba(232,117,10,0.28)]
                 hover:-translate-y-1.5 hover:scale-[1.02]
                 transition-all duration-300 ease-out
               "
@@ -423,7 +423,7 @@ export default function CategoryPage({
                 <Link
                   href={`/produkt/${product.routeSlug}`}
                   aria-label={`${product.item.name} öffnen`}
-                  className="absolute inset-0 z-10 block h-full w-full rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8AF5AC] focus-visible:ring-offset-2 focus-visible:ring-offset-[#101822]"
+                  className="absolute inset-0 z-10 block h-full w-full rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F5963C] focus-visible:ring-offset-2 focus-visible:ring-offset-[#1C1C1C]"
                 />
 
                 <ProductCardImage
@@ -452,7 +452,7 @@ export default function CategoryPage({
           })}
         </div>
       ) : (
-        <div className="rounded-2xl border border-[#2D3A4B] bg-[#1B222D] p-6 text-[#C4D0DE]">
+        <div className="rounded-lg border border-[#333333] bg-[#2A2A2A] p-6 text-[#C4D0DE]">
           Keine Treffer gefunden. Versuche einen anderen Suchbegriff oder wechsle die Sortierung.
         </div>
       )}

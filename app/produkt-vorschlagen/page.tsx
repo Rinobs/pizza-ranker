@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { Suspense, useEffect, useMemo, useState } from "react";
@@ -61,7 +61,7 @@ export default function ProductSuggestionPage() {
       fallback={
         <main className="mx-auto max-w-4xl px-4 pb-24 text-white sm:px-8 lg:px-12">
           <BackButton />
-          <div className="rounded-[30px] border border-[#2A394B] bg-[#111925]/92 p-6 text-sm text-[#AFC1D3]">
+          <div className="rounded-xl border border-[#2A2A2A] bg-[#1C1C1C]/92 p-6 text-sm text-[#A89880]">
             Formular wird geladen...
           </div>
         </main>
@@ -167,7 +167,7 @@ function ProductSuggestionPageContent() {
     <main className="mx-auto max-w-4xl px-4 pb-24 text-white sm:px-8 lg:px-12">
       <BackButton />
 
-      <section className="overflow-hidden rounded-[34px] border border-[#314258] bg-[radial-gradient(circle_at_top_left,rgba(94,226,135,0.16),rgba(9,14,21,0.98)_40%),linear-gradient(145deg,rgba(18,26,38,0.99),rgba(8,12,18,0.97))] p-6 shadow-[0_24px_70px_rgba(0,0,0,0.32)] sm:p-8">
+      <section className="overflow-hidden rounded-xl border border-[#333333] bg-[#1E1E1E] p-6 shadow-[0_24px_70px_rgba(0,0,0,0.32)] sm:p-8">
         <p className="text-[11px] uppercase tracking-[0.24em] text-[#9CC9AE]">
           Produkt fehlt im Katalog?
         </p>
@@ -179,14 +179,14 @@ function ProductSuggestionPageContent() {
           direkt einreichen. Name, Kategorie und am besten ein Link oder Barcode reichen schon.
         </p>
 
-        <div className="mt-5 flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#D6E2EF]">
-          <span className="rounded-full border border-[#35503D] bg-[#173023] px-3 py-1.5 text-[#D9FFE6]">
+        <div className="mt-5 flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#DDD0C4]">
+          <span className="rounded-full border border-[#5A2E08] bg-[#291808] px-3 py-1.5 text-[#FFE4C8]">
             Direkt aus Such-Empty-State erreichbar
           </span>
-          <span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1.5">
+          <span className="rounded-full border border-[#333333] bg-[#222222] px-3 py-1.5">
             Shop-Link oder Barcode hilft
           </span>
-          <span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1.5">
+          <span className="rounded-full border border-[#333333] bg-[#222222] px-3 py-1.5">
             {isLoggedIn ? "Mit deinem Account verknüpft" : "Auch ohne Login möglich"}
           </span>
         </div>
@@ -195,7 +195,7 @@ function ProductSuggestionPageContent() {
       <section className="mt-8 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         <form
           onSubmit={handleSubmit}
-          className="rounded-[30px] border border-[#2A394B] bg-[linear-gradient(145deg,rgba(19,27,38,0.96),rgba(12,18,27,0.98))] p-5 shadow-[0_18px_44px_rgba(0,0,0,0.24)] sm:p-6"
+          className="rounded-xl border border-[#2A2A2A] bg-[linear-gradient(145deg,rgba(19,27,38,0.96),rgba(12,18,27,0.98))] p-5 shadow-[0_18px_44px_rgba(0,0,0,0.24)] sm:p-6"
         >
           <div className="grid gap-4">
             <MobileBarcodeScanner
@@ -213,7 +213,7 @@ function ProductSuggestionPageContent() {
                 maxLength={120}
                 onChange={(event) => setProductName(event.target.value)}
                 placeholder="z. B. High Protein Pizza Salami"
-                className="min-h-12 rounded-2xl border border-[#2D3A4B] bg-[#0F1621] px-4 py-3 text-white outline-none transition-colors placeholder:text-[#7F93A8] focus:border-[#5EE287]"
+                className="min-h-12 rounded-lg border border-[#333333] bg-[#0F1621] px-4 py-3 text-white outline-none transition-colors placeholder:text-[#7F93A8] focus:border-[#E8750A]"
                 required
               />
             </label>
@@ -226,7 +226,7 @@ function ProductSuggestionPageContent() {
                 maxLength={80}
                 onChange={(event) => setBrand(event.target.value)}
                 placeholder="z. B. Dr. Oetker, ESN, More"
-                className="min-h-12 rounded-2xl border border-[#2D3A4B] bg-[#0F1621] px-4 py-3 text-white outline-none transition-colors placeholder:text-[#7F93A8] focus:border-[#5EE287]"
+                className="min-h-12 rounded-lg border border-[#333333] bg-[#0F1621] px-4 py-3 text-white outline-none transition-colors placeholder:text-[#7F93A8] focus:border-[#E8750A]"
               />
             </label>
 
@@ -235,7 +235,7 @@ function ProductSuggestionPageContent() {
               <select
                 value={category}
                 onChange={(event) => setCategory(event.target.value)}
-                className="min-h-12 rounded-2xl border border-[#2D3A4B] bg-[#0F1621] px-4 py-3 text-white outline-none transition-colors focus:border-[#5EE287]"
+                className="min-h-12 rounded-lg border border-[#333333] bg-[#0F1621] px-4 py-3 text-white outline-none transition-colors focus:border-[#E8750A]"
                 required
               >
                 <option value="" disabled>
@@ -259,7 +259,7 @@ function ProductSuggestionPageContent() {
                   maxLength={60}
                   onChange={(event) => setCustomCategory(event.target.value)}
                   placeholder="z. B. Getränke, Joghurt, Soßen"
-                  className="min-h-12 rounded-2xl border border-[#2D3A4B] bg-[#0F1621] px-4 py-3 text-white outline-none transition-colors placeholder:text-[#7F93A8] focus:border-[#5EE287]"
+                  className="min-h-12 rounded-lg border border-[#333333] bg-[#0F1621] px-4 py-3 text-white outline-none transition-colors placeholder:text-[#7F93A8] focus:border-[#E8750A]"
                   required
                 />
               </label>
@@ -274,12 +274,12 @@ function ProductSuggestionPageContent() {
                   maxLength={160}
                   onChange={(event) => setContactEmail(event.target.value)}
                   placeholder="damit wir bei Rückfragen schreiben können"
-                  className="min-h-12 rounded-2xl border border-[#2D3A4B] bg-[#0F1621] px-4 py-3 text-white outline-none transition-colors placeholder:text-[#7F93A8] focus:border-[#5EE287]"
+                  className="min-h-12 rounded-lg border border-[#333333] bg-[#0F1621] px-4 py-3 text-white outline-none transition-colors placeholder:text-[#7F93A8] focus:border-[#E8750A]"
                   required
                 />
               </label>
             ) : (
-              <div className="rounded-2xl border border-[#2D5B41] bg-[#173023] px-4 py-3 text-sm text-[#D9FFE6]">
+              <div className="rounded-lg border border-[#2D5B41] bg-[#291808] px-4 py-3 text-sm text-[#FFE4C8]">
                 Du reichst dieses Produkt mit deinem Account ein.
                 {sessionStatus !== "loading" && session?.user?.email ? (
                   <span className="ml-1 text-[#BEEFD0]">Kontakt: {session.user.email}</span>
@@ -296,7 +296,7 @@ function ProductSuggestionPageContent() {
                   maxLength={64}
                   onChange={(event) => setBarcode(event.target.value)}
                   placeholder="EAN / Strichcode"
-                  className="min-h-12 rounded-2xl border border-[#2D3A4B] bg-[#0F1621] px-4 py-3 text-white outline-none transition-colors placeholder:text-[#7F93A8] focus:border-[#5EE287]"
+                  className="min-h-12 rounded-lg border border-[#333333] bg-[#0F1621] px-4 py-3 text-white outline-none transition-colors placeholder:text-[#7F93A8] focus:border-[#E8750A]"
                 />
               </label>
 
@@ -308,7 +308,7 @@ function ProductSuggestionPageContent() {
                   maxLength={500}
                   onChange={(event) => setProductUrl(event.target.value)}
                   placeholder="https://..."
-                  className="min-h-12 rounded-2xl border border-[#2D3A4B] bg-[#0F1621] px-4 py-3 text-white outline-none transition-colors placeholder:text-[#7F93A8] focus:border-[#5EE287]"
+                  className="min-h-12 rounded-lg border border-[#333333] bg-[#0F1621] px-4 py-3 text-white outline-none transition-colors placeholder:text-[#7F93A8] focus:border-[#E8750A]"
                 />
               </label>
             </div>
@@ -321,7 +321,7 @@ function ProductSuggestionPageContent() {
                 maxLength={500}
                 onChange={(event) => setImageUrl(event.target.value)}
                 placeholder="optional: offizielles Produktbild"
-                className="min-h-12 rounded-2xl border border-[#2D3A4B] bg-[#0F1621] px-4 py-3 text-white outline-none transition-colors placeholder:text-[#7F93A8] focus:border-[#5EE287]"
+                className="min-h-12 rounded-lg border border-[#333333] bg-[#0F1621] px-4 py-3 text-white outline-none transition-colors placeholder:text-[#7F93A8] focus:border-[#E8750A]"
               />
             </label>
 
@@ -332,30 +332,30 @@ function ProductSuggestionPageContent() {
                 maxLength={MAX_NOTES_LENGTH}
                 onChange={(event) => setNotes(event.target.value)}
                 placeholder="z. B. Sorte, Geschmack, wo du es gefunden hast oder warum es in die App sollte"
-                className="min-h-36 rounded-2xl border border-[#2D3A4B] bg-[#0F1621] px-4 py-3 text-white outline-none transition-colors placeholder:text-[#7F93A8] focus:border-[#5EE287]"
+                className="min-h-36 rounded-lg border border-[#333333] bg-[#0F1621] px-4 py-3 text-white outline-none transition-colors placeholder:text-[#7F93A8] focus:border-[#E8750A]"
               />
             </label>
 
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="text-xs text-[#8CA1B8]">{notes.length}/{MAX_NOTES_LENGTH} Zeichen</p>
+              <p className="text-xs text-[#9A8F83]">{notes.length}/{MAX_NOTES_LENGTH} Zeichen</p>
 
               <button
                 type="submit"
                 disabled={submitting}
-                className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-[#5EE287] px-5 py-3 font-semibold text-[#0C1910] transition-colors hover:bg-[#79F29C] disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex min-h-12 items-center justify-center rounded-lg bg-[#E8750A] px-5 py-3 font-semibold text-[#1A0E04] transition-colors hover:bg-[#F5963C] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {submitting ? "Wird gesendet..." : "Produkt einreichen"}
               </button>
             </div>
 
             {error ? (
-              <div className="rounded-2xl border border-[#6A3434] bg-[#2A1313] px-4 py-3 text-sm text-red-100">
+              <div className="rounded-lg border border-[#6A3434] bg-[#2A1313] px-4 py-3 text-sm text-red-100">
                 {error}
               </div>
             ) : null}
 
             {success ? (
-              <div className="rounded-2xl border border-[#2D5B41] bg-[#173023] px-4 py-3 text-sm text-[#D9FFE6]">
+              <div className="rounded-lg border border-[#2D5B41] bg-[#291808] px-4 py-3 text-sm text-[#FFE4C8]">
                 {success}
               </div>
             ) : null}
@@ -363,9 +363,9 @@ function ProductSuggestionPageContent() {
         </form>
 
         <aside className="space-y-4">
-          <div className="rounded-[30px] border border-[#2A394B] bg-[linear-gradient(145deg,rgba(19,27,38,0.96),rgba(12,18,27,0.98))] p-5 sm:p-6">
+          <div className="rounded-xl border border-[#2A2A2A] bg-[linear-gradient(145deg,rgba(19,27,38,0.96),rgba(12,18,27,0.98))] p-5 sm:p-6">
             <h2 className="text-xl font-semibold text-white">Am schnellsten prüfen wir</h2>
-            <ul className="mt-4 space-y-3 text-sm leading-relaxed text-[#AFC1D3]">
+            <ul className="mt-4 space-y-3 text-sm leading-relaxed text-[#A89880]">
               <li>Produktname plus Marke</li>
               <li>Barcode oder offizieller Shop-Link</li>
               <li>Die richtige Kategorie</li>
@@ -373,15 +373,15 @@ function ProductSuggestionPageContent() {
             </ul>
           </div>
 
-          <div className="rounded-[30px] border border-[#2A394B] bg-[#101822]/92 p-5 sm:p-6">
+          <div className="rounded-xl border border-[#2A2A2A] bg-[#1C1C1C]/92 p-5 sm:p-6">
             <h2 className="text-xl font-semibold text-white">Schon versucht zu suchen?</h2>
-            <p className="mt-3 text-sm leading-relaxed text-[#AFC1D3]">
+            <p className="mt-3 text-sm leading-relaxed text-[#A89880]">
               Oft hilft eine Marke, Sorte oder Kategorie wie `Pizza`, `Vanille` oder
               `Proteinriegel`, bevor du ein neues Produkt einreichst.
             </p>
             <Link
               href="/"
-              className="mt-4 inline-flex items-center gap-2 rounded-full border border-[#2D3A4B] bg-[#141C27] px-4 py-2 text-sm font-semibold text-white transition-colors hover:border-[#5EE287] hover:text-[#D9FFE6]"
+              className="mt-4 inline-flex items-center gap-2 rounded-full border border-[#333333] bg-[#222222] px-4 py-2 text-sm font-semibold text-white transition-colors hover:border-[#E8750A] hover:text-[#FFE4C8]"
             >
               Zur Suche zurück
             </Link>

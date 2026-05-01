@@ -33,7 +33,7 @@ export default function ProfileAvatar({
 
   return (
     <div
-      className={`group relative overflow-hidden rounded-[28px] border border-[#35503D] bg-[radial-gradient(circle_at_top,rgba(94,226,135,0.32),rgba(20,28,39,0.94)_58%)] shadow-[0_18px_42px_rgba(0,0,0,0.34)] ${sizeClassName} ${className}`}
+      className={`group relative overflow-hidden rounded-lg border border-[#5A2E08] bg-[radial-gradient(circle_at_top,rgba(232,117,10,0.28),rgba(28,28,28,0.94)_58%)] shadow-[0_18px_42px_rgba(0,0,0,0.34)] ${sizeClassName} ${className}`}
     >
       {src ? (
         <Image
@@ -45,7 +45,7 @@ export default function ProfileAvatar({
           className="object-cover transition-transform duration-500 group-hover:scale-105"
         />
       ) : (
-        <div className="flex h-full w-full items-center justify-center bg-[linear-gradient(135deg,rgba(94,226,135,0.22),rgba(59,90,120,0.28))] font-black tracking-[0.12em] text-white">
+        <div className="flex h-full w-full items-center justify-center bg-[linear-gradient(135deg,rgba(232,117,10,0.22),rgba(80,60,40,0.28))] font-black tracking-[0.12em] text-white">
           {initials}
         </div>
       )}

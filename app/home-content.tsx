@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 /* eslint-disable @next/next/no-img-element */
 
 import Link from "next/link";
@@ -334,16 +334,16 @@ function Panel({
 }) {
   return (
     <section
-      className={`w-full min-w-0 rounded-[30px] border border-[#2A394B] bg-[linear-gradient(145deg,rgba(18,26,38,0.98),rgba(11,17,26,0.96))] p-5 shadow-[0_20px_50px_rgba(0,0,0,0.26)] sm:p-6 ${className}`}
+      className={`w-full min-w-0 rounded-xl border border-[#2A2A2A] bg-[linear-gradient(145deg,rgba(20,20,20,0.98),rgba(11,17,26,0.96))] p-5 shadow-[0_20px_50px_rgba(0,0,0,0.26)] sm:p-6 ${className}`}
     >
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0">
-          <p className="text-[11px] uppercase tracking-[0.24em] text-[#8CA1B8]">{eyebrow}</p>
-          <h2 className="mt-2 break-words text-2xl font-black tracking-tight text-[#F3FFF6]">
+          <p className="text-[11px] uppercase tracking-[0.24em] text-[#9A8F83]">{eyebrow}</p>
+          <h2 className="mt-2 break-words text-2xl font-black tracking-tight text-[#FFF0E4]">
             {title}
           </h2>
           {description ? (
-            <p className="mt-2 max-w-2xl break-words text-sm leading-relaxed text-[#AFC1D3]">
+            <p className="mt-2 max-w-2xl break-words text-sm leading-relaxed text-[#A89880]">
               {description}
             </p>
           ) : null}
@@ -358,15 +358,15 @@ function Panel({
 
 function SkeletonFeedCard() {
   return (
-    <li className="animate-pulse rounded-[26px] border border-[#2A394B] bg-[#101822] p-4">
+    <li className="animate-pulse rounded-lg border border-[#2A2A2A] bg-[#1C1C1C] p-4">
       <div className="flex items-start gap-4">
-        <div className="h-11 w-11 rounded-2xl bg-[#1A2535] shrink-0" />
+        <div className="h-11 w-11 rounded-lg bg-[#1A2535] shrink-0" />
         <div className="flex-1 space-y-3">
           <div className="h-3.5 bg-[#1A2535] rounded-full w-2/5" />
           <div className="h-3 bg-[#1A2535] rounded-full w-4/5" />
           <div className="h-3 bg-[#1A2535] rounded-full w-3/5" />
         </div>
-        <div className="hidden sm:block h-36 w-28 rounded-[22px] bg-[#1A2535] shrink-0" />
+        <div className="hidden sm:block h-36 w-28 rounded-md bg-[#1A2535] shrink-0" />
       </div>
     </li>
   );
@@ -374,9 +374,9 @@ function SkeletonFeedCard() {
 
 function SkeletonListCard() {
   return (
-    <li className="animate-pulse rounded-[26px] border border-[#2A394B] bg-[#101822] p-4 space-y-4">
+    <li className="animate-pulse rounded-lg border border-[#2A2A2A] bg-[#1C1C1C] p-4 space-y-4">
       <div className="flex items-center gap-3">
-        <div className="h-11 w-11 rounded-2xl bg-[#1A2535] shrink-0" />
+        <div className="h-11 w-11 rounded-lg bg-[#1A2535] shrink-0" />
         <div className="flex-1 space-y-2">
           <div className="h-4 bg-[#1A2535] rounded-full w-3/5" />
           <div className="h-3 bg-[#1A2535] rounded-full w-2/5" />
@@ -384,7 +384,7 @@ function SkeletonListCard() {
       </div>
       <div className="grid grid-cols-3 gap-3">
         {[0, 1, 2].map((i) => (
-          <div key={i} className="aspect-[0.72] rounded-[18px] bg-[#1A2535]" />
+          <div key={i} className="aspect-[0.72] rounded-md bg-[#1A2535]" />
         ))}
       </div>
     </li>
@@ -422,7 +422,7 @@ function QuickRateStars({
           }}
           className="relative h-5 w-5 shrink-0 touch-manipulation"
         >
-          <svg className="absolute inset-0 text-[#334255]" viewBox="0 0 24 24" fill="currentColor">
+          <svg className="absolute inset-0 text-[#3A3A3A]" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.54 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z" />
           </svg>
           {star <= display && (
@@ -459,18 +459,18 @@ function ProductCard({
   if (isShelfCard) {
     return (
       <div
-        className={`group relative overflow-hidden rounded-[24px] border border-[#2D3A4B] bg-[#131B26] shadow-[0_14px_34px_rgba(0,0,0,0.3)] transition-all duration-300 hover:-translate-y-1.5 ${categoryAccent.cardClass} ${className}`}
+        className={`group relative overflow-hidden rounded-lg border border-[#333333] bg-[#1E1E1E] shadow-[0_14px_34px_rgba(0,0,0,0.3)] transition-all duration-300 hover:-translate-y-1.5 ${categoryAccent.cardClass} ${className}`}
       >
         <Link
           href={`/produkt/${product.routeSlug}`}
           aria-label={`${product.name} öffnen`}
-          className="absolute inset-0 z-[1] rounded-[24px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8AF5AC]"
+          className="absolute inset-0 z-[1] rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F5963C]"
         />
 
         <div className={`absolute inset-x-0 top-0 z-[2] h-1 ${categoryAccent.accentBarClass}`} />
 
         {userRating != null && (
-          <span className="absolute right-3 top-3 z-[3] inline-flex items-center gap-1 rounded-full border border-[#34503B] bg-[#173023] px-2 py-1 text-[10px] font-semibold text-[#8AF5AC]">
+          <span className="absolute right-3 top-3 z-[3] inline-flex items-center gap-1 rounded-full border border-[#5A2E08] bg-[#291808] px-2 py-1 text-[10px] font-semibold text-[#F5963C]">
             <FiCheck size={10} />
             {userRating.toFixed(1)}
           </span>
@@ -484,7 +484,7 @@ function ProductCard({
         </div>
 
         <div className="px-3 pb-1 pt-12 sm:px-4 sm:pt-14">
-          <div className="relative z-[2] aspect-[1.45] overflow-hidden rounded-[18px] border border-white/6 bg-[#0D1520]">
+          <div className="relative z-[2] aspect-[1.45] overflow-hidden rounded-md border border-white/6 bg-[#0D1520]">
             <ProductCardImage
               routeSlug={product.routeSlug}
               alt={product.name}
@@ -506,7 +506,7 @@ function ProductCard({
           ) : null}
           {isLoggedIn && onQuickRate ? (
             <div className="mt-2.5 flex items-center gap-2">
-              <span className="text-[10px] uppercase tracking-[0.14em] text-[#8CA1B8]">
+              <span className="text-[10px] uppercase tracking-[0.14em] text-[#9A8F83]">
                 {userRating != null ? "Neu bewerten" : "Schnell bewerten"}
               </span>
               <QuickRateStars
@@ -523,12 +523,12 @@ function ProductCard({
 
   return (
     <div
-      className={`group relative aspect-[0.8] overflow-hidden rounded-[24px] border border-[#2D3A4B] bg-[#131B26] shadow-[0_14px_34px_rgba(0,0,0,0.3)] transition-all duration-300 hover:-translate-y-1.5 sm:aspect-[0.72] ${categoryAccent.cardClass} ${className}`}
+      className={`group relative aspect-[0.8] overflow-hidden rounded-lg border border-[#333333] bg-[#1E1E1E] shadow-[0_14px_34px_rgba(0,0,0,0.3)] transition-all duration-300 hover:-translate-y-1.5 sm:aspect-[0.72] ${categoryAccent.cardClass} ${className}`}
     >
       <Link
         href={`/produkt/${product.routeSlug}`}
         aria-label={`${product.name} öffnen`}
-        className="absolute inset-0 z-10 rounded-[24px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8AF5AC] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0F151E]"
+        className="absolute inset-0 z-10 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F5963C] focus-visible:ring-offset-2 focus-visible:ring-offset-[#141414]"
       />
 
       <div className={`absolute inset-x-0 top-0 z-[1] h-1 ${categoryAccent.accentBarClass}`} />
@@ -552,7 +552,7 @@ function ProductCard({
 
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 p-2.5 sm:p-4">
         {userRating != null && (
-          <span className="pointer-events-none mb-1.5 inline-flex items-center gap-1 rounded-full border border-[#34503B] bg-[#173023]/90 px-2 py-0.5 text-[10px] font-semibold text-[#8AF5AC]">
+          <span className="pointer-events-none mb-1.5 inline-flex items-center gap-1 rounded-full border border-[#5A2E08] bg-[#291808]/90 px-2 py-0.5 text-[10px] font-semibold text-[#F5963C]">
             <FiCheck size={9} />
             Bewertet
           </span>
@@ -600,10 +600,10 @@ function ProductShelf({
         actionHref ? (
           <Link
             href={actionHref}
-            className="inline-flex self-start items-center gap-3 rounded-full border border-[#5EE287]/35 bg-[linear-gradient(135deg,rgba(94,226,135,0.16),rgba(18,27,39,0.94))] px-3 py-2 text-sm font-semibold text-[#F3FFF6] shadow-[0_12px_28px_rgba(0,0,0,0.18)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#8AF5AC] hover:bg-[linear-gradient(135deg,rgba(94,226,135,0.24),rgba(18,27,39,0.98))] hover:shadow-[0_16px_34px_rgba(94,226,135,0.14)] sm:px-4 sm:py-2.5"
+            className="inline-flex self-start items-center gap-3 rounded-full border border-[#E8750A]/35 bg-[linear-gradient(135deg,rgba(232,117,10,0.16),rgba(20,20,20,0.94))] px-3 py-2 text-sm font-semibold text-[#FFF0E4] shadow-[0_12px_28px_rgba(0,0,0,0.18)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#F5963C] hover:bg-[linear-gradient(135deg,rgba(232,117,10,0.24),rgba(20,20,20,0.98))] hover:shadow-[0_16px_34px_rgba(232,117,10,0.14)] sm:px-4 sm:py-2.5"
           >
             <span>Mehr sehen</span>
-            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-[#8AF5AC]/35 bg-[#173023] text-[#CFFFE0]">
+            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-[#F5963C]/35 bg-[#291808] text-[#CFFFE0]">
               <FiArrowRight size={15} />
             </span>
           </Link>
@@ -660,7 +660,7 @@ function MiniAvatar({
   const initials = getProfileInitials(name);
 
   return (
-    <span className="relative inline-flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-[#35503D] bg-[radial-gradient(circle_at_top,rgba(94,226,135,0.28),rgba(15,22,33,0.96)_70%)] text-sm font-black tracking-[0.12em] text-white shadow-[0_10px_24px_rgba(0,0,0,0.24)]">
+    <span className="relative inline-flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#5A2E08] bg-[radial-gradient(circle_at_top,rgba(232,117,10,0.28),rgba(20,20,20,0.96)_70%)] text-sm font-black tracking-[0.12em] text-white shadow-[0_10px_24px_rgba(0,0,0,0.24)]">
       {src ? (
         <img
           src={src}
@@ -685,8 +685,8 @@ function FeatureTile({
   description: string;
 }) {
   return (
-    <div className="rounded-[24px] border border-[#253548] bg-[#101722]/80 p-4">
-      <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[#32455B] bg-[#141F2C] text-[#D9FFE6]">
+    <div className="rounded-lg border border-[#253548] bg-[#1C1C1C]/80 p-4">
+      <span className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-[#32455B] bg-[#141F2C] text-[#FFE4C8]">
         {icon}
       </span>
       <h3 className="mt-4 text-base font-semibold text-white">{title}</h3>
@@ -716,7 +716,7 @@ function FollowPreviewCluster({ previews }: { previews: FollowingPreview[] }) {
 
 function TopListCard({ list }: { list: TopListSummary }) {
   return (
-    <li className="rounded-[26px] border border-[#2A394B] bg-[linear-gradient(145deg,rgba(19,27,38,0.96),rgba(12,18,27,0.98))] p-4 transition-all duration-300 hover:-translate-y-1 hover:border-[#5EE287]/30">
+    <li className="rounded-lg border border-[#2A2A2A] bg-[linear-gradient(145deg,rgba(20,20,20,0.96),rgba(12,18,27,0.98))] p-4 transition-all duration-300 hover:-translate-y-1 hover:border-[#E8750A]/30">
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           <Link href={`/profil/${list.userId}`}>
@@ -726,15 +726,15 @@ function TopListCard({ list }: { list: TopListSummary }) {
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <h3 className="truncate text-lg font-semibold text-white">{list.name}</h3>
-              <span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#D6E2EF]">
+              <span className="rounded-full border border-[#333333] bg-[#222222] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#DDD0C4]">
                 {list.itemCount} Produkte
               </span>
             </div>
 
-            <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-[#8CA1B8]">
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-[#9A8F83]">
               <Link
                 href={`/profil/${list.userId}`}
-                className="font-semibold text-[#D7E2EC] transition-colors hover:text-[#8AF5AC]"
+                className="font-semibold text-[#D7E2EC] transition-colors hover:text-[#F5963C]"
               >
                 {list.username}
               </Link>
@@ -743,7 +743,7 @@ function TopListCard({ list }: { list: TopListSummary }) {
           </div>
         </div>
 
-        <FiBookmark className="shrink-0 text-[#8CA1B8]" size={18} />
+        <FiBookmark className="shrink-0 text-[#9A8F83]" size={18} />
       </div>
 
       {list.items.length > 0 ? (
@@ -755,7 +755,7 @@ function TopListCard({ list }: { list: TopListSummary }) {
                 href={`/produkt/${item.routeSlug}`}
                 className="group"
               >
-                <div className="relative overflow-hidden rounded-[18px] border border-[#2D3A4B] bg-[#101822]" style={{ aspectRatio: "0.72" }}>
+                <div className="relative overflow-hidden rounded-md border border-[#333333] bg-[#1C1C1C]" style={{ aspectRatio: "0.72" }}>
                   <ProductCardImage
                     routeSlug={item.routeSlug}
                     alt={item.name}
@@ -763,7 +763,7 @@ function TopListCard({ list }: { list: TopListSummary }) {
                     className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                   />
                 </div>
-                <p className="mt-2 line-clamp-2 text-sm font-semibold text-white transition-colors group-hover:text-[#8AF5AC]">
+                <p className="mt-2 line-clamp-2 text-sm font-semibold text-white transition-colors group-hover:text-[#F5963C]">
                   {item.name}
                 </p>
               </Link>
@@ -775,7 +775,7 @@ function TopListCard({ list }: { list: TopListSummary }) {
               <Link
                 key={`${list.id}-${item.productSlug}-tag`}
                 href={`/produkt/${item.routeSlug}`}
-                className="rounded-full border border-[#2D3A4B] bg-[#101822] px-3 py-1.5 text-xs font-semibold text-[#D6E2EF] transition-colors hover:border-[#5EE287] hover:text-[#D9FFE6]"
+                className="rounded-full border border-[#333333] bg-[#1C1C1C] px-3 py-1.5 text-xs font-semibold text-[#DDD0C4] transition-colors hover:border-[#E8750A] hover:text-[#FFE4C8]"
               >
                 {item.name}
               </Link>
@@ -823,7 +823,7 @@ function ActivityCard({
     activity.kind === "review"
       ? {
           label: "Review",
-          className: "border-[#34503B] bg-[#173023] text-[#D9FFE6]",
+          className: "border-[#5A2E08] bg-[#291808] text-[#FFE4C8]",
         }
       : activity.kind === "rating"
         ? {
@@ -842,11 +842,11 @@ function ActivityCard({
             }
             : {
                 label: "Liste",
-                className: "border-[#35503D] bg-[#122619] text-[#D9FFE6]",
+                className: "border-[#5A2E08] bg-[#221508] text-[#FFE4C8]",
               };
 
   return (
-    <li className="min-w-0 overflow-hidden rounded-[26px] border border-[#2A394B] bg-[linear-gradient(145deg,rgba(19,27,38,0.96),rgba(12,18,27,0.98))] p-4 transition-all duration-300 hover:-translate-y-1 hover:border-[#5EE287]/30">
+    <li className="min-w-0 overflow-hidden rounded-lg border border-[#2A2A2A] bg-[linear-gradient(145deg,rgba(20,20,20,0.96),rgba(12,18,27,0.98))] p-4 transition-all duration-300 hover:-translate-y-1 hover:border-[#E8750A]/30">
       <div className="flex items-start gap-4">
         <Link href={profileHref}>
           <MiniAvatar src={activity.avatarUrl} name={activity.username} />
@@ -856,7 +856,7 @@ function ActivityCard({
           <div className="flex flex-wrap items-center gap-2">
             <Link
               href={profileHref}
-              className="break-words font-semibold text-white transition-colors hover:text-[#8AF5AC]"
+              className="break-words font-semibold text-white transition-colors hover:text-[#F5963C]"
             >
               {activity.username}
             </Link>
@@ -865,7 +865,7 @@ function ActivityCard({
             >
               {badge.label}
             </span>
-            <span className="text-xs uppercase tracking-[0.16em] text-[#8CA1B8]">
+            <span className="text-xs uppercase tracking-[0.16em] text-[#9A8F83]">
               {formatRelativeTime(activity.createdAt)}
             </span>
           </div>
@@ -876,7 +876,7 @@ function ActivityCard({
                 hat eine Review zu{" "}
                 <Link
                   href={productHref}
-                  className="break-words font-semibold text-white transition-colors hover:text-[#8AF5AC]"
+                  className="break-words font-semibold text-white transition-colors hover:text-[#F5963C]"
                 >
                   {activity.product.name}
                 </Link>{" "}
@@ -887,7 +887,7 @@ function ActivityCard({
                 hat{" "}
                 <Link
                   href={productHref}
-                  className="break-words font-semibold text-white transition-colors hover:text-[#8AF5AC]"
+                  className="break-words font-semibold text-white transition-colors hover:text-[#F5963C]"
                 >
                   {activity.product.name}
                 </Link>{" "}
@@ -898,7 +898,7 @@ function ActivityCard({
                 hat{" "}
                 <Link
                   href={productHref}
-                  className="break-words font-semibold text-white transition-colors hover:text-[#8AF5AC]"
+                  className="break-words font-semibold text-white transition-colors hover:text-[#F5963C]"
                 >
                   {activity.product.name}
                 </Link>{" "}
@@ -909,7 +909,7 @@ function ActivityCard({
                 hat{" "}
                 <Link
                   href={productHref}
-                  className="break-words font-semibold text-white transition-colors hover:text-[#8AF5AC]"
+                  className="break-words font-semibold text-white transition-colors hover:text-[#F5963C]"
                 >
                   {activity.product.name}
                 </Link>{" "}
@@ -920,7 +920,7 @@ function ActivityCard({
                 hat{" "}
                 <Link
                   href={productHref}
-                  className="break-words font-semibold text-white transition-colors hover:text-[#8AF5AC]"
+                  className="break-words font-semibold text-white transition-colors hover:text-[#F5963C]"
                 >
                   {activity.product.name}
                 </Link>{" "}
@@ -933,7 +933,7 @@ function ActivityCard({
             )}
           </p>
 
-          <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-[#8CA1B8]">
+          <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-[#9A8F83]">
             <span className={`rounded-full border px-2.5 py-1 ${categoryAccent.subtleBadgeClass}`}>
               {activity.product.category}
             </span>
@@ -945,7 +945,7 @@ function ActivityCard({
           </div>
 
           {activity.comment ? (
-            <div className="mt-4 overflow-hidden rounded-[20px] border border-[#2D3A4B] bg-[#0F1722]/92 p-4 text-sm leading-relaxed text-[#D3DFEB]">
+            <div className="mt-4 overflow-hidden rounded-md border border-[#333333] bg-[#0F1722]/92 p-4 text-sm leading-relaxed text-[#D3DFEB]">
               <p className="line-clamp-4">{activity.comment}</p>
             </div>
           ) : null}
@@ -978,7 +978,7 @@ function ActivityCard({
 
         <Link
           href={productHref}
-          className={`relative hidden h-36 w-28 shrink-0 overflow-hidden rounded-[22px] border bg-[#101822] shadow-[0_16px_36px_rgba(0,0,0,0.24)] sm:block lg:h-40 lg:w-32 ${categoryAccent.thumbClass}`}
+          className={`relative hidden h-36 w-28 shrink-0 overflow-hidden rounded-md border bg-[#1C1C1C] shadow-[0_16px_36px_rgba(0,0,0,0.24)] sm:block lg:h-40 lg:w-32 ${categoryAccent.thumbClass}`}
         >
           <ProductCardImage
             routeSlug={activity.product.routeSlug}
@@ -1055,7 +1055,7 @@ function FeedPanel({
         feedData.viewerAuthenticated && feedData.followingCount > 0 ? (
           <div className="flex min-w-0 flex-wrap items-center gap-3">
             <FollowPreviewCluster previews={feedData.followingPreview} />
-            <span className="rounded-full border border-[#2D3A4B] bg-[#111925] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#D6E2EF]">
+            <span className="rounded-full border border-[#333333] bg-[#1C1C1C] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#DDD0C4]">
               {feedData.followingCount} gefolgt
             </span>
           </div>
@@ -1070,14 +1070,14 @@ function FeedPanel({
           <SkeletonFeedCard />
         </ul>
       ) : feedError ? (
-        <div className="rounded-[26px] border border-[#5E3340] bg-[#24131A] p-5 text-sm text-[#FFD8E1]">
+        <div className="rounded-lg border border-[#5E3340] bg-[#24131A] p-5 text-sm text-[#FFD8E1]">
           Der Following-Feed konnte gerade nicht geladen werden: {feedError}
         </div>
       ) : !feedData.viewerAuthenticated ? (
-        <div className="grid gap-4 rounded-[28px] border border-[#2A394B] bg-[linear-gradient(135deg,rgba(94,226,135,0.08),rgba(17,25,37,0.98))] p-5 md:grid-cols-[1.1fr_0.9fr]">
+        <div className="grid gap-4 rounded-lg border border-[#2A2A2A] bg-[linear-gradient(135deg,rgba(232,117,10,0.08),rgba(20,20,20,0.98))] p-5 md:grid-cols-[1.1fr_0.9fr]">
           <div>
             <h3 className="text-xl font-semibold text-white">Logge dich ein und baue dir deinen Feed</h3>
-            <p className="mt-3 text-sm leading-relaxed text-[#AFC1D3]">
+            <p className="mt-3 text-sm leading-relaxed text-[#A89880]">
               Folge anderen Food-Profilen und sieh hier sofort, welche Tiefkühlpizza,
               Proteinriegel oder Snacks zuletzt bewertet, kommentiert oder gemerkt wurden.
             </p>
@@ -1101,24 +1101,24 @@ function FeedPanel({
           </div>
         </div>
       ) : feedData.followingCount === 0 ? (
-        <div className="rounded-[28px] border border-dashed border-[#35503D] bg-[#111925]/85 p-6">
+        <div className="rounded-lg border border-dashed border-[#5A2E08] bg-[#1C1C1C]/85 p-6">
           <p className="text-lg font-semibold text-white">Noch kein Following-Feed</p>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#AFC1D3]">
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#A89880]">
             Du folgst noch niemandem. Sobald du im Profil ein paar Food-Accounts abonnierst,
             erscheinen hier deren letzte Ratings, Reviews, Favoriten und Watchlist-Updates.
           </p>
           <Link
             href="/profil"
-            className="mt-4 inline-flex items-center gap-2 rounded-full border border-[#5EE287] bg-[#173023] px-4 py-2 text-sm font-semibold text-[#D9FFE6] transition-colors hover:bg-[#1E3A2A]"
+            className="mt-4 inline-flex items-center gap-2 rounded-full border border-[#E8750A] bg-[#291808] px-4 py-2 text-sm font-semibold text-[#FFE4C8] transition-colors hover:bg-[#1E3A2A]"
           >
             Profile finden
             <FiArrowRight size={16} />
           </Link>
         </div>
       ) : !hasActivities ? (
-        <div className="rounded-[28px] border border-[#2A394B] bg-[#101822] p-6">
+        <div className="rounded-lg border border-[#2A2A2A] bg-[#1C1C1C] p-6">
           <p className="text-lg font-semibold text-white">Dein Feed wartet auf neue Aktivität</p>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#AFC1D3]">
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#A89880]">
             Deine gefolgten Profile waren zuletzt ruhig. Sobald sie Produkte bewerten, Reviews
             schreiben oder Listen aktualisieren, taucht das hier automatisch auf.
           </p>
@@ -1128,10 +1128,10 @@ function FeedPanel({
           {categoryOptions.length > 1 ? (
             <div className="mb-5 min-w-0">
               <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-                <p className="text-[11px] uppercase tracking-[0.2em] text-[#8CA1B8]">
+                <p className="text-[11px] uppercase tracking-[0.2em] text-[#9A8F83]">
                   Kategorie filtern
                 </p>
-                <p className="text-xs text-[#8CA1B8]">
+                <p className="text-xs text-[#9A8F83]">
                   {resolvedCategoryFilter === "all"
                     ? `${feedData.activities.length} Aktivitäten`
                     : `${filteredActivities.length} von ${feedData.activities.length} Aktivitäten`}
@@ -1144,8 +1144,8 @@ function FeedPanel({
                   onClick={() => setActiveCategoryFilter("all")}
                   className={`whitespace-nowrap rounded-full border px-3 py-2 text-xs font-semibold transition-colors ${
                     resolvedCategoryFilter === "all"
-                      ? "border-[#5EE287] bg-[#173023] text-[#D9FFE6]"
-                      : "border-[#2D3A4B] bg-[#111925] text-[#D6E2EF] hover:border-[#5EE287] hover:text-white"
+                      ? "border-[#E8750A] bg-[#291808] text-[#FFE4C8]"
+                      : "border-[#333333] bg-[#1C1C1C] text-[#DDD0C4] hover:border-[#E8750A] hover:text-white"
                   }`}
                 >
                   Alle
@@ -1200,11 +1200,11 @@ function FeedPanel({
               ))}
             </ul>
           ) : (
-            <div className="rounded-[28px] border border-dashed border-[#35503D] bg-[#111925]/85 p-6">
+            <div className="rounded-lg border border-dashed border-[#5A2E08] bg-[#1C1C1C]/85 p-6">
               <p className="text-lg font-semibold text-white">
                 Keine Feed-Einträge für {resolvedCategoryFilter}
               </p>
-              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#AFC1D3]">
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#A89880]">
                 Sobald jemand aus deinem Netzwerk in dieser Kategorie bewertet, reviewed
                 oder Produkte speichert, taucht das hier auf.
               </p>
@@ -1236,7 +1236,7 @@ function TopListsPanel({
       description="Benannte User-Listen bringen Charakter in die Startseite. Hier siehst du die aktuell größten und aktivsten Sammlungen."
       action={
         topListsData.lists.length > 0 ? (
-          <span className="rounded-full border border-[#2D3A4B] bg-[#111925] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#D6E2EF]">
+          <span className="rounded-full border border-[#333333] bg-[#1C1C1C] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#DDD0C4]">
             {topListsData.lists.length} Listen
           </span>
         ) : null
@@ -1249,13 +1249,13 @@ function TopListsPanel({
           <SkeletonListCard />
         </ul>
       ) : topListsError ? (
-        <div className="rounded-[26px] border border-[#5E3340] bg-[#24131A] p-5 text-sm text-[#FFD8E1]">
+        <div className="rounded-lg border border-[#5E3340] bg-[#24131A] p-5 text-sm text-[#FFD8E1]">
           Die Top-Listen konnten gerade nicht geladen werden: {topListsError}
         </div>
       ) : topListsData.lists.length === 0 ? (
-        <div className="rounded-[28px] border border-dashed border-[#35503D] bg-[#111925]/85 p-6">
+        <div className="rounded-lg border border-dashed border-[#5A2E08] bg-[#1C1C1C]/85 p-6">
           <p className="text-lg font-semibold text-white">Noch keine Community-Listen</p>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#AFC1D3]">
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#A89880]">
             Sobald Nutzer eigene Listen anlegen und mit Produkten füllen, tauchen hier die spannendsten Sammlungen auf.
           </p>
         </div>
@@ -1269,7 +1269,7 @@ function TopListsPanel({
 
       <Link
         href="/profil"
-        className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#8AF5AC] transition-colors hover:text-[#B7FFD0]"
+        className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#F5963C] transition-colors hover:text-[#B7FFD0]"
       >
         Eigene Listen erstellen
         <FiArrowRight size={16} />
@@ -1286,12 +1286,12 @@ function NetworkPanel({ feedData }: { feedData: HomeFeedData }) {
       description="FoodRanker wird mit Follows am spannendsten. Dann bekommst du statt einer statischen Startseite echte Aktivität aus deinem Kreis."
     >
       {!feedData.viewerAuthenticated ? (
-        <div className="rounded-[24px] border border-[#2A394B] bg-[#101822] p-4 text-sm leading-relaxed text-[#AFC1D3]">
+        <div className="rounded-lg border border-[#2A2A2A] bg-[#1C1C1C] p-4 text-sm leading-relaxed text-[#A89880]">
           Nach dem Login kannst du andere Profile finden, ihnen folgen und dir so einen
           persönlichen Startseiten-Feed aufbauen.
         </div>
       ) : feedData.followingCount === 0 ? (
-        <div className="rounded-[24px] border border-dashed border-[#35503D] bg-[#111925] p-4">
+        <div className="rounded-lg border border-dashed border-[#5A2E08] bg-[#1C1C1C] p-4">
           <p className="text-sm font-semibold text-white">Noch keine Profile gefolgt</p>
           <p className="mt-2 text-sm leading-relaxed text-[#9EB0C3]">
             Fang mit ein paar Accounts an, damit Ratings und Reviews von anderen direkt hier
@@ -1303,23 +1303,23 @@ function NetworkPanel({ feedData }: { feedData: HomeFeedData }) {
           {feedData.followingPreview.map((profile) => (
             <li
               key={profile.userId}
-              className="flex items-center justify-between gap-3 rounded-[22px] border border-[#2A394B] bg-[#101822] p-3.5"
+              className="flex items-center justify-between gap-3 rounded-md border border-[#2A2A2A] bg-[#1C1C1C] p-3.5"
             >
               <div className="flex min-w-0 items-center gap-3">
                 <MiniAvatar src={profile.avatarUrl} name={profile.username} />
                 <div className="min-w-0">
                   <Link
                     href={`/profil/${profile.userId}`}
-                    className="truncate font-semibold text-white transition-colors hover:text-[#8AF5AC]"
+                    className="truncate font-semibold text-white transition-colors hover:text-[#F5963C]"
                   >
                     {profile.username}
                   </Link>
-                  <p className="mt-1 text-xs text-[#8CA1B8]">
+                  <p className="mt-1 text-xs text-[#9A8F83]">
                     gefolgt {formatRelativeTime(profile.followedAt)}
                   </p>
                 </div>
               </div>
-              <FiUsers className="shrink-0 text-[#8CA1B8]" size={16} />
+              <FiUsers className="shrink-0 text-[#9A8F83]" size={16} />
             </li>
           ))}
         </ul>
@@ -1327,7 +1327,7 @@ function NetworkPanel({ feedData }: { feedData: HomeFeedData }) {
 
       <Link
         href="/profil"
-        className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#8AF5AC] transition-colors hover:text-[#B7FFD0]"
+        className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#F5963C] transition-colors hover:text-[#B7FFD0]"
       >
         Zu Profil, Listen und Social Features
         <FiArrowRight size={16} />
@@ -1351,16 +1351,16 @@ function CategoryPanel() {
             <Link
               key={category.slug}
               href={category.href}
-              className={`group flex items-start gap-2.5 rounded-[20px] border p-3 transition-all duration-300 hover:-translate-y-1 sm:gap-3 sm:rounded-[22px] sm:p-4 ${accent.navCardClass}`}
+              className={`group flex items-start gap-2.5 rounded-md border p-3 transition-all duration-300 hover:-translate-y-1 sm:gap-3 sm:rounded-md sm:p-4 ${accent.navCardClass}`}
             >
-              <span className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border text-xl leading-none sm:h-12 sm:w-12 sm:rounded-2xl sm:text-2xl ${accent.iconWrapClass}`}>
+              <span className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border text-xl leading-none sm:h-12 sm:w-12 sm:rounded-lg sm:text-2xl ${accent.iconWrapClass}`}>
                 {category.icon}
               </span>
               <div className="min-w-0">
                 <p className={`text-sm font-semibold text-white transition-colors sm:text-base ${accent.navTitleClass}`}>
                   {category.name}
                 </p>
-                <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-[#8CA1B8] sm:text-sm">
+                <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-[#9A8F83] sm:text-sm">
                   {category.description}
                 </p>
               </div>
@@ -1401,7 +1401,7 @@ function HomeHero({
     : "Diese Auswahl zeigt dir zum Start die spannendsten Produkte im aktuellen Katalog.";
 
   return (
-    <section className="overflow-hidden rounded-[32px] border border-[#314258] bg-[radial-gradient(circle_at_top_left,rgba(94,226,135,0.16),rgba(9,14,21,0.98)_38%),radial-gradient(circle_at_top_right,rgba(255,216,108,0.08),transparent_34%),linear-gradient(145deg,rgba(18,26,38,0.99),rgba(8,12,18,0.97))] p-5 shadow-[0_30px_80px_rgba(0,0,0,0.34)] sm:rounded-[40px] sm:p-8 lg:p-10">
+    <section className="overflow-hidden rounded-xl border border-[#333333] bg-[radial-gradient(circle_at_top_left,rgba(232,117,10,0.16),rgba(12,12,12,0.98)_38%),radial-gradient(circle_at_top_right,rgba(255,216,108,0.08),transparent_34%),linear-gradient(145deg,rgba(20,20,20,0.99),rgba(10,10,10,0.97))] p-5 shadow-[0_30px_80px_rgba(0,0,0,0.34)] sm:rounded-xl sm:p-8 lg:p-10">
       <div className="grid gap-8 xl:grid-cols-[1.1fr_0.9fr] xl:items-start">
         <div>
           <p className="text-xs uppercase tracking-[0.26em] text-[#9CC9AE]">
@@ -1418,14 +1418,14 @@ function HomeHero({
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
               href="/?sort=best"
-              className="inline-flex items-center gap-2 rounded-full bg-[#5EE287] px-5 py-3 text-sm font-semibold text-[#0C1910] transition-colors hover:bg-[#79F29C]"
+              className="inline-flex items-center gap-2 rounded-full bg-[#E8750A] px-5 py-3 text-sm font-semibold text-[#1A0E04] transition-colors hover:bg-[#F5963C]"
             >
               Beste Lebensmittel entdecken
               <FiArrowRight size={16} />
             </Link>
             <Link
               href="/profil"
-              className="inline-flex items-center gap-2 rounded-full border border-[#2D3A4B] bg-[#121B27] px-5 py-3 text-sm font-semibold text-white transition-colors hover:border-[#5EE287] hover:text-[#D9FFE6]"
+              className="inline-flex items-center gap-2 rounded-full border border-[#333333] bg-[#1E1E1E] px-5 py-3 text-sm font-semibold text-white transition-colors hover:border-[#E8750A] hover:text-[#FFE4C8]"
             >
               Profil und Feed aufbauen
               <FiUsers size={16} />
@@ -1433,18 +1433,18 @@ function HomeHero({
           </div>
 
           <div className="mt-6 flex flex-wrap gap-2.5 text-sm">
-            <span className="rounded-full border border-[#34503B] bg-[#173023] px-4 py-2 font-semibold text-[#D9FFE6]">
+            <span className="rounded-full border border-[#5A2E08] bg-[#291808] px-4 py-2 font-semibold text-[#FFE4C8]">
               {catalogProductCount}+ Lebensmittel im Katalog
             </span>
-            <span className="rounded-full border border-[#2D3A4B] bg-[#111925]/90 px-4 py-2 font-semibold text-[#D6E2EF]">
+            <span className="rounded-full border border-[#333333] bg-[#1C1C1C]/90 px-4 py-2 font-semibold text-[#DDD0C4]">
               {CATEGORY_NAV_ITEMS.length} Kategorien
             </span>
-            <span className="rounded-full border border-[#2D3A4B] bg-[#111925]/90 px-4 py-2 font-semibold text-[#D6E2EF]">
+            <span className="rounded-full border border-[#333333] bg-[#1C1C1C]/90 px-4 py-2 font-semibold text-[#DDD0C4]">
               {ratedProductCount > 0
                 ? `${formatCompactCount(ratedProductCount)} Produkte mit Score`
                 : "Neue Bewertungen willkommen"}
             </span>
-            <span className="rounded-full border border-[#2D3A4B] bg-[#111925]/90 px-4 py-2 font-semibold text-[#D6E2EF]">
+            <span className="rounded-full border border-[#333333] bg-[#1C1C1C]/90 px-4 py-2 font-semibold text-[#DDD0C4]">
               {feedData.followingCount > 0
                 ? `${feedData.followingCount} Profile im Feed`
                 : "Folgen schaltet Feed frei"}
@@ -1469,7 +1469,7 @@ function HomeHero({
             />
           </div>
 
-          <p className="mt-6 text-sm text-[#8CA1B8]">
+          <p className="mt-6 text-sm text-[#9A8F83]">
             {isLoading
               ? "Highlights werden geladen..."
               : hasLiveRatings
@@ -1478,12 +1478,12 @@ function HomeHero({
           </p>
         </div>
 
-        <div className="rounded-[30px] border border-[#2A394B] bg-[linear-gradient(145deg,rgba(15,22,32,0.92),rgba(10,16,24,0.94))] p-4 shadow-[0_22px_50px_rgba(0,0,0,0.24)] sm:p-5">
+        <div className="rounded-xl border border-[#2A2A2A] bg-[linear-gradient(145deg,rgba(15,22,32,0.92),rgba(10,16,24,0.94))] p-4 shadow-[0_22px_50px_rgba(0,0,0,0.24)] sm:p-5">
           <div className="mb-4">
-            <p className="text-sm font-black uppercase tracking-[0.22em] text-[#F3FFF6] sm:text-base">
+            <p className="text-sm font-black uppercase tracking-[0.22em] text-[#FFF0E4] sm:text-base">
               {heroShelfEyebrow}
             </p>
-            <p className="mt-2 text-sm leading-relaxed text-[#D6E2EF] sm:text-[15px]">
+            <p className="mt-2 text-sm leading-relaxed text-[#DDD0C4] sm:text-[15px]">
               {heroShelfDescription}
             </p>
           </div>
@@ -1970,15 +1970,15 @@ export default function HomeContent() {
 
   return (
     <>
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(94,226,135,0.06),transparent_24%),linear-gradient(180deg,#0A1118_0%,#0F151E_52%,#0A1118_100%)] px-4 pb-24 text-white sm:px-8 lg:px-12">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(232,117,10,0.06),transparent_24%),linear-gradient(180deg,#141414_0%,#141414_52%,#141414_100%)] px-4 pb-24 text-white sm:px-8 lg:px-12">
       <div className="mx-auto max-w-7xl">
         {isDiscoverMode ? (
           <>
-            <section className="rounded-[36px] border border-[#2A394B] bg-[radial-gradient(circle_at_top_left,rgba(94,226,135,0.1),rgba(16,24,36,0.98)_42%),linear-gradient(145deg,rgba(19,27,38,0.98),rgba(10,15,22,0.97))] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.28)] sm:p-8">
+            <section className="rounded-xl border border-[#2A2A2A] bg-[radial-gradient(circle_at_top_left,rgba(232,117,10,0.1),rgba(20,20,20,0.98)_42%),linear-gradient(145deg,rgba(20,20,20,0.98),rgba(14,14,14,0.97))] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.28)] sm:p-8">
               <p className="text-xs uppercase tracking-[0.24em] text-[#9CC9AE]">
                 Lebensmittel entdecken
               </p>
-              <h1 className="mt-3 text-3xl font-black tracking-tight text-[#F3FFF6] sm:text-4xl">
+              <h1 className="mt-3 text-3xl font-black tracking-tight text-[#FFF0E4] sm:text-4xl">
                 Finde Produkte, die du als Nächstes bewerten willst.
               </h1>
               <p className="mt-4 max-w-3xl text-sm leading-relaxed text-[#C9D8E7] sm:text-base">
@@ -1987,11 +1987,11 @@ export default function HomeContent() {
               </p>
 
               <div className="mt-5 flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-[0.14em]">
-                <span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1.5 text-[#BFD0E2]">
+                <span className="rounded-full border border-[#333333] bg-[#222222] px-3 py-1.5 text-[#C4B8AC]">
                   {displayedBrowseProducts.length} Treffer
                 </span>
                 {activeCategory ? (
-                  <span className="rounded-full border border-[#5EE287]/35 bg-[#173023] px-3 py-1.5 text-[#D9FFE6]">
+                  <span className="rounded-full border border-[#E8750A]/35 bg-[#291808] px-3 py-1.5 text-[#FFE4C8]">
                     {activeCategory.shortName}
                   </span>
                 ) : null}
@@ -2000,11 +2000,11 @@ export default function HomeContent() {
                     Suche aktiv
                   </span>
                 ) : null}
-                <span className="rounded-full border border-[#2D3A4B] bg-[#141C27] px-3 py-1.5 text-[#BFD0E2]">
+                <span className="rounded-full border border-[#333333] bg-[#222222] px-3 py-1.5 text-[#C4B8AC]">
                   Sortierung: {sortLabel}
                 </span>
                 {openFoodFactsSuggestions.length > 0 ? (
-                  <span className="rounded-full border border-[#35503D] bg-[#122619] px-3 py-1.5 text-[#D9FFE6]">
+                  <span className="rounded-full border border-[#5A2E08] bg-[#221508] px-3 py-1.5 text-[#FFE4C8]">
                     {openFoodFactsSuggestions.length} OFF-Vorschläge
                   </span>
                 ) : null}
@@ -2014,20 +2014,20 @@ export default function HomeContent() {
             <section className="mt-8">
               <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                  <p className="text-[11px] uppercase tracking-[0.24em] text-[#8CA1B8]">
+                  <p className="text-[11px] uppercase tracking-[0.24em] text-[#9A8F83]">
                     Ergebnisse
                   </p>
-                  <h2 className="mt-2 text-2xl font-black tracking-tight text-[#F3FFF6] sm:text-3xl">
+                  <h2 className="mt-2 text-2xl font-black tracking-tight text-[#FFF0E4] sm:text-3xl">
                     {searchQuery ? `Treffer für "${searchQuery}"` : "Gefilterte Produkte"}
                   </h2>
-                  <p className="mt-2 text-sm text-[#AFC1D3]">
+                  <p className="mt-2 text-sm text-[#A89880]">
                     {activeCategory
                       ? `${activeCategory.name} gefiltert, sortiert nach ${sortLabel}.`
                       : `Alle Lebensmittel, sortiert nach ${sortLabel}.`}
                   </p>
                 </div>
                 {!statsLoaded ? (
-                  <span className="text-sm text-[#8CA1B8]">
+                  <span className="text-sm text-[#9A8F83]">
                     Bewertungsdaten werden geladen...
                   </span>
                 ) : null}
@@ -2047,12 +2047,12 @@ export default function HomeContent() {
                   ))}
                 </div>
               ) : discoverFallbackLoading && searchQuery.length >= 2 ? (
-                <div className="rounded-[28px] border border-[#2A394B] bg-[#111925]/90 p-6 text-[#C4D0DE]">
+                <div className="rounded-lg border border-[#2A2A2A] bg-[#1C1C1C]/90 p-6 text-[#C4D0DE]">
                   <p>Wir erweitern deine Suche gerade mit externen Produktdaten...</p>
                 </div>
               ) : openFoodFactsSuggestions.length > 0 ? (
                 <div className="space-y-5">
-                  <div className="rounded-[28px] border border-[#35503D] bg-[linear-gradient(145deg,rgba(18,38,28,0.9),rgba(10,19,16,0.96))] p-6 text-[#D6E2EF]">
+                  <div className="rounded-lg border border-[#5A2E08] bg-[linear-gradient(145deg,rgba(18,38,28,0.9),rgba(10,19,16,0.96))] p-6 text-[#DDD0C4]">
                     <p className="text-sm leading-relaxed">
                       Im eigenen Katalog gibt es noch keine passenden Treffer. Diese Vorschläge
                       kommen über Open Food Facts. Beim Öffnen übernehmen wir das Produkt
@@ -2074,7 +2074,7 @@ export default function HomeContent() {
                   </div>
                 </div>
               ) : (
-                <div className="rounded-[28px] border border-[#2A394B] bg-[#111925]/90 p-6 text-[#C4D0DE]">
+                <div className="rounded-lg border border-[#2A2A2A] bg-[#1C1C1C]/90 p-6 text-[#C4D0DE]">
                   <p>
                     Keine Treffer gefunden. Versuche andere Begriffe wie Pizza, Salami, Vanille,
                     Protein oder wähle eine andere Kategorie.
@@ -2089,13 +2089,13 @@ export default function HomeContent() {
                           from: "suche",
                         },
                       }}
-                      className="inline-flex items-center rounded-full bg-[#5EE287] px-4 py-2 text-sm font-semibold text-[#0C1910] transition-colors hover:bg-[#79F29C]"
+                      className="inline-flex items-center rounded-full bg-[#E8750A] px-4 py-2 text-sm font-semibold text-[#1A0E04] transition-colors hover:bg-[#F5963C]"
                     >
                       Produkt vorschlagen
                     </Link>
                     <Link
                       href="/"
-                      className="inline-flex items-center rounded-full border border-[#2D3A4B] bg-[#141C27] px-4 py-2 text-sm font-semibold text-white transition-colors hover:border-[#5EE287] hover:text-[#D9FFE6]"
+                      className="inline-flex items-center rounded-full border border-[#333333] bg-[#222222] px-4 py-2 text-sm font-semibold text-white transition-colors hover:border-[#E8750A] hover:text-[#FFE4C8]"
                     >
                       Zur Startseite
                     </Link>
@@ -2128,8 +2128,8 @@ export default function HomeContent() {
                       onClick={() => setCommunityTab("feed")}
                       className={`rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
                         communityTab === "feed"
-                          ? "border-[#5EE287] bg-[#173023] text-[#D9FFE6]"
-                          : "border-[#2D3A4B] bg-[#121B27] text-white hover:border-[#5EE287]"
+                          ? "border-[#E8750A] bg-[#291808] text-[#FFE4C8]"
+                          : "border-[#333333] bg-[#1E1E1E] text-white hover:border-[#E8750A]"
                       }`}
                     >
                       Following Feed
@@ -2139,8 +2139,8 @@ export default function HomeContent() {
                       onClick={() => setCommunityTab("top-lists")}
                       className={`rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
                         communityTab === "top-lists"
-                          ? "border-[#5EE287] bg-[#173023] text-[#D9FFE6]"
-                          : "border-[#2D3A4B] bg-[#121B27] text-white hover:border-[#5EE287]"
+                          ? "border-[#E8750A] bg-[#291808] text-[#FFE4C8]"
+                          : "border-[#333333] bg-[#1E1E1E] text-white hover:border-[#E8750A]"
                       }`}
                     >
                       Top-Listen
@@ -2224,7 +2224,7 @@ export default function HomeContent() {
           </>
         )}
 
-        <p className="mt-10 text-center text-xs text-[#8CA1B8]">
+        <p className="mt-10 text-center text-xs text-[#9A8F83]">
           {isDiscoverMode
             ? openFoodFactsSuggestions.length > 0
               ? `${openFoodFactsSuggestions.length} Vorschläge kommen aktuell direkt von Open Food Facts.`
