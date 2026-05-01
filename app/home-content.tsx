@@ -626,15 +626,15 @@ function ProductShelf({
           ))}
         </div>
 
-        <div className="home-shelf-carousel hidden gap-3 overflow-x-auto pb-3 pr-[24px] snap-x snap-proximity sm:flex sm:gap-4 sm:pr-[30px]">
+        <div className="home-shelf-carousel hidden gap-3 overflow-x-auto pb-3 pr-6 snap-x snap-proximity sm:flex sm:gap-4">
           {products.map((product, index) => (
             <div
               key={`${title}-${product.routeSlug}`}
-              className="w-[calc((100%-1rem-1.875rem)/2)] min-w-0 shrink-0 snap-start"
+              className="w-44 min-w-0 shrink-0 snap-start sm:w-48"
             >
               <ProductCard
                 product={product}
-                eager={index < 2}
+                eager={index < 4}
                 variant="shelf"
                 userRating={userRatings?.[product.routeSlug] ?? null}
                 isLoggedIn={isLoggedIn}
@@ -644,7 +644,7 @@ function ProductShelf({
           ))}
         </div>
 
-        <div className="pointer-events-none absolute bottom-3 right-0 top-0 hidden w-16 bg-[linear-gradient(90deg,rgba(11,17,26,0),rgba(11,17,26,0.98)_72%)] sm:block" />
+        <div className="pointer-events-none absolute bottom-3 right-0 top-0 hidden w-16 bg-[linear-gradient(90deg,rgba(20,20,20,0),rgba(20,20,20,0.98)_72%)] sm:block" />
       </div>
     </Panel>
   );
@@ -1369,6 +1369,48 @@ function CategoryPanel() {
         })}
       </div>
     </Panel>
+  );
+}
+
+function CategoryStrip() {
+  return (
+    <div className="mt-5 flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
+      {CATEGORY_NAV_ITEMS.map((category) => {
+        const accent = getCategoryAccent(category.name);
+        return (
+          <Link
+            key={category.slug}
+            href={category.href}
+            className={`flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 ${accent.navCardClass}`}
+          >
+            <span className="text-base leading-none">{category.icon}</span>
+            <span>{category.shortName}</span>
+          </Link>
+        );
+      })}
+    </div>
+  );
+}
+
+function JoinBanner() {
+  return (
+    <div className="rounded-lg border border-[#333333] bg-[#1C1C1C] px-5 py-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="font-semibold text-white">Bau deinen persönlichen Feed</p>
+          <p className="mt-1 text-sm text-[#9A8F83]">
+            Nach dem Login siehst du hier Ratings, Reviews und Listen von Profilen, denen du folgst.
+          </p>
+        </div>
+        <Link
+          href="/api/auth/signin"
+          className="shrink-0 inline-flex items-center gap-2 rounded-full bg-[#E8750A] px-5 py-2.5 text-sm font-semibold text-[#1A0E04] transition-colors hover:bg-[#F5963C]"
+        >
+          Einloggen
+          <FiArrowRight size={15} />
+        </Link>
+      </div>
+    </div>
   );
 }
 
@@ -2119,107 +2161,112 @@ export default function HomeContent() {
               onQuickRate={handleQuickRate}
             />
 
-            <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.8fr)]">
-              <div className="min-w-0 space-y-6">
-                <div className="min-w-0 space-y-3">
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setCommunityTab("feed")}
-                      className={`rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
-                        communityTab === "feed"
-                          ? "border-[#E8750A] bg-[#291808] text-[#FFE4C8]"
-                          : "border-[#333333] bg-[#1E1E1E] text-white hover:border-[#E8750A]"
-                      }`}
-                    >
-                      Following Feed
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setCommunityTab("top-lists")}
-                      className={`rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
-                        communityTab === "top-lists"
-                          ? "border-[#E8750A] bg-[#291808] text-[#FFE4C8]"
-                          : "border-[#333333] bg-[#1E1E1E] text-white hover:border-[#E8750A]"
-                      }`}
-                    >
-                      Top-Listen
-                    </button>
-                  </div>
+            {/* ① Kategorie-Schnellzugriff */}
+            <CategoryStrip />
 
-                  <div className="relative">
-                    <div
-                      className={`transition-all duration-300 ${communityTab === "feed" ? "opacity-100 translate-y-0" : "pointer-events-none absolute inset-0 opacity-0 -translate-y-1"}`}
-                    >
-                      <FeedPanel
-                        feedData={feedData}
-                        feedLoading={feedLoading}
-                        feedError={feedError}
-                      />
+            {/* Community-Feed + Sidebar */}
+            <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(280px,0.65fr)]">
+              <div className="min-w-0">
+                {!feedData.viewerAuthenticated ? (
+                  <JoinBanner />
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setCommunityTab("feed")}
+                        className={`rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
+                          communityTab === "feed"
+                            ? "border-[#E8750A] bg-[#291808] text-[#FFE4C8]"
+                            : "border-[#333333] bg-[#1E1E1E] text-white hover:border-[#E8750A]"
+                        }`}
+                      >
+                        Following Feed
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setCommunityTab("top-lists")}
+                        className={`rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
+                          communityTab === "top-lists"
+                            ? "border-[#E8750A] bg-[#291808] text-[#FFE4C8]"
+                            : "border-[#333333] bg-[#1E1E1E] text-white hover:border-[#E8750A]"
+                        }`}
+                      >
+                        Top-Listen
+                      </button>
                     </div>
-                    <div
-                      className={`transition-all duration-300 ${communityTab === "top-lists" ? "opacity-100 translate-y-0" : "pointer-events-none absolute inset-0 opacity-0 -translate-y-1"}`}
-                    >
-                      <TopListsPanel
-                        topListsData={topListsData}
-                        topListsLoading={topListsLoading}
-                        topListsError={topListsError}
-                      />
+
+                    <div className="relative">
+                      <div
+                        className={`transition-all duration-300 ${communityTab === "feed" ? "opacity-100 translate-y-0" : "pointer-events-none absolute inset-0 opacity-0 -translate-y-1"}`}
+                      >
+                        <FeedPanel
+                          feedData={feedData}
+                          feedLoading={feedLoading}
+                          feedError={feedError}
+                        />
+                      </div>
+                      <div
+                        className={`transition-all duration-300 ${communityTab === "top-lists" ? "opacity-100 translate-y-0" : "pointer-events-none absolute inset-0 opacity-0 -translate-y-1"}`}
+                      >
+                        <TopListsPanel
+                          topListsData={topListsData}
+                          topListsLoading={topListsLoading}
+                          topListsError={topListsError}
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
-
-                <div className="grid min-w-0 gap-6 lg:grid-cols-2">
-                  <ProductShelf
-                    eyebrow="Community Favoriten"
-                    title="Beste Bewertungen der Woche"
-                    description="Produkte mit den stärksten aktuellen Scores und Momentum."
-                    products={sections.bestThisWeek.slice(0, 4)}
-                    actionHref="/?sort=best"
-                    userRatings={userRatings}
-                    isLoggedIn={isLoggedIn}
-                    onQuickRate={handleQuickRate}
-                  />
-                  <ProductShelf
-                    eyebrow="Momentum"
-                    title="Trendet gerade"
-                    description="Das bespricht und bewertet die Community momentan besonders häufig."
-                    products={sections.trending.slice(0, 4)}
-                    actionHref="/?sort=popular"
-                    userRatings={userRatings}
-                    isLoggedIn={isLoggedIn}
-                    onQuickRate={handleQuickRate}
-                  />
-                </div>
-
-                <div className="grid min-w-0 gap-6 lg:grid-cols-2">
-                  <ProductShelf
-                    eyebrow="Neu im Katalog"
-                    title="Frisch hinzugefügt"
-                    description="Neue Lebensmittel, die auf ihre ersten Reviews und Rankings warten."
-                    products={sections.newlyAdded.slice(0, 4)}
-                    actionHref="/?sort=new"
-                    userRatings={userRatings}
-                    isLoggedIn={isLoggedIn}
-                    onQuickRate={handleQuickRate}
-                  />
-                  <ProductShelf
-                    eyebrow="Hall of Fame"
-                    title="Starke Tiefkühlpizzen"
-                    description="Die besten Tiefkühlpizzen, gewählt von der Community."
-                    products={sections.topPizza.slice(0, 4)}
-                    actionHref="/?category=pizza&sort=best"
-                    userRatings={userRatings}
-                    isLoggedIn={isLoggedIn}
-                    onQuickRate={handleQuickRate}
-                  />
-                </div>
+                )}
               </div>
 
               <div className="min-w-0 space-y-6">
                 <NetworkPanel feedData={feedData} />
-                <CategoryPanel />
               </div>
+            </div>
+
+            {/* ① Full-width Product Shelves */}
+            <div className="mt-8 space-y-6">
+              <ProductShelf
+                eyebrow="Community Favoriten"
+                title="Beste Bewertungen der Woche"
+                description="Produkte mit den stärksten aktuellen Scores und Momentum."
+                products={sections.bestThisWeek.slice(0, 8)}
+                actionHref="/?sort=best"
+                userRatings={userRatings}
+                isLoggedIn={isLoggedIn}
+                onQuickRate={handleQuickRate}
+              />
+              <ProductShelf
+                eyebrow="Momentum"
+                title="Trendet gerade"
+                description="Das bespricht und bewertet die Community momentan besonders häufig."
+                products={sections.trending.slice(0, 8)}
+                actionHref="/?sort=popular"
+                userRatings={userRatings}
+                isLoggedIn={isLoggedIn}
+                onQuickRate={handleQuickRate}
+              />
+              <ProductShelf
+                eyebrow="Neu im Katalog"
+                title="Frisch hinzugefügt"
+                description="Neue Lebensmittel, die auf ihre ersten Reviews und Rankings warten."
+                products={sections.newlyAdded.slice(0, 8)}
+                actionHref="/?sort=new"
+                userRatings={userRatings}
+                isLoggedIn={isLoggedIn}
+                onQuickRate={handleQuickRate}
+              />
+              <ProductShelf
+                eyebrow="Hall of Fame"
+                title="Starke Tiefkühlpizzen"
+                description="Die besten Tiefkühlpizzen, gewählt von der Community."
+                products={sections.topPizza.slice(0, 8)}
+                actionHref="/?category=pizza&sort=best"
+                userRatings={userRatings}
+                isLoggedIn={isLoggedIn}
+                onQuickRate={handleQuickRate}
+              />
             </div>
           </>
         )}
