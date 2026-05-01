@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useSession } from "next-auth/react";
 import ReviewLikeButton from "./components/ReviewLikeButton";
 import MiniStars from "./components/MiniStars";
@@ -12,7 +12,11 @@ import {
   FiArrowRight,
   FiBookmark,
   FiCheck,
+  FiChevronLeft,
+  FiChevronRight,
+  FiGrid,
   FiHeart,
+  FiList,
   FiMessageSquare,
   FiStar,
   FiUsers,
@@ -484,7 +488,7 @@ function ProductCard({
         </div>
 
         <div className="px-3 pb-1 pt-12 sm:px-4 sm:pt-14">
-          <div className="relative z-[2] aspect-[1.45] overflow-hidden rounded-md border border-white/6 bg-[#0D1520]">
+          <div className="relative z-[2] aspect-[0.75] overflow-hidden rounded-md border border-white/6 bg-[#141414]">
             <ProductCardImage
               routeSlug={product.routeSlug}
               alt={product.name}
@@ -589,6 +593,32 @@ function ProductShelf({
   isLoggedIn?: boolean;
   onQuickRate?: (slug: string, value: number) => void;
 }) {
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const updateScrollState = useCallback(() => {
+    const el = carouselRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 8);
+    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 8);
+  }, []);
+
+  useEffect(() => {
+    const el = carouselRef.current;
+    if (!el) return;
+    updateScrollState();
+    const observer = new ResizeObserver(updateScrollState);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [updateScrollState, products]);
+
+  function scrollCarousel(direction: "left" | "right") {
+    const el = carouselRef.current;
+    if (!el) return;
+    el.scrollBy({ left: direction === "right" ? el.clientWidth * 0.75 : -(el.clientWidth * 0.75), behavior: "smooth" });
+  }
+
   if (products.length === 0) return null;
 
   return (
@@ -626,7 +656,11 @@ function ProductShelf({
           ))}
         </div>
 
-        <div className="home-shelf-carousel hidden gap-3 overflow-x-auto pb-3 pr-6 snap-x snap-proximity sm:flex sm:gap-4">
+        <div
+          ref={carouselRef}
+          onScroll={updateScrollState}
+          className="home-shelf-carousel hidden gap-3 overflow-x-auto pb-3 pr-6 snap-x snap-proximity sm:flex sm:gap-4"
+        >
           {products.map((product, index) => (
             <div
               key={`${title}-${product.routeSlug}`}
@@ -644,7 +678,31 @@ function ProductShelf({
           ))}
         </div>
 
-        <div className="pointer-events-none absolute bottom-3 right-0 top-0 hidden w-16 bg-[linear-gradient(90deg,rgba(20,20,20,0),rgba(20,20,20,0.98)_72%)] sm:block" />
+        {canScrollLeft && (
+          <div className="pointer-events-none absolute bottom-3 left-0 top-0 hidden w-20 bg-[linear-gradient(90deg,rgba(20,20,20,0.97)_30%,rgba(20,20,20,0))] sm:block" />
+        )}
+        <div className={`pointer-events-none absolute bottom-3 right-0 top-0 hidden w-20 bg-[linear-gradient(90deg,rgba(20,20,20,0),rgba(20,20,20,0.97)_70%)] sm:block transition-opacity ${canScrollRight ? "opacity-100" : "opacity-0"}`} />
+
+        {canScrollLeft && (
+          <button
+            type="button"
+            onClick={() => scrollCarousel("left")}
+            aria-label="Zurück scrollen"
+            className="absolute left-2 top-1/2 z-30 hidden -translate-y-1/2 items-center justify-center rounded-full border border-[#444444] bg-[#242424]/95 p-2 text-white shadow-lg backdrop-blur-sm transition-all hover:bg-[#333333] sm:flex"
+          >
+            <FiChevronLeft size={18} />
+          </button>
+        )}
+        {canScrollRight && (
+          <button
+            type="button"
+            onClick={() => scrollCarousel("right")}
+            aria-label="Weiter scrollen"
+            className="absolute right-2 top-1/2 z-30 hidden -translate-y-1/2 items-center justify-center rounded-full border border-[#444444] bg-[#242424]/95 p-2 text-white shadow-lg backdrop-blur-sm transition-all hover:bg-[#333333] sm:flex"
+          >
+            <FiChevronRight size={18} />
+          </button>
+        )}
       </div>
     </Panel>
   );
@@ -1493,25 +1551,7 @@ function HomeHero({
             </span>
           </div>
 
-          <div className="mt-8 grid gap-3 md:grid-cols-3">
-            <FeatureTile
-              icon={<FiStar size={18} />}
-              title="Bewerten"
-              description="Vergib Sterne und mach aus Produkten echte Community-Scores."
-            />
-            <FeatureTile
-              icon={<FiHeart size={18} />}
-              title="Listen"
-              description="Baue Favoriten und Watchlist wie in einem persönlichen Food-Journal."
-            />
-            <FeatureTile
-              icon={<FiUsers size={18} />}
-              title="Folgen"
-              description="Die Home startet mit Aktivität von Leuten, deren Geschmack du spannend findest."
-            />
-          </div>
-
-          <p className="mt-6 text-sm text-[#9A8F83]">
+          <p className="mt-5 text-sm text-[#9A8F83]">
             {isLoading
               ? "Highlights werden geladen..."
               : hasLiveRatings
@@ -2005,6 +2045,43 @@ export default function HomeContent() {
       .slice(0, 4);
   }, [sections]);
 
+  const unratedSuggestions = useMemo((): RankedProduct[] => {
+    if (!isLoggedIn || !userRatings || Object.keys(userRatings).length === 0) return [];
+
+    const ratedSlugs = new Set(Object.keys(userRatings));
+
+    // Categories the user has already rated
+    const ratedCategories = new Set<string>();
+    for (const slug of ratedSlugs) {
+      const product = mergedCatalogProducts.find((p) => p.routeSlug === slug);
+      if (product?.category) ratedCategories.add(product.category);
+    }
+    if (ratedCategories.size === 0) return [];
+
+    const suggestions: RankedProduct[] = [];
+    for (const product of mergedCatalogProducts) {
+      const slug = product.routeSlug ?? getProductRouteSlug(product);
+      if (ratedSlugs.has(slug)) continue;
+      if (!ratedCategories.has(product.category)) continue;
+      const stats = ratingStats[slug];
+      suggestions.push({
+        name: product.name,
+        category: product.category,
+        routeSlug: slug,
+        imageUrl: getProductImageUrl(product),
+        ratingAvg: stats?.ratingAvg ?? null,
+        ratingCount: stats?.ratingCount ?? 0,
+        weekRatingAvg: null,
+        weekRatingCount: 0,
+      });
+    }
+
+    suggestions.sort((a, b) => (b.ratingAvg ?? -1) - (a.ratingAvg ?? -1));
+    return suggestions.slice(0, 8);
+  }, [isLoggedIn, userRatings, mergedCatalogProducts, ratingStats]);
+
+  const [discoverView, setDiscoverView] = useState<"grid" | "list">("grid");
+
   const sortLabel =
     DISCOVER_SORT_OPTIONS.find((option) => option.value === sortMode)?.label ?? "Beliebt";
   const activeCategory =
@@ -2068,33 +2145,111 @@ export default function HomeContent() {
                       : `Alle Lebensmittel, sortiert nach ${sortLabel}.`}
                   </p>
                 </div>
-                {!statsLoaded ? (
-                  <span className="text-sm text-[#9A8F83]">
-                    Bewertungsdaten werden geladen...
-                  </span>
-                ) : null}
+                <div className="flex items-center gap-3">
+                  {!statsLoaded && (
+                    <span className="text-sm text-[#9A8F83]">Lade Bewertungsdaten...</span>
+                  )}
+                  <div className="flex rounded-lg border border-[#333333] bg-[#1C1C1C] p-0.5">
+                    <button
+                      type="button"
+                      onClick={() => setDiscoverView("grid")}
+                      title="Kachelansicht"
+                      className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-semibold transition-colors ${
+                        discoverView === "grid"
+                          ? "bg-[#333333] text-white"
+                          : "text-[#9A8F83] hover:text-white"
+                      }`}
+                    >
+                      <FiGrid size={15} />
+                      <span className="hidden sm:inline">Kacheln</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDiscoverView("list")}
+                      title="Listenansicht"
+                      className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-semibold transition-colors ${
+                        discoverView === "list"
+                          ? "bg-[#333333] text-white"
+                          : "text-[#9A8F83] hover:text-white"
+                      }`}
+                    >
+                      <FiList size={15} />
+                      <span className="hidden sm:inline">Liste</span>
+                    </button>
+                  </div>
+                </div>
               </div>
 
               {displayedBrowseProducts.length > 0 ? (
-                <div className="grid grid-cols-1 gap-4 min-[380px]:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
-                  {displayedBrowseProducts.map((product, index) => (
-                    <ProductCard
-                      key={`browse-${product.routeSlug}`}
-                      product={product}
-                      eager={index < 4}
-                      userRating={userRatings?.[product.routeSlug] ?? null}
-                      isLoggedIn={isLoggedIn}
-                      onQuickRate={handleQuickRate}
-                    />
-                  ))}
-                </div>
+                discoverView === "grid" ? (
+                  <div className="grid grid-cols-1 gap-4 min-[380px]:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+                    {displayedBrowseProducts.map((product, index) => (
+                      <ProductCard
+                        key={`browse-${product.routeSlug}`}
+                        product={product}
+                        eager={index < 4}
+                        userRating={userRatings?.[product.routeSlug] ?? null}
+                        isLoggedIn={isLoggedIn}
+                        onQuickRate={handleQuickRate}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <ul className="space-y-2">
+                    {displayedBrowseProducts.map((product, index) => {
+                      const accent = getCategoryAccent(product.category);
+                      const rated = userRatings?.[product.routeSlug] ?? null;
+                      return (
+                        <li key={`list-${product.routeSlug}`} className="flex items-center gap-3 rounded-lg border border-[#2A2A2A] bg-[#1C1C1C] px-4 py-3 transition-colors hover:border-[#333333]">
+                          <span className="w-7 shrink-0 text-center text-sm font-bold tabular-nums text-[#9A8F83]">
+                            {index + 1}
+                          </span>
+                          <Link href={`/produkt/${product.routeSlug}`} className="shrink-0">
+                            <div className="relative h-14 w-11 overflow-hidden rounded-md border border-[#333333] bg-[#141414]">
+                              <ProductCardImage
+                                routeSlug={product.routeSlug}
+                                alt={product.name}
+                                fallbackSrc={product.imageUrl}
+                                className="h-full w-full object-contain p-1"
+                              />
+                            </div>
+                          </Link>
+                          <div className="min-w-0 flex-1">
+                            <Link
+                              href={`/produkt/${product.routeSlug}`}
+                              className="line-clamp-1 font-semibold text-white transition-colors hover:text-[#F5963C]"
+                            >
+                              {product.name}
+                            </Link>
+                            <span className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold ${accent.subtleBadgeClass}`}>
+                              {product.category}
+                            </span>
+                          </div>
+                          <div className="shrink-0 text-right">
+                            {product.ratingAvg !== null ? (
+                              <MiniStars rating={product.ratingAvg} count={product.ratingCount > 0 ? product.ratingCount : undefined} size="xs" />
+                            ) : (
+                              <span className="text-xs text-[#9A8F83]">Kein Score</span>
+                            )}
+                            {rated !== null && (
+                              <div className="mt-1 flex items-center justify-end gap-1 text-[11px] font-semibold text-[#F5963C]">
+                                <FiCheck size={10} />
+                                {rated.toFixed(1)} ★
+                              </div>
+                            )}
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )
               ) : discoverFallbackLoading && searchQuery.length >= 2 ? (
                 <div className="rounded-lg border border-[#2A2A2A] bg-[#1C1C1C]/90 p-6 text-[#C4D0DE]">
                   <p>Wir erweitern deine Suche gerade mit externen Produktdaten...</p>
                 </div>
               ) : openFoodFactsSuggestions.length > 0 ? (
                 <div className="space-y-5">
-                  <div className="rounded-lg border border-[#5A2E08] bg-[linear-gradient(145deg,rgba(18,38,28,0.9),rgba(10,19,16,0.96))] p-6 text-[#DDD0C4]">
+                  <div className="rounded-lg border border-[#5A2E08] bg-[#1E1E1E] p-5 text-[#DDD0C4]">
                     <p className="text-sm leading-relaxed">
                       Im eigenen Katalog gibt es noch keine passenden Treffer. Diese Vorschläge
                       kommen über Open Food Facts. Beim Öffnen übernehmen wir das Produkt
@@ -2267,6 +2422,17 @@ export default function HomeContent() {
                 isLoggedIn={isLoggedIn}
                 onQuickRate={handleQuickRate}
               />
+              {unratedSuggestions.length > 0 && (
+                <ProductShelf
+                  eyebrow="Für dich"
+                  title="Noch nicht bewertet"
+                  description="Produkte aus deinen Kategorien, die du noch nicht bewertet hast — mit den höchsten Community-Scores zuerst."
+                  products={unratedSuggestions}
+                  userRatings={userRatings}
+                  isLoggedIn={isLoggedIn}
+                  onQuickRate={handleQuickRate}
+                />
+              )}
             </div>
           </>
         )}
