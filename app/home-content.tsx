@@ -408,15 +408,11 @@ function ProductCard({
   }
 
   return (
-    <div
-      className={`group relative aspect-[0.8] overflow-hidden rounded-[24px] border border-[#2D3A4B] bg-[#131B26] shadow-[0_14px_34px_rgba(0,0,0,0.3)] transition-all duration-300 hover:-translate-y-1.5 sm:aspect-[0.72] ${categoryAccent.cardClass} ${className}`}
+    <Link
+      href={`/produkt/${product.routeSlug}`}
+      aria-label={`${product.name} öffnen`}
+      className={`group relative block aspect-[0.8] overflow-hidden rounded-[24px] border border-[#2D3A4B] bg-[#131B26] shadow-[0_14px_34px_rgba(0,0,0,0.3)] transition-all duration-300 hover:-translate-y-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8AF5AC] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0F151E] sm:aspect-[0.72] ${categoryAccent.cardClass} ${className}`}
     >
-      <Link
-        href={`/produkt/${product.routeSlug}`}
-        aria-label={`${product.name} öffnen`}
-        className="absolute inset-0 z-10 rounded-[24px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8AF5AC] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0F151E]"
-      />
-
       <div className={`absolute inset-x-0 top-0 z-[1] h-1 ${categoryAccent.accentBarClass}`} />
 
       <ProductCardImage
@@ -436,7 +432,7 @@ function ProductCard({
         {product.category}
       </div>
 
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 p-2.5 sm:p-4">
+      <div className="absolute inset-x-0 bottom-0 p-2.5 sm:p-4">
         <h3 className="line-clamp-2 text-[12px] font-semibold leading-[1.2] text-white sm:text-[15px] lg:text-base">
           {product.name}
         </h3>
@@ -446,7 +442,7 @@ function ProductCard({
           </p>
         ) : null}
       </div>
-    </div>
+    </Link>
   );
 }
 

@@ -343,6 +343,9 @@ export default function MobileBarcodeScanner({
         const json = (await response.json()) as BarcodeLookupResponse;
 
         if (json.success && json.found) {
+          if (typeof navigator !== "undefined" && navigator.vibrate) {
+            navigator.vibrate([80, 40, 120]);
+          }
           router.push(`/produkt/${encodeURIComponent(json.routeSlug)}`);
           return;
         }
@@ -604,43 +607,71 @@ export default function MobileBarcodeScanner({
   const scannerModal =
     isOpen && typeof document !== "undefined"
       ? createPortal(
-          <div className="fixed inset-0 z-[160] flex items-center justify-center bg-[#070C12]/88 px-4 backdrop-blur-sm">
+          <div className="fixed inset-0 z-[160] flex items-center justify-center bg-[#070C12]/92 px-4 backdrop-blur-sm">
             <div
               role="dialog"
               aria-modal="true"
               aria-label="Barcode scannen"
-              className="w-full max-w-[420px] rounded-[32px] border border-[#2D3A4B] bg-[linear-gradient(145deg,rgba(18,26,38,0.98),rgba(9,14,21,0.98))] p-5 shadow-[0_28px_70px_rgba(0,0,0,0.45)]"
+              className="w-full max-w-[400px] rounded-[32px] border border-[#2D3A4B] bg-[linear-gradient(145deg,rgba(14,20,30,0.99),rgba(8,12,18,0.99))] p-5 shadow-[0_32px_80px_rgba(0,0,0,0.55)]"
             >
-              <div className="text-center">
-                <p className="text-[11px] uppercase tracking-[0.24em] text-[#9CC9AE]">
-                  Barcode Scanner
-                </p>
-                <p className="mt-3 text-sm leading-relaxed text-[#D6E2EF]">
-                  Halte die Kamera auf den Barcode der Verpackung
-                </p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.28em] text-[#5EE287]">
+                    Scanner aktiv
+                  </p>
+                  <p className="mt-1 text-base font-semibold text-white">
+                    Barcode scannen
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={closeScanner}
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#2D3A4B] bg-[#121B27] text-[#8CA1B8] transition-colors hover:border-[#5EE287] hover:text-white"
+                  aria-label="Scanner schließen"
+                >
+                  <FiX size={16} />
+                </button>
               </div>
 
-              <div className="relative mx-auto mt-5 aspect-square w-full max-w-[320px] overflow-hidden rounded-[28px] border border-[#2D3A4B] bg-[#0B1118]">
+              <div className="relative mx-auto mt-4 aspect-square w-full max-w-[300px] overflow-hidden rounded-[24px] bg-[#070C12]">
                 <div id={scannerElementId} className="h-full w-full" />
-                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_48%,rgba(0,0,0,0.28)_100%)]" />
-                <div className="pointer-events-none absolute inset-[14%] rounded-[26px] border-2 border-[#F24848] shadow-[0_0_0_1px_rgba(242,72,72,0.24),0_0_28px_rgba(242,72,72,0.18)]" />
+
+                {/* Darkened outer area */}
+                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_68%_68%_at_50%_50%,transparent_0%,rgba(0,0,0,0.55)_100%)]" />
+
+                {/* Corner brackets */}
+                <div className="pointer-events-none absolute left-[14%] top-[14%] h-7 w-7 rounded-tl-[6px] border-l-[3px] border-t-[3px] border-[#5EE287]" />
+                <div className="pointer-events-none absolute right-[14%] top-[14%] h-7 w-7 rounded-tr-[6px] border-r-[3px] border-t-[3px] border-[#5EE287]" />
+                <div className="pointer-events-none absolute bottom-[14%] left-[14%] h-7 w-7 rounded-bl-[6px] border-b-[3px] border-l-[3px] border-[#5EE287]" />
+                <div className="pointer-events-none absolute bottom-[14%] right-[14%] h-7 w-7 rounded-br-[6px] border-b-[3px] border-r-[3px] border-[#5EE287]" />
+
+                {/* Animated scan beam */}
+                {!isPreparing && !isStartingScanner ? (
+                  <div
+                    className="pointer-events-none absolute left-[16%] right-[16%] h-px"
+                    style={{
+                      background:
+                        "linear-gradient(90deg, transparent, rgba(94,226,135,0.9) 30%, rgba(94,226,135,1) 50%, rgba(94,226,135,0.9) 70%, transparent)",
+                      boxShadow: "0 0 8px 2px rgba(94,226,135,0.35)",
+                      animation: "scanner-beam 2.2s ease-in-out infinite",
+                    }}
+                  />
+                ) : null}
+
+                {/* Loading overlay */}
                 {isPreparing || isStartingScanner ? (
-                  <div className="absolute inset-0 flex items-center justify-center bg-[#0B1118]/70 text-sm text-[#D6E2EF]">
-                    <span className="inline-flex items-center gap-2 rounded-full border border-[#2D3A4B] bg-[#111925] px-4 py-2">
-                      <FiLoader className="animate-spin" size={16} />
+                  <div className="absolute inset-0 flex items-center justify-center bg-[#070C12]/80">
+                    <span className="inline-flex items-center gap-2.5 rounded-2xl border border-[#2D3A4B] bg-[#0F1822] px-4 py-2.5 text-sm text-[#D6E2EF]">
+                      <FiLoader className="animate-spin text-[#5EE287]" size={15} />
                       Kamera startet...
                     </span>
                   </div>
                 ) : null}
               </div>
 
-              <button
-                type="button"
-                onClick={closeScanner}
-                className="mt-5 inline-flex w-full items-center justify-center rounded-2xl border border-[#2D3A4B] bg-[#141C27] px-4 py-3 text-sm font-semibold text-white transition-colors hover:border-[#5EE287] hover:text-[#D9FFE6]"
-              >
-                Abbrechen
-              </button>
+              <p className="mt-3 text-center text-xs leading-relaxed text-[#7A92A8]">
+                Halte die Kamera auf den Barcode der Verpackung
+              </p>
             </div>
           </div>,
           document.body

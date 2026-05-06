@@ -53,3 +53,17 @@ body {
 .home-shelf-carousel::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(90deg, rgba(117, 243, 155, 0.9), rgba(207, 255, 224, 0.84));
 }
+
+@keyframes scanner-beam {
+  0% { top: 16%; opacity: 0.9; }
+  48% { opacity: 1; }
+  50% { top: 82%; opacity: 0.9; }
+  98% { opacity: 1; }
+  100% { top: 16%; opacity: 0.9; }
+}
+
+@keyframes scanner-success-flash {
+  0% { opacity: 0; }
+  30% { opacity: 1; }
+  100% { opacity: 0; }
+}
